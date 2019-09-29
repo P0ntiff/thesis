@@ -1,0 +1,4 @@
+Sourced from: 
+
+"Validation bounding box annotations (all tasks)"
+http://www.image-net.org/challenges/LSVRC/2012/nonpub-downloads
