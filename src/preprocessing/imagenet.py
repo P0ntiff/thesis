@@ -59,11 +59,11 @@ def getDetectionMappings():
 
 
 
-labelMap = getClassificationMappings()
-objMap = getDetectionMappings()
+# labelMap = getClassificationMappings()
+# objMap = getDetectionMappings()
 
 
 # check on what classes are only in the object detection data
-for k, v in objMap.items():
-    if k not in labelMap:
-        print('{} {}'.format(k , v))
+# for k, v in objMap.items():
+#     if k not in labelMap:
+#        print('{} {}'.format(k , v))

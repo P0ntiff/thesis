@@ -1,3 +1,5 @@
+import os
+
 # pretrained models
 from keras.applications import InceptionV3
 from keras.applications import Xception
@@ -15,7 +17,12 @@ import numpy as np
 import logging
 logging.basicConfig(level=logging.INFO)
 
-#import tensorflow as tf
+
+# suppress output 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
+import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 #import matplotlib.pyplot as plt
 #from nets import inception
 
@@ -25,6 +32,8 @@ MODELS = {
     "xception": Xception,
     "resnet": ResNet50
 }
+
+IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
 
 
 def predict(modelName, imagePath):
@@ -38,7 +47,7 @@ def predict(modelName, imagePath):
     model = Network(weights='imagenet')
 
     # load image
-    logging.info('Preprocessing image...')
+    logging.info('Preprocessing image "..{}"...'.format(imagePath[-13:]))
     img = load_img(imagePath, target_size=imageSize)
     img = img_to_array(img)
     # reshape to 4D tensor (batchsize, height, width, channels)
@@ -57,11 +66,12 @@ def predict(modelName, imagePath):
     # print the top 5 predictions, labels and probabilities
     for (i, (imgnetID, label, p)) in enumerate(decodedPredictions[0]):
         print('{}: {}m {}, probability={:.2f}'.format(i + 1, imgnetID, label, p))
-
-    print(decodedPredictions[0])
+    print('')
     return decodedPredictions[0]
 
 
+# predict('vgg16', IMG_BASE_PATH + '08.JPEG')
+# predict('vgg16', IMG_BASE_PATH + '09.JPEG')
 
-#predict('vgg16', 'data/ILSVRC2012_val_00000022.JPEG')
-
+# predict('resnet', IMG_BASE_PATH + '08.JPEG')
+# predict('resnet', IMG_BASE_PATH + '09.JPEG')
