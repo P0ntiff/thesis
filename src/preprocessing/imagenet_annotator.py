@@ -4,13 +4,13 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-import imagenet as imgnet
+from imagenet import getClassificationMappings
 
 IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
 XML_BASE_PATH = 'data/imagenet_bb_subset/ILSVRC2012_val_000000'
 OUTPUT_BASE_PATH = 'data/imagenet_annotated_subset/'
 
-CLASS_MAP = imgnet.getClassificationMappings()
+CLASS_MAP = getClassificationMappings()
 
 
 def getImagenetBoxes(xmlPath):

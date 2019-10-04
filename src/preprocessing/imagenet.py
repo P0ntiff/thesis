@@ -20,10 +20,12 @@ def getClassificationClasses():
             return json.load(f)
     classesJSON = requests.get(
         'https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json')
+
     # cache
     with open(IMAGENET_CLASSES_OUTPUT, 'w') as f:
         f.write(classesJSON.text)
     return classesJSON.json()
+
 
 # Gets the 200 imagenet labels for the object detection task
 def getObjectDetectionClasses():
