@@ -61,6 +61,8 @@ drawAnnotation(IMG_BASE_PATH + '14.JPEG',
                XML_BASE_PATH + '14.xml', saveToFile=True)
 drawAnnotation(IMG_BASE_PATH + '15.JPEG',
                XML_BASE_PATH + '15.xml', saveToFile=True)
+
+
 #drawAnnotation(IMG_BASE_PATH + '10.JPEG', XML_BASE_PATH + '10.xml', saveToFile=True)
 #drawAnnotation(IMG_BASE_PATH + '11.JPEG', XML_BASE_PATH + '11.xml', saveToFile=True)
 #drawAnnotation(IMG_BASE_PATH + '12.JPEG', XML_BASE_PATH + '12.xml', saveToFile=True)

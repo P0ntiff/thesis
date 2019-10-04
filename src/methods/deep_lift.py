@@ -17,6 +17,11 @@ import numpy as np
 # high level wrapper for DeepLIFT
 # TODO: replace with direct implementation
 import tensorflow as tf
+
+
+from shap.plots.colors import red_transparent_blue
+
+
 # suppress output
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -30,7 +35,7 @@ preprocess = getPreprocessForModel('vgg16')
 model = innvestigate.utils.model_wo_softmax(model)
 
 imgSize = (224, 224)
-img = load_img('data/imagenet_val_subset/ILSVRC2012_val_00000015.JPEG', target_size=imgSize)
+img = load_img('data/imagenet_val_subset/ILSVRC2012_val_00000003.JPEG', target_size=imgSize)
 img = img_to_array(img)
 img = np.expand_dims(img, axis=0)
 img = preprocess(img)
@@ -43,6 +48,6 @@ a = analyser.analyze(img)
 a = a.sum(axis=np.argmax(np.asarray(a.shape) == 3))
 a /= np.max(np.abs(a))
 # Plot
-plt.imshow(a[0], cmap="seismic", clim=(-1, 1))
+plt.imshow(a[0], cmap="red_transparent_blue", clim=(-1, 1))
 
 plt.show()
