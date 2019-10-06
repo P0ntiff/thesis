@@ -24,6 +24,8 @@ from tensorflow.python.framework import ops
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
+IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
+
 
 # Define model here ---------------------------------------------------
 def build_model():
@@ -155,7 +157,8 @@ def grad_cam_batch(input_model, images, classes, layer_name):
     return new_cams
 
 
-def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', cls=-1, visualize=True, save=True):
+def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', cls=-1, 
+    visualize=True, save=True, output_img_path=''):
     """Compute saliency using all three approaches.
         -layer_name: layer to compute gradients;
         -cls: class number to localize (-1 for most probable class).
@@ -179,12 +182,17 @@ def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', c
     guided_gradcam = gb * gradcam[..., np.newaxis]
 
     if save:
-        jetcam = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
-        jetcam = (np.float32(jetcam) + load_image(img_path, preprocess=False)) / 2
-        cv2.imwrite('gradcam.jpg', np.uint8(jetcam))
-        cv2.imwrite('guided_backprop.jpg', deprocess_image(gb[0]))
-        cv2.imwrite('guided_gradcam.jpg', deprocess_image(guided_gradcam[0]))
-    
+        #jetcam = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
+        #jetcam = (np.float32(jetcam) + load_image(img_path, preprocess=False)) / 2
+        #cv2.imwrite(output_img_path + 'gc.png', np.uint8(jetcam))
+        #cv2.imwrite('guided_backprop.jpg', deprocess_image(gb[0]))
+        #cv2.imwrite(output_img_path + 'ggc.png', deprocess_image(guided_gradcam[0]))
+        plt.imshow(load_image(img_path, preprocess=False))
+        plt.imshow(gradcam, cmap='jet', alpha=0.5)
+        plt.savefig(output_img_path)
+        # TODO: include guided gradCAM for class disciminative look
+        plt.cla()
+
     if visualize:
         plt.figure(figsize=(15, 10))
         plt.subplot(131)
@@ -206,8 +214,28 @@ def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', c
         
     return gradcam, gb, guided_gradcam
 
-if __name__ == '__main__':
-    model = build_model()
-    guided_model = build_guided_model()
-    gradcam, gb, guided_gradcam = compute_saliency(model, guided_model, layer_name='block5_conv3',
-                                             img_path=sys.argv[1], cls=-1, visualize=True, save=True)
+
+# if __name__ == '__main__':
+#     model = build_model()
+#     guided_model = build_guided_model()
+#     gradcam, gb, guided_gradcam = compute_saliency(model, guided_model, layer_name='block5_conv3',
+#                                              img_path=sys.argv[1], cls=-1, visualize=True, save=True)
+
+#MODELS = {
+#    "vgg16": VGG16,
+#    "inception": InceptionV3
+#}
+#model = MODELS[modelName](weights='imagenet')
+modelName = 'vgg16'
+model = build_model()
+guidedModel = build_guided_model()
+
+def attribute(modelName, model, guidedModel, imgPath, outputImgPath):
+    gradcam, gb, guided_gradcam = compute_saliency(model, guidedModel, layer_name='block5_conv3',
+                                             img_path=imgPath, cls=-1, visualize=False, save=True, output_img_path=outputImgPath)
+
+for i in range(1, 16):
+    image = str(i)
+    if i < 10:
+        image = '0' + image
+    attribute(modelName, model, guidedModel, IMG_BASE_PATH + image + '.JPEG', 'results/gradcam/gradcam_' + image)

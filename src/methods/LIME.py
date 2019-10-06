@@ -57,7 +57,7 @@ def deprocess_image(x):
     return x
 
 
-def attribute(modelName, imgPath, outputImgPath):
+def attribute(modelName, model, imgPath, outputImgPath):
     preprocess = getPreprocessForModel(modelName)
     imgSize = (224, 224)
 
@@ -67,13 +67,6 @@ def attribute(modelName, imgPath, outputImgPath):
     img = img_to_array(img)
     expandedImg = np.expand_dims(img, axis=0)
     processedImg = preprocess(expandedImg)
-
-    model = MODELS[modelName](weights='imagenet')
-    
-    predictions = model.predict(processedImg)
-
-    for x in decode_predictions(predictions)[0]:
-        print(x)
 
     explainer = lime_image.LimeImageExplainer()
 
@@ -88,13 +81,16 @@ def attribute(modelName, imgPath, outputImgPath):
     #im = axes[row,i+1].imshow(sv, cmap=colors.red_transparent_blue, vmin=-max_val, vmax=max_val)
 
     # for inception, remember to / 2 and + 0.5
-    plt.imshow(mark_boundaries(np.flip(deprocess_image(temp), -1), mask))
+    plt.imshow(mark_boundaries(deprocess_image(temp), mask))
     plt.savefig(outputImgPath)
-    plt.show()
+    #plt.show()
 
+
+modelName = 'vgg16'
+model = MODELS[modelName](weights='imagenet')
 
 for i in range(1, 16):
     image = str(i)
     if i < 10:
         image = '0' + image
-attribute('vgg16', IMG_BASE_PATH + image + '.JPEG', 'results/lime/lime_' + image + '.png')
+    attribute(modelName, model, IMG_BASE_PATH + image + '.JPEG', 'results/lime/lime_' + image + '.png')

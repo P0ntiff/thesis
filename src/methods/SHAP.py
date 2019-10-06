@@ -2,26 +2,26 @@ import sys
 sys.path.append('src/')
 import os
 
-from keras.applications.vgg16 import VGG16
-from keras.applications.vgg16 import preprocess_input
+from keras.applications import VGG16
+from keras.applications import InceptionV3
 import keras.backend as K
 import numpy as np
 import json
+import matplotlib.pyplot as plt
 
 # helper functions
 from keras.applications.imagenet_utils import decode_predictions
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
+
 from preprocessing.keras_util import getPreprocessForModel
 from preprocessing.imagenet import getClassificationClasses
 
 import shap
-from methods.visualiser import modified_SHAP_plot
+from shap.plots.colors import red_transparent_blue
 
 
 RAW_CLASSES = getClassificationClasses()
-
-
 IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
 
 
@@ -78,9 +78,10 @@ def image_plot(shap_values, x, labels=None, show=True, width=20, aspect=0.2, hsp
                 axes[row,i+1].set_title(labels[row,i], **label_kwargs)
             sv = shap_values[i][row] if len(shap_values[i][row].shape) == 2 else shap_values[i][row].sum(-1)
             axes[row,i+1].imshow(x_curr_gray, cmap=plt.get_cmap('gray'), alpha=0.15, extent=(-1, sv.shape[0], sv.shape[1], -1))
-            im = axes[row,i+1].imshow(sv, cmap=colors.red_transparent_blue, vmin=-max_val, vmax=max_val)
+            im = axes[row,i+1].imshow(sv, cmap=red_transparent_blue, vmin=-max_val, vmax=max_val)
+            # quick workaround to get subplot as export
             extent = axes[row,i+1].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-            fig.savefig('test_subplot_shap.png', bbox_inches=extent)
+            fig.savefig(output_img_path, bbox_inches=extent.expanded(1.3, 1))
             axes[row,i+1].axis('off')
     if hspace == 'auto':
         fig.tight_layout()
@@ -88,67 +89,65 @@ def image_plot(shap_values, x, labels=None, show=True, width=20, aspect=0.2, hsp
         fig.subplots_adjust(hspace=hspace)
     cb = fig.colorbar(im, ax=np.ravel(axes).tolist(), label="SHAP value", orientation="horizontal", aspect=fig_size[0]/aspect)
     cb.outline.set_visible(False)
-    if show:
-        plt.show()
+    #if show:
+    #    plt.show()
 
 
 
 
+def attribute(modelName, model, imgPath, outputImgPath):
+    preprocess = getPreprocessForModel(modelName)
 
 
+    imgSize = (224, 224)
+    if modelName == 'inception' or modelName == 'xception':
+        imgSize = (299, 299)
+
+    inputImage = load_img(imgPath, target_size=imgSize)
+    inputImage = img_to_array(inputImage)
+    expandedImg = np.expand_dims(inputImage, axis=0)
+    processedImg = preprocess(inputImage)
+    
+    backgroundData, Y = shap.datasets.imagenet50()
+
+    # explain how the input to the 7th layer of the model explains the top two classes
+    def map2layer(x, layer):
+        feed_dict = dict(zip([model.layers[0].input], [preprocess(x.copy())]))
+        return K.get_session().run(model.layers[layer].input, feed_dict)
+
+    # combines expectation with sampling values from whole background data set
+    e = shap.GradientExplainer(
+        (model.layers[7].input, model.layers[-1].output),
+        map2layer(backgroundData, 7),
+        local_smoothing=0 # std dev of smoothing noise
+    )
+
+    # get outputs for top prediction count "ranked_outputs"
+    shap_values, indexes = e.shap_values(map2layer(expandedImg, 7), ranked_outputs=1)
+
+    # get the names for the classes
+    #index_names = np.vectorize(lambda x: class_names[str(x)][1])(indexes)
+
+    # using the top indexes (i.e out of 1:1000)
+    imgLabels = np.vectorize(lambda x: RAW_CLASSES[str(x)][1])(indexes)
+
+    # plot the explanations
+    image_plot(shap_values, expandedImg, imgLabels, output_img_path=outputImgPath)
+
+    #modified_SHAP_plot(shap_values, inputImage, imgLabels)
 
 
+MODELS = {
+    "vgg16": VGG16,
+    "inception": InceptionV3
+}
+
+modelName = 'vgg16'
+model = MODELS[modelName](weights='imagenet')
 
 
-
-
-
-
-
-preprocess = getPreprocessForModel('vgg16')
-
-backgroundData, Y = shap.datasets.imagenet50()
-
-imgSize = (224, 224)
-inputImagePath = 'data/imagenet_val_subset/ILSVRC2012_val_00000003.JPEG'
-inputImage = load_img(inputImagePath, target_size=imgSize)
-inputImage = img_to_array(inputImage)
-inputImage = np.expand_dims(inputImage, axis=0)
-img = preprocess(inputImage)
-
-
-model = VGG16(weights='imagenet', include_top=True)
-
-
-
-
-
-
-# explain how the input to the 7th layer of the model explains the top two classes
-def map2layer(x, layer):
-    feed_dict = dict(zip([model.layers[0].input], [preprocess(x.copy())]))
-    return K.get_session().run(model.layers[layer].input, feed_dict)
-
-# combines expectation with sampling values from whole background data set
-e = shap.GradientExplainer(
-    (model.layers[7].input, model.layers[-1].output),
-    map2layer(backgroundData, 7),
-    local_smoothing=0 # std dev of smoothing noise
-)
-
-# get outputs for top prediction count "ranked_outputs"
-shap_values, indexes = e.shap_values(map2layer(inputImage, 7), ranked_outputs=1)
-
-# get the names for the classes
-#index_names = np.vectorize(lambda x: class_names[str(x)][1])(indexes)
-
-# using the top indexes (i.e 1:1000)
-imgLabels = np.vectorize(lambda x: RAW_CLASSES[str(x)][1])(indexes)
-
-# plot the explanations
-shap.image_plot(shap_values, inputImage, imgLabels)
-
-#modified_SHAP_plot(shap_values, inputImage, imgLabels)
-
-
-
+for i in range(1, 16):
+    image = str(i)
+    if i < 10:
+        image = '0' + image
+    attribute(modelName, model, IMG_BASE_PATH + image + '.JPEG', 'results/shap/shap_' + image + '.png')
