@@ -9,6 +9,7 @@ from keras.applications import VGG16
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 from keras.applications.imagenet_utils import decode_predictions
+
 from skimage.io import imread
 import matplotlib.pyplot as plt
 import numpy as np
