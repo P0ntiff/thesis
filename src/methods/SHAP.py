@@ -81,7 +81,7 @@ def image_plot(shap_values, x, labels=None, show=True, width=20, aspect=0.2, hsp
             im = axes[row,i+1].imshow(sv, cmap=red_transparent_blue, vmin=-max_val, vmax=max_val)
             # quick workaround to get subplot as export
             extent = axes[row,i+1].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-            fig.savefig(output_img_path, bbox_inches=extent.expanded(1.3, 1))
+            #fig.savefig(output_img_path, bbox_inches=extent.expanded(1.3, 1))
             axes[row,i+1].axis('off')
     if hspace == 'auto':
         fig.tight_layout()
@@ -89,13 +89,13 @@ def image_plot(shap_values, x, labels=None, show=True, width=20, aspect=0.2, hsp
         fig.subplots_adjust(hspace=hspace)
     cb = fig.colorbar(im, ax=np.ravel(axes).tolist(), label="SHAP value", orientation="horizontal", aspect=fig_size[0]/aspect)
     cb.outline.set_visible(False)
-    #if show:
-    #    plt.show()
+    if show:
+        plt.show()
 
 
 
 
-def attribute(modelName, model, imgPath, outputImgPath):
+def attribute(modelName, model, layerN, imgPath, outputImgPath):
     preprocess = getPreprocessForModel(modelName)
 
 
@@ -110,20 +110,20 @@ def attribute(modelName, model, imgPath, outputImgPath):
     
     backgroundData, Y = shap.datasets.imagenet50()
 
-    # explain how the input to the 7th layer of the model explains the top two classes
+    # explain how the input to a layer of the model explains the top class
     def map2layer(x, layer):
         feed_dict = dict(zip([model.layers[0].input], [preprocess(x.copy())]))
         return K.get_session().run(model.layers[layer].input, feed_dict)
 
     # combines expectation with sampling values from whole background data set
     e = shap.GradientExplainer(
-        (model.layers[7].input, model.layers[-1].output),
-        map2layer(backgroundData, 7),
+        (model.layers[layerN].input, model.layers[-1].output),
+        map2layer(backgroundData, layerN),
         local_smoothing=0 # std dev of smoothing noise
     )
 
     # get outputs for top prediction count "ranked_outputs"
-    shap_values, indexes = e.shap_values(map2layer(expandedImg, 7), ranked_outputs=1)
+    shap_values, indexes = e.shap_values(map2layer(expandedImg, layerN), ranked_outputs=1)
 
     # get the names for the classes
     #index_names = np.vectorize(lambda x: class_names[str(x)][1])(indexes)
@@ -150,4 +150,4 @@ for i in range(1, 16):
     image = str(i)
     if i < 10:
         image = '0' + image
-    attribute(modelName, model, IMG_BASE_PATH + image + '.JPEG', 'results/shap/shap_' + image + '.png')
+    attribute(modelName, model, 7, IMG_BASE_PATH + image + '.JPEG', 'results/shap/shap_' + image + '.png')
