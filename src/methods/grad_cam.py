@@ -4,8 +4,6 @@
 # Refinement and adaption of this original here
 # https://github.com/jacobgil/keras-grad-cam
 
-import sys
-sys.path.append('src/')
 import os
 import numpy as np
 import cv2
@@ -15,16 +13,20 @@ from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 from keras.applications import VGG16
 from keras.applications.imagenet_utils import decode_predictions
-from preprocessing.keras_util import getPreprocessForModel
 
-import keras
 import tensorflow as tf
 from tensorflow.python.framework import ops
+
+from ..preprocessing.keras_util import get_preprocess_for_model
+
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
+
+H, W = 224, 224 # Input shape, defined by the model (model.input_shape)
+# ---------------------------------------------------------------------
 
 
 # Define model here ---------------------------------------------------
@@ -38,8 +40,6 @@ def build_model():
     """
     return VGG16(include_top=True, weights='imagenet')
 
-H, W = 224, 224 # Input shape, defined by the model (model.input_shape)
-# ---------------------------------------------------------------------
 
 def load_image(path, preprocess=True):
     """Load and preprocess image."""
@@ -47,7 +47,7 @@ def load_image(path, preprocess=True):
     if preprocess:
         x = img_to_array(x)
         x = np.expand_dims(x, axis=0)
-        preprocess_input = getPreprocessForModel('vgg16')
+        preprocess_input = get_preprocess_for_model('vgg16')
         x = preprocess_input(x)
     return x
 
@@ -132,7 +132,8 @@ def grad_cam(input_model, image, cls, layer_name):
     if cam_max != 0: 
         cam = cam / cam_max
     return cam
-    
+
+
 def grad_cam_batch(input_model, images, classes, layer_name):
     """GradCAM method for visualizing input saliency.
     Same as grad_cam but processes multiple images in one run."""
@@ -221,6 +222,7 @@ def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', c
 #     gradcam, gb, guided_gradcam = compute_saliency(model, guided_model, layer_name='block5_conv3',
 #                                              img_path=sys.argv[1], cls=-1, visualize=True, save=True)
 
+
 #MODELS = {
 #    "vgg16": VGG16,
 #    "inception": InceptionV3
@@ -230,9 +232,11 @@ modelName = 'vgg16'
 model = build_model()
 guidedModel = build_guided_model()
 
+
 def attribute(modelName, model, guidedModel, imgPath, outputImgPath):
     gradcam, gb, guided_gradcam = compute_saliency(model, guidedModel, layer_name='block5_conv3',
                                              img_path=imgPath, cls=-1, visualize=False, save=True, output_img_path=outputImgPath)
+
 
 for i in range(1, 16):
     image = str(i)

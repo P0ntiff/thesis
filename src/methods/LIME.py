@@ -1,30 +1,18 @@
 import os
-import sys
-sys.path.append('src/')
-
-import os
-import keras
 from keras.applications import InceptionV3
 from keras.applications import VGG16
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
-from keras.applications.imagenet_utils import decode_predictions
 
-from skimage.io import imread
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import backend as K
 
 # LIME explanation
-try:
-    import lime
-except:
-    sys.path.append(os.path.join('..', '..')) # add the current directory
-    import lime
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
 
-from preprocessing.keras_util import getPreprocessForModel
+from ..preprocessing.keras_util import get_preprocess_for_model
 
 
 IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
@@ -58,16 +46,16 @@ def deprocess_image(x):
     return x
 
 
-def attribute(modelName, model, imgPath, outputImgPath):
-    preprocess = getPreprocessForModel(modelName)
-    imgSize = (224, 224)
+def attribute(model_name, model, img_path, output_img_path):
+    preprocess = get_preprocess_for_model(model_name)
+    img_size = (224, 224)
 
-    if modelName == 'inception' or modelName == 'xception':
-        imgSize = (299, 299)
-    img = load_img(imgPath, target_size=imgSize)
+    if model_name == 'inception' or model_name == 'xception':
+        img_size = (299, 299)
+    img = load_img(img_path, target_size=img_size)
     img = img_to_array(img)
-    expandedImg = np.expand_dims(img, axis=0)
-    processedImg = preprocess(expandedImg)
+    expanded_img = np.expand_dims(img, axis=0)
+    processed_img = preprocess(expanded_img)
 
     explainer = lime_image.LimeImageExplainer()
 
@@ -83,7 +71,7 @@ def attribute(modelName, model, imgPath, outputImgPath):
 
     # for inception, remember to / 2 and + 0.5
     plt.imshow(mark_boundaries(deprocess_image(temp), mask))
-    plt.savefig(outputImgPath)
+    plt.savefig(output_img_path)
     #plt.show()
 
 
