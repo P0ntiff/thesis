@@ -5,7 +5,7 @@ import numpy as np
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
 
-from ..util.keras_util import get_preprocess_for_model
+from ..util.image_util import get_preprocess_for_model
 
 # high level wrapper for DeepLIFT
 # TODO: replace with direct implementation

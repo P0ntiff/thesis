@@ -11,3 +11,6 @@ IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_000000'
 XML_BASE_PATH = 'data/imagenet_bb_subset/ILSVRC2012_val_000000'
 OUTPUT_BASE_PATH = 'data/imagenet_annotated_subset/'
 
+
+# Results
+RESULTS_BASE_PATH = 'results/initial/'

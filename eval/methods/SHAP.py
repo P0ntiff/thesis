@@ -2,14 +2,10 @@ import keras.backend as K
 import numpy as np
 import matplotlib.pyplot as plt
 
-# helper functions
-from keras.preprocessing.image import img_to_array
-from keras.preprocessing.image import load_img
-
 import shap
 from shap.plots.colors import red_transparent_blue
 
-from ..util.keras_util import get_preprocess_for_model
+from eval.util.image_util import ImageHandler
 from eval.util.imagenet import get_classification_classes
 
 
@@ -88,23 +84,12 @@ def image_plot(shap_values, x, labels=None, show=True, width=20, aspect=0.2, hsp
         plt.show()
 
 
-def attribute(model_name: str, model, layer_n: int, img_path: str, output_img_path: str):
-    preprocess = get_preprocess_for_model(model_name)
-
-    img_size = (224, 224)
-    if model_name == 'inception' or model_name == 'xception':
-        img_size = (299, 299)
-
-    input_image = load_img(img_path, target_size=img_size)
-    input_image = img_to_array(input_image)
-    expanded_img = np.expand_dims(input_image, axis=0)
-    processed_img = preprocess(input_image)
-
+def attribute(model, layer_n: int, ih: ImageHandler):
     background_data, Y = shap.datasets.imagenet50()
 
     # explain how the input to a layer of the model explains the top class
-    def map2layer(x, layer):
-        feed_dict = dict(zip([model.layers[0].input], [preprocess(x.copy())]))
+    def map2layer(img, layer):
+        feed_dict = dict(zip([model.layers[0].input], [img]))
         return K.get_session().run(model.layers[layer].input, feed_dict)
 
     # combines expectation with sampling values from whole background data set
@@ -115,16 +100,16 @@ def attribute(model_name: str, model, layer_n: int, img_path: str, output_img_pa
     )
 
     # get outputs for top prediction count "ranked_outputs"
-    shap_values, indexes = e.shap_values(map2layer(expanded_img, layer_n), ranked_outputs=1)
+    shap_values, indexes = e.shap_values(map2layer(ih.get_processed_img(), layer_n), ranked_outputs=1)
 
     # get the names for the classes
     # index_names = np.vectorize(lambda x: class_names[str(x)][1])(indexes)
 
     # using the top indexes (i.e out of 1:1000)
-    imgLabels = np.vectorize(lambda x: RAW_CLASSES[str(x)][1])(indexes)
+    img_labels = np.vectorize(lambda x: RAW_CLASSES[str(x)][1])(indexes)
 
     # plot the explanations
-    image_plot(shap_values, expanded_img, imgLabels, output_img_path=output_img_path)
+    image_plot(shap_values, ih.get_expanded_img(), img_labels, output_img_path=ih.get_output_path('shap'))
 
     # modified_SHAP_plot(shap_values, input_image, imgLabels)
 

@@ -9,56 +9,18 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 from keras import backend as K
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
 from keras.applications.imagenet_utils import decode_predictions
 
 import tensorflow as tf
 from tensorflow.python.framework import ops
 
-from ..util.keras_util import get_preprocess_for_model
-
+from eval.util.image_util import ImageHandler, deprocess_image
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 # Input shape, defined by the model (model.input_shape)
 H, W = 224, 224
-
-
-def load_image(path, preprocess=True):
-    """Load and preprocess image."""
-    x = load_img(path, target_size=(H, W))
-    if preprocess:
-        x = img_to_array(x)
-        x = np.expand_dims(x, axis=0)
-        preprocess_input = get_preprocess_for_model('vgg16')
-        x = preprocess_input(x)
-    return x
-
-
-def deprocess_image(x):
-    """Same normalization as in:
-    https://github.com/fchollet/keras/blob/master/examples/conv_filter_visualization.py
-    """
-    x = x.copy()
-    if np.ndim(x) > 3:
-        x = np.squeeze(x)
-    # normalize tensor: center on 0., ensure std is 0.1
-    x -= x.mean()
-    x /= (x.std() + 1e-5)
-    x *= 0.1
-
-    # clip to [0, 1]
-    x += 0.5
-    x = np.clip(x, 0, 1)
-
-    # convert to RGB array
-    x *= 255
-    if K.common.image_dim_ordering() == 'th':
-        x = x.transpose((1, 2, 0))
-    x = np.clip(x, 0, 255).astype('uint8')
-    return x
 
 
 def normalize(x):
@@ -113,8 +75,8 @@ def grad_cam(input_model, image, cls, layer_name):
     # Process CAM
     cam = cv2.resize(cam, (W, H), cv2.INTER_LINEAR)
     cam = np.maximum(cam, 0)
-    cam_max = cam.max() 
-    if cam_max != 0: 
+    cam_max = cam.max()
+    if cam_max != 0:
         cam = cam / cam_max
     return cam
 
@@ -127,10 +89,10 @@ def grad_cam_batch(input_model, images, classes, layer_name):
     grads = K.gradients(loss, layer_output)[0]
     gradient_fn = K.function([input_model.input, K.learning_phase()], [layer_output, grads])
 
-    conv_output, grads_val = gradient_fn([images, 0])    
+    conv_output, grads_val = gradient_fn([images, 0])
     weights = np.mean(grads_val, axis=(1, 2))
     cams = np.einsum('ijkl,il->ijk', conv_output, weights)
-    
+
     # Process CAMs
     new_cams = np.empty((images.shape[0], W, H))
     for i in range(new_cams.shape[0]):
@@ -139,19 +101,18 @@ def grad_cam_batch(input_model, images, classes, layer_name):
         new_cams[i] = cv2.resize(cam_i, (H, W), cv2.INTER_LINEAR)
         new_cams[i] = np.maximum(new_cams[i], 0)
         new_cams[i] = new_cams[i] / new_cams[i].max()
-    
+
     return new_cams
 
 
-def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', cls=-1, 
-    visualize=True, save=True, output_img_path=''):
+def compute_saliency(model, guided_model, ih: ImageHandler, layer_name='block5_conv3', cls=-1,
+                     visualize=True, save=True):
     """Compute saliency using all three approaches.
         -layer_name: layer to compute gradients;
         -cls: class number to localize (-1 for most probable class).
     """
-    preprocessed_input = load_image(img_path)
 
-    predictions = model.predict(preprocessed_input)
+    predictions = model.predict(ih.get_processed_img())
     top_n = 5
     top = decode_predictions(predictions, top=top_n)[0]
     classes = np.argsort(predictions[0])[-top_n:][::-1]
@@ -163,19 +124,19 @@ def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', c
     class_name = decode_predictions(np.eye(1, 1000, cls))[0][0][1]
     print("Explanation for '{}'".format(class_name))
 
-    gradcam = grad_cam(model, preprocessed_input, cls, layer_name)
-    gb = guided_backprop(guided_model, preprocessed_input, layer_name)
+    gradcam = grad_cam(model, ih.get_processed_img(), cls, layer_name)
+    gb = guided_backprop(guided_model, ih.get_processed_img(), layer_name)
     guided_gradcam = gb * gradcam[..., np.newaxis]
 
     if save:
-        #jetcam = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
-        #jetcam = (np.float32(jetcam) + load_image(img_path, preprocess=False)) / 2
-        #cv2.imwrite(output_img_path + 'gc.png', np.uint8(jetcam))
-        #cv2.imwrite('guided_backprop.jpg', deprocess_image(gb[0]))
-        #cv2.imwrite(output_img_path + 'ggc.png', deprocess_image(guided_gradcam[0]))
-        plt.imshow(load_image(img_path, preprocess=False))
+        # jetcam = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
+        # jetcam = (np.float32(jetcam) + load_image(img_path, preprocess=False)) / 2
+        # cv2.imwrite(output_img_path + 'gc.png', np.uint8(jetcam))
+        # cv2.imwrite('guided_backprop.jpg', deprocess_image(gb[0]))
+        # cv2.imwrite(output_img_path + 'ggc.png', deprocess_image(guided_gradcam[0]))
+        plt.imshow(ih.get_original_img())
         plt.imshow(gradcam, cmap='jet', alpha=0.5)
-        plt.savefig(output_img_path)
+        plt.savefig(ih.get_output_path('gradcam'))
         # TODO: include guided gradCAM for class disciminative look
         plt.cla()
 
@@ -184,26 +145,25 @@ def compute_saliency(model, guided_model, img_path, layer_name='block5_conv3', c
         plt.subplot(131)
         plt.title('GradCAM')
         plt.axis('off')
-        plt.imshow(load_image(img_path, preprocess=False))
+        plt.imshow(ih.get_original_img())
         plt.imshow(gradcam, cmap='jet', alpha=0.5)
 
         plt.subplot(132)
         plt.title('Guided Backprop')
         plt.axis('off')
         plt.imshow(np.flip(deprocess_image(gb[0]), -1))
-        
+
         plt.subplot(133)
         plt.title('Guided GradCAM')
         plt.axis('off')
         plt.imshow(np.flip(deprocess_image(guided_gradcam[0]), -1))
         plt.show()
-        
+
     return gradcam, gb, guided_gradcam
 
 
-def attribute(model_name: str, model, img_path: str, output_img_path: str):
+def attribute(model, ih: ImageHandler):
     guided_model = build_guided_model(model)
     gradcam, gb, guided_gradcam = compute_saliency(model, guided_model, layer_name='block5_conv3',
-                                             img_path=img_path, cls=-1, visualize=False,
-                                             save=True, output_img_path=output_img_path)
-
+                                                   ih=ih, cls=-1, visualize=True,
+                                                   save=True)
