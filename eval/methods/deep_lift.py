@@ -39,5 +39,6 @@ def attribute(model, ih: ImageHandler):
     #plt.imshow(a[0], cmap=red_transparent_blue, vmin=-maxVal, vmax=maxVal)
     plt.imshow(a[0], cmap='seismic', clim=(-1, 1))
     plt.savefig(ih.get_output_path('deeplift'))
-    plt.show()
+
+    #plt.show()
     plt.cla()

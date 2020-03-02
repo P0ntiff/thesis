@@ -165,5 +165,5 @@ def compute_saliency(model, guided_model, ih: ImageHandler, layer_name='block5_c
 def attribute(model, ih: ImageHandler):
     guided_model = build_guided_model(model)
     gradcam, gb, guided_gradcam = compute_saliency(model, guided_model, layer_name='block5_conv3',
-                                                   ih=ih, cls=-1, visualize=True,
+                                                   ih=ih, cls=-1, visualize=False,
                                                    save=True)

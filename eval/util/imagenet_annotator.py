@@ -26,12 +26,18 @@ def read_annotations(xml_path: str):
     return output
 
 
-def draw_annotation(image_path: str, xml_path: str, class_map: dict, output_name=None, save_to_file=True, display=True):
+def draw_annotation(image_base_path: str, xml_base_path: str, img_no: int, class_map: dict,
+                    save_to_file=True, display=False):
     """Draws annotations that are read from an XML file at 'xml_path' onto the image read from 'image_path'.
         Requires class_map object created by imagenet.get_classification_mappings()
 
         Optionally outputs the image to file, with an optional file name (otherwise taken from 'image_path').
     """
+    # file paths
+    xml_path = get_image_file_name(xml_base_path, img_no) + '.xml'
+    image_path = get_image_file_name(image_base_path, img_no) + '.JPEG'
+    output_path = get_image_file_name(OUTPUT_BASE_PATH, img_no) + '.JPEG'
+    # ingest data
     wnid_map = read_annotations(xml_path)
     data = plt.imread(image_path)
     plt.imshow(data)
@@ -51,11 +57,7 @@ def draw_annotation(image_path: str, xml_path: str, class_map: dict, output_name
             plt.text(x1, y1, label, color='white')
     # output
     if save_to_file:
-        if output_name is None:
-            plt.savefig(OUTPUT_BASE_PATH + 'ILSVRC2012_val_' +
-                        image_path[-13:-5] + '.JPEG')
-        else:
-            plt.savefig(OUTPUT_BASE_PATH + output_name + '.JPEG')
+        plt.savefig(output_path)
     if display:
         plt.show()
     plt.cla()
@@ -63,7 +65,10 @@ def draw_annotation(image_path: str, xml_path: str, class_map: dict, output_name
     plt.close()
 
 
+def get_image_file_name(base_path: str, img_no: int):
+    zeros = ''.join(['0' for _ in range(0, 8 - len(str(img_no)))])
 
+    return base_path + zeros + str(img_no)
 
 # draw_annotation(IMG_BASE_PATH + '14.JPEG',
 #                 XML_BASE_PATH + '14.xml', save_to_file=True)

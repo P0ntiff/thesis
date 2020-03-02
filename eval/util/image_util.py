@@ -8,6 +8,7 @@ from keras.preprocessing.image import load_img
 from keras import backend as K
 
 from ..util.constants import RESULTS_BASE_PATH, IMG_BASE_PATH
+from ..util.imagenet_annotator import get_image_file_name
 
 
 def get_preprocess_for_model(model_name):
@@ -46,14 +47,14 @@ class ImageHandler:
     STD_IMG_SIZE = (224, 224)
     NONSTD_IMG_SIZE = (299, 299)
 
-    def __init__(self, img_suffix: str, model_name: str):
-        self.img_suffix = img_suffix
+    def __init__(self, img_no: int, model_name: str):
+        self.img_no = img_no
         self.model_name = model_name
         if self.model_name == 'inception' or self.model_name == 'xception':
             self.size = self.NONSTD_IMG_SIZE
         else:
             self.size = self.STD_IMG_SIZE
-        self.input_img_path = IMG_BASE_PATH + img_suffix + '.JPEG'
+        self.input_img_path = get_image_file_name(IMG_BASE_PATH, img_no) + '.JPEG'
 
         self.original_img = load_img(self.input_img_path, target_size=self.size)
         self.raw_img = img_to_array(self.original_img)
@@ -73,7 +74,7 @@ class ImageHandler:
         return preprocessor(self.expanded_img)
 
     def get_output_path(self, method: str):
-        return RESULTS_BASE_PATH + method + '/' + method + '_' + self.img_suffix + '.png'
+        return RESULTS_BASE_PATH + method + '/' + method + '_' + str(self.img_no) + '.png'
 
     def get_original_img(self):
         return self.original_img
