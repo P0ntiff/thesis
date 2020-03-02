@@ -13,4 +13,4 @@ OUTPUT_BASE_PATH = 'data/imagenet_annotated_subset/ILSVRC2012_val_'
 
 
 # Results
-RESULTS_BASE_PATH = 'results/initial/'
+RESULTS_BASE_PATH = 'results/adapted/'

@@ -111,34 +111,27 @@ def compute_saliency(model, guided_model, ih: ImageHandler, layer_name='block5_c
         -layer_name: layer to compute gradients;
         -cls: class number to localize (-1 for most probable class).
     """
-
+    # get the class to localize if it's not available
     predictions = model.predict(ih.get_processed_img())
-    top_n = 5
-    top = decode_predictions(predictions, top=top_n)[0]
-    classes = np.argsort(predictions[0])[-top_n:][::-1]
-    print('Model prediction:')
-    for c, p in zip(classes, top):
-        print('\t{:15s}\t({})\twith probability {:.3f}'.format(p[1], c, p[2]))
     if cls == -1:
         cls = np.argmax(predictions)
-    class_name = decode_predictions(np.eye(1, 1000, cls))[0][0][1]
-    print("Explanation for '{}'".format(class_name))
 
     gradcam = grad_cam(model, ih.get_processed_img(), cls, layer_name)
     gb = guided_backprop(guided_model, ih.get_processed_img(), layer_name)
     guided_gradcam = gb * gradcam[..., np.newaxis]
 
+    # only interested in guided gradcam (the class discriminative "high-resolution" combination of guided-BP and GC.
     if save:
         # jetcam = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
         # jetcam = (np.float32(jetcam) + load_image(img_path, preprocess=False)) / 2
         # cv2.imwrite(output_img_path + 'gc.png', np.uint8(jetcam))
         # cv2.imwrite('guided_backprop.jpg', deprocess_image(gb[0]))
         # cv2.imwrite(output_img_path + 'ggc.png', deprocess_image(guided_gradcam[0]))
-        plt.imshow(ih.get_original_img())
-        plt.imshow(gradcam, cmap='jet', alpha=0.5)
-        plt.savefig(ih.get_output_path('gradcam'))
-        # TODO: include guided gradCAM for class disciminative look
-        plt.cla()
+        #plt.imshow(ih.get_original_img())
+        #plt.imshow(deprocess_image(guided_gradcam[0]))
+        cv2.imwrite(ih.get_output_path('gradcam'), deprocess_image(guided_gradcam[0]))
+        #plt.savefig(ih.get_output_path('gradcam'))
+        #plt.cla()
 
     if visualize:
         plt.figure(figsize=(15, 10))
@@ -165,5 +158,4 @@ def compute_saliency(model, guided_model, ih: ImageHandler, layer_name='block5_c
 def attribute(model, ih: ImageHandler):
     guided_model = build_guided_model(model)
     gradcam, gb, guided_gradcam = compute_saliency(model, guided_model, layer_name='block5_conv3',
-                                                   ih=ih, cls=-1, visualize=False,
-                                                   save=True)
+                                                   ih=ih, cls=-1, visualize=False, save=True)
