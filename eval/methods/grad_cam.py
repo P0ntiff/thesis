@@ -120,18 +120,16 @@ def compute_saliency(model, guided_model, ih: ImageHandler, layer_name='block5_c
     gb = guided_backprop(guided_model, ih.get_processed_img(), layer_name)
     guided_gradcam = gb * gradcam[..., np.newaxis]
 
-    # only interested in guided gradcam (the class discriminative "high-resolution" combination of guided-BP and GC.
+    # normalise
+    guided_gradcam = guided_gradcam.sum(axis=np.argmax(np.asarray(guided_gradcam.shape) == 3))
+    guided_gradcam /= np.max(np.abs(guided_gradcam))
+
+    # only interested in guided gradcam (the class discriminative "high-resolution"
+    # combination of guided-BP and GC.
     if save:
-        # jetcam = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
-        # jetcam = (np.float32(jetcam) + load_image(img_path, preprocess=False)) / 2
-        # cv2.imwrite(output_img_path + 'gc.png', np.uint8(jetcam))
-        # cv2.imwrite('guided_backprop.jpg', deprocess_image(gb[0]))
-        # cv2.imwrite(output_img_path + 'ggc.png', deprocess_image(guided_gradcam[0]))
-        #plt.imshow(ih.get_original_img())
-        #plt.imshow(deprocess_image(guided_gradcam[0]))
-        cv2.imwrite(ih.get_output_path('gradcam'), deprocess_image(guided_gradcam[0]))
-        #plt.savefig(ih.get_output_path('gradcam'))
-        #plt.cla()
+        plt.imshow(guided_gradcam[0], cmap='seismic', clim=(-1, 1))
+        plt.savefig(ih.get_output_path('gradcam'))
+        plt.cla()
 
     if visualize:
         plt.figure(figsize=(15, 10))
@@ -149,7 +147,7 @@ def compute_saliency(model, guided_model, ih: ImageHandler, layer_name='block5_c
         plt.subplot(133)
         plt.title('Guided GradCAM')
         plt.axis('off')
-        plt.imshow(np.flip(deprocess_image(guided_gradcam[0]), -1))
+        plt.imshow(guided_gradcam[0], cmap='seismic', clim=(-1, 1))
         plt.show()
 
     return gradcam, gb, guided_gradcam

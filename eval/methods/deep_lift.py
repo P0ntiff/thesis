@@ -6,8 +6,7 @@ import numpy as np
 import innvestigate
 import innvestigate.utils
 
-from ..util.image_util import ImageHandler
-
+from ..util.image_util import ImageHandler, deprocess_image
 
 # high level wrapper for DeepLIFT
 # TODO: replace with direct implementation
@@ -17,7 +16,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-def attribute(model, ih: ImageHandler):
+def attribute(model, ih: ImageHandler, visualise: bool = False, save: bool = True):
     # strip softmax layer
     model = innvestigate.utils.model_wo_softmax(model)
 
@@ -29,16 +28,21 @@ def attribute(model, ih: ImageHandler):
     a = a.sum(axis=np.argmax(np.asarray(a.shape) == 3))
     a /= np.max(np.abs(a))
 
-    # Plot
-    # TODO : use extent to put input image down in greyscale
+    if save:
+        plt.imshow(a[0], cmap='seismic', clim=(-1, 1))
+        plt.savefig(ih.get_output_path('deeplift'))
+        plt.cla()
 
-    ###plt.imshow(inputImg, cmap=plt.get_cmap('gray'), alpha=0.15, extent=(-1, a[0].shape[0], a[0].shape[1], -1))
-    plt.imshow(ih.get_raw_img(), alpha=0.4, extent=(-1, a[0].shape[0], a[0].shape[1], -1))
-    #print(np.abs(a[0]))
-    maxVal = np.nanpercentile(np.abs(a[0]), 99.9)
-    #plt.imshow(a[0], cmap=red_transparent_blue, vmin=-maxVal, vmax=maxVal)
-    plt.imshow(a[0], cmap='seismic', clim=(-1, 1))
-    plt.savefig(ih.get_output_path('deeplift'))
+    if visualise:
+        plt.figure(figsize=(15, 10))
+        plt.subplot(121)
+        plt.axis('off')
+        plt.imshow(ih.get_original_img())
 
-    #plt.show()
-    plt.cla()
+        plt.subplot(122)
+        plt.axis('off')
+        plt.imshow(a[0], cmap='seismic', clim=(-1, 1))
+
+        plt.show()
+        plt.cla()
+
