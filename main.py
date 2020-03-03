@@ -27,7 +27,7 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 METHODS = ['deeplift', 'lime', 'shap', 'gradcam']
 
 ### ---- CURRENT ATTRIBUTION METHOD ----
-CURR_METHOD = 'gradcam'
+CURR_METHOD = 'shap'
 
 
 class Attributer:
@@ -85,7 +85,7 @@ class Attributer:
             LIME.attribute(self.curr_model, ih)
         elif method == 'shap':
             # TODO: note requires layer specified, come up with better solution/justification
-            SHAP.attribute(self.curr_model, 7, ih)
+            SHAP.attribute(self.curr_model, ih)
         elif method == 'gradcam':
             grad_cam.attribute(self.curr_model, ih)
         else:
@@ -114,8 +114,9 @@ def main():
                194, 196, 198, 199, 200, 201, 206, 208, 209, 211, 213, 215, 216, 217, 218, 222, 225, 226, 227, 230, 231,
                233, 234, 235, 236, 237, 238, 239, 240, 243, 246, 247, 248, 250, 251, 252, 256, 258, 259, 262, 264, 266,
                271, 272, 275, 276, 278, 280, 281, 282, 283, 284, 287, 288, 289, 290, 293, 294, 299]
-    for i in range(1, 20):
-        att.attribute(img_no=img_nos[i])
+    for i in range(1, 5):
+        # for method in ['deeplift', 'shap']:
+        att.attribute(img_no=img_nos[i], method=CURR_METHOD)
 
 
 if __name__ == "__main__":

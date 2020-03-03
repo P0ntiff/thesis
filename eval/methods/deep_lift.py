@@ -16,7 +16,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-def attribute(model, ih: ImageHandler, visualise: bool = False, save: bool = True):
+def attribute(model, ih: ImageHandler, visualise: bool = True, save: bool = False):
     # strip softmax layer
     model = innvestigate.utils.model_wo_softmax(model)
 
@@ -35,6 +35,7 @@ def attribute(model, ih: ImageHandler, visualise: bool = False, save: bool = Tru
 
     if visualise:
         plt.figure(figsize=(15, 10))
+        plt.title('DeepLIFT')
         plt.subplot(121)
         plt.axis('off')
         plt.imshow(ih.get_original_img())
