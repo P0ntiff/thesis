@@ -108,3 +108,7 @@ venv.bak/
 *.png
 *.JPEG
 *.xml
+
+.idea/
+.idea
+.idea/*

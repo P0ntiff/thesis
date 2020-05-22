@@ -116,7 +116,7 @@ def main():
                271, 272, 275, 276, 278, 280, 281, 282, 283, 284, 287, 288, 289, 290, 293, 294, 299]
     for i in range(1, 5):
         # for method in ['deeplift', 'shap']:
-        att.attribute(img_no=img_nos[i], method=CURR_METHOD)
+        att.attribute(img_no=i, method=CURR_METHOD)
 
 
 if __name__ == "__main__":
