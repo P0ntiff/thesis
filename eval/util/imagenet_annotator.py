@@ -2,7 +2,9 @@ import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from ..util.constants import OUTPUT_BASE_PATH
+from ..util.constants import OUTPUT_BASE_PATH, IMG_BASE_PATH, XML_BASE_PATH
+from ..util.image_util import get_image_file_name
+from ..util.image_util import get_classification_mappings
 
 
 def read_annotations(xml_path: str):
@@ -26,8 +28,8 @@ def read_annotations(xml_path: str):
     return output
 
 
-def draw_annotation(image_base_path: str, xml_base_path: str, img_no: int, class_map: dict,
-                    save_to_file=True, display=False):
+def draw_annotation(img_no: int, class_map: dict, save_to_file=True, display=False,
+                    image_base_path: str = IMG_BASE_PATH, xml_base_path: str = XML_BASE_PATH):
     """Draws annotations that are read from an XML file at 'xml_path' onto the image read from 'image_path'.
         Requires class_map object created by imagenet.get_classification_mappings()
 
@@ -65,10 +67,13 @@ def draw_annotation(image_base_path: str, xml_base_path: str, img_no: int, class
     plt.close()
 
 
-def get_image_file_name(base_path: str, img_no: int):
-    zeros = ''.join(['0' for _ in range(0, 8 - len(str(img_no)))])
+def draw_annotations(img_no_array: list):
+    for img_no in img_no_array:
+        draw_annotation(img_no, save_to_file=True)
 
-    return base_path + zeros + str(img_no)
+
+
+#class_map = get_classification_mappings()
 
 # draw_annotation(IMG_BASE_PATH + '14.JPEG',
 #                 XML_BASE_PATH + '14.xml', save_to_file=True)
