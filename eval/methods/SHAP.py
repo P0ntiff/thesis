@@ -14,7 +14,7 @@ class Shap:
     def __init__(self, model, model_name: str):
         self.model = model
         # currently this has to be picked per-model. For VGG, taken as layer 7  (conv layer about halfway in)
-        # block3_conv1
+        # block3_conv1 and block5_conv3
         self.layer_name = 'block5_conv3'
         print(model.layers[7].name)
         self.model.get_layer(self.layer_name)
@@ -22,8 +22,6 @@ class Shap:
         print('Collecting background sample')
         bih = BatchImageHelper(list(range(50, 100)), model_name=self.model_name)
         print('Background sample collected.')
-
-        #"inception conv2d_5
 
         self.background_data = bih.get_expanded_images()
         print(self.model.get_layer(self.layer_name).name)
@@ -34,7 +32,6 @@ class Shap:
         self.preprocess = get_preprocess_for_model(model_name)
 
         # combines expectation with sampling values from whole background data set
-        print(model.summary())
         self.explainer = shap.GradientExplainer(
             (self.model.get_layer(self.layer_name).input, model.layers[-1].output),
             self.map2layer(self.background_data),

@@ -36,15 +36,16 @@ MODELS = ['vgg16', 'inception']
 
 def main(method: str, model: str):
     # draw_annotations([i for i in range(16, 300)])
-    instance_count = 5
+    instance_count = 4
 
     # run some attributions
     att = Attributer(model)
     att.initialise_for_method(method)
-    for i in range(1, instance_count):
-        att.attribute(img_no=GOOD_EXAMPLES[i], method=method)
-
-    #att.attribute(img_no=GOOD_EXAMPLES[2], method=method)
+    if 1:
+        for i in range(1, instance_count):
+            att.attribute(img_no=GOOD_EXAMPLES[i], method=method)
+    else:
+        att.attribute(img_no=GOOD_EXAMPLES[2], method=method)
 
 
 def print_confident_predictions(model_name: str):
@@ -95,7 +96,7 @@ class Attributer:
         elif method_name == "shap":
             self.shap_method = Shap(self.curr_model, self.curr_model_name)
         elif method_name == "gradcam":
-            self.gradcam_method = GradCam(self.curr_model, self.build_model)
+            self.gradcam_method = GradCam(self.curr_model, self.curr_model_name, self.build_model)
 
     def predict_for_model(self, img_no: int, top_n: int = 5, print_to_stdout: bool = True) -> (str, float):
         # returns a tuple with the top prediction, and the probability of the top prediction (i.e confidence)

@@ -18,7 +18,7 @@ class DeepLift:
     def __init__(self, model):
         # strip softmax layer
         self.model = innvestigate.utils.model_wo_softmax(model)
-        # analyzer = innvestigate.create_analyzer("deep_lift.wrapper", model)
+        #self.analyzer = innvestigate.create_analyzer("deep_lift.wrapper", model)
         self.analyzer = innvestigate.analyzer.DeepLIFT(self.model)
 
     def attribute(self, ih: ImageHandler, visualise: bool = False, save: bool = True):
