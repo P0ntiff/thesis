@@ -12,17 +12,38 @@ import tensorflow as tf
 from keras import backend as K
 from tensorflow.python.framework import ops
 
-from eval.util.image_util import ImageHandler, deprocess_image
+from eval.util.image_util import ImageHandler, deprocess_gradcam, deprocess_image
+
+
+def build_guided_model(build_model_fn):
+    """Function returning modified model.
+
+    Changes gradient function for all ReLu activations
+    according to Guided Backpropagation.
+    """
+    if "GuidedBackProp" not in ops._gradient_registry._registry:
+        @ops.RegisterGradient("GuidedBackProp")
+        def _GuidedBackProp(op, grad):
+            dtype = op.inputs[0].dtype
+            return grad * tf.cast(grad > 0., dtype) * \
+                   tf.cast(op.inputs[0] > 0., dtype)
+
+    g = tf.get_default_graph()
+    # TODO check potential bug here from overriden implementation
+    with g.gradient_override_map({'Relu': 'GuidedBackProp'}):
+        new_model = build_model_fn()
+    return new_model
 
 
 class GradCam:
-    def __init__(self, model):
+    def __init__(self, model, build_model_fn):
         # strip softmax layer
         self.model = model
-        self.guided_model = self.build_guided_model()
+        self.guided_model = build_guided_model(build_model_fn)
 
         # TODO: Dont' hardcode for vgg
         self.layer_name = 'block5_conv3'
+        print(self.model.summary())
 
     def attribute(self, ih: ImageHandler, visualize=False, save=True):
         """Compute saliency.
@@ -37,13 +58,14 @@ class GradCam:
         gb = self.guided_backprop(ih)
         guided_gradcam = gb * gradcam[..., np.newaxis]
 
-        # normalise
+        # # normalise
         guided_gradcam = guided_gradcam.sum(axis=np.argmax(np.asarray(guided_gradcam.shape) == 3))
         guided_gradcam /= np.max(np.abs(guided_gradcam))
 
-        # only interested in guided gradcam (the class discriminative "high-resolution"
-        # combination of guided-BP and GC.
+        # only interested in guided gradcam (the class discriminative "high-resolution" combination of guided-BP and GC.
         if save:
+            # not necessary with above normalisation
+            # plt.imshow(deprocess_image(guided_gradcam[0]), cmap='seismic', clim=(-1, 1))
             plt.imshow(guided_gradcam[0], cmap='seismic', clim=(-1, 1))
             plt.savefig(ih.get_output_path('gradcam'))
             plt.cla()
@@ -59,39 +81,17 @@ class GradCam:
             plt.subplot(132)
             plt.title('Guided Backprop')
             plt.axis('off')
-            plt.imshow(np.flip(deprocess_image(gb[0]), -1))
+            plt.imshow(np.flip(deprocess_gradcam(gb[0]), -1))
 
             plt.subplot(133)
             plt.title('Guided GradCAM')
             plt.axis('off')
-            plt.imshow(guided_gradcam[0], cmap='seismic', clim=(-1, 1))
+            plt.imshow(guided_gradcam[0], -1)
+
             plt.show()
             plt.cla()
 
         # return gradcam, gb, guided_gradcam
-
-    def build_guided_model(self):
-        """Function returning modified model.
-
-        Changes gradient function for all ReLu activations
-        according to Guided Backpropagation.
-        """
-        if "GuidedBackProp" not in ops._gradient_registry._registry:
-            @ops.RegisterGradient("GuidedBackProp")
-            def _GuidedBackProp(op, grad):
-                dtype = op.inputs[0].dtype
-                return grad * tf.cast(grad > 0., dtype) * \
-                       tf.cast(op.inputs[0] > 0., dtype)
-
-        g = tf.get_default_graph()
-        # TODO check potential bug here from overriden implementation
-        with g.gradient_override_map({'Relu': 'GuidedBackProp'}):
-            new_model = self.model
-        return new_model
-
-    # def normalize(self, x):
-    #     """Utility function to normalize a tensor by its L2 norm"""
-    #     return (x + 1e-10) / (K.sqrt(K.mean(K.square(x))) + 1e-10)
 
     def guided_backprop(self, ih: ImageHandler):
         """Guided Backpropagation method for visualizing input saliency."""

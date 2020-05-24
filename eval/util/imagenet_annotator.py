@@ -68,19 +68,10 @@ def draw_annotation(img_no: int, class_map: dict, save_to_file=True, display=Fal
 
 
 def draw_annotations(img_no_array: list):
+    class_map = get_classification_mappings()
     for img_no in img_no_array:
-        draw_annotation(img_no, save_to_file=True)
+        print('Annotating img_no=' + str(img_no))
+        draw_annotation(img_no, class_map)
 
 
-
-#class_map = get_classification_mappings()
-
-# draw_annotation(IMG_BASE_PATH + '14.JPEG',
-#                 XML_BASE_PATH + '14.xml', save_to_file=True)
-#draw_annotation(IMG_BASE_PATH + '15.JPEG',
-#                XML_BASE_PATH + '15.xml', save_to_file=True)
-
-# drawAnnotation(IMG_BASE_PATH + '10.JPEG', XML_BASE_PATH + '10.xml', saveToFile=True)
-# drawAnnotation(IMG_BASE_PATH + '11.JPEG', XML_BASE_PATH + '11.xml', saveToFile=True)
-# drawAnnotation(IMG_BASE_PATH + '12.JPEG', XML_BASE_PATH + '12.xml', saveToFile=True)
-# drawAnnotation(IMG_BASE_PATH + '13.JPEG', XML_BASE_PATH + '13.xml', saveToFile=True)
+# draw_annotations([i for i in range(16, 300)])
