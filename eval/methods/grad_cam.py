@@ -12,7 +12,7 @@ import tensorflow as tf
 from keras import backend as K
 from tensorflow.python.framework import ops
 
-from eval.util.image_util import ImageHandler, deprocess_gradcam, deprocess_image
+from eval.util.image_util import ImageHandler, deprocess_gradcam
 
 
 def build_guided_model(build_model_fn):
@@ -36,22 +36,16 @@ def build_guided_model(build_model_fn):
 
 
 class GradCam:
-    def __init__(self, model, model_name, build_model_fn):
+    def __init__(self, model, build_model_fn, layer_no: int):
         # strip softmax layer
         self.model = model
         self.guided_model = build_guided_model(build_model_fn)
-        # vgg default --> target deepest conv layer
-        self.layer_name = 'block5_conv3'
-        self.layer_number = 17
-        if model_name == 'inception':
-            self.layer_name = 'conv2d_188'
-            self.layer_number = 299
-        for i, layer in enumerate(self.guided_model.layers):
-            print(str(i) + ' ' + layer.name)
-        for i, layer in enumerate(self.model.layers):
-            print(str(i) + ' ' + layer.name)
+        self.layer_no = layer_no
 
-        # print(self.guided_model.summary())
+    def reset_layer_no(self, layer_no: int):
+        if layer_no is None:
+            return
+        self.layer_no = layer_no
 
     def attribute(self, ih: ImageHandler, visualize=False, save=True):
         """Compute saliency.
@@ -104,7 +98,7 @@ class GradCam:
     def guided_backprop(self, ih: ImageHandler):
         """Guided Backpropagation method for visualizing input saliency."""
         input_imgs = self.guided_model.input
-        layer_output = self.guided_model.layers[self.layer_number].output
+        layer_output = self.guided_model.layers[self.layer_no].output
         grads = K.gradients(layer_output, input_imgs)[0]
         backprop_fn = K.function([input_imgs, K.learning_phase()], [grads])
         grads_val = backprop_fn([ih.get_processed_img(), 0])[0]
@@ -114,7 +108,7 @@ class GradCam:
     def grad_cam(self, ih: ImageHandler, cls):
         """GradCAM method for visualizing input saliency."""
         y_c = self.model.output[0, cls]
-        conv_output = self.model.layers[self.layer_number].output
+        conv_output = self.model.layers[self.layer_no].output
         grads = K.gradients(y_c, conv_output)[0]
         # Normalize if necessary
         # grads = normalize(grads)

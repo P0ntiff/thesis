@@ -11,38 +11,40 @@ from eval.util.image_util import get_classification_classes
 
 
 class Shap:
-    def __init__(self, model, model_name: str):
+    def __init__(self, model, model_name: str, layer_no: int):
         self.model = model
-        # currently this has to be picked per-model. For VGG, taken as layer 7  (conv layer about halfway in)
-        # block3_conv1 and block5_conv3
-        self.layer_name = 'block5_conv3'
-        print(model.layers[7].name)
-        self.model.get_layer(self.layer_name)
         self.model_name = model_name
-        print('Collecting background sample')
+        self.layer_no = layer_no
+        print('Collecting SHAP background sample')
         bih = BatchImageHelper(list(range(50, 100)), model_name=self.model_name)
-        print('Background sample collected.')
 
         self.background_data = bih.get_expanded_images()
-        print(self.model.get_layer(self.layer_name).name)
-        print(self.model.get_layer(self.layer_name).output_shape)
-        #print(model.layers[layer_n])
-        #print(self.background_data.shape)
-        #self.raw_classes = get_classification_classes()
         self.preprocess = get_preprocess_for_model(model_name)
 
         # combines expectation with sampling values from whole background data set
-        self.explainer = shap.GradientExplainer(
-            (self.model.get_layer(self.layer_name).input, model.layers[-1].output),
+        self.explainer = self.generate_explainer(layer_no)
+
+    def generate_explainer(self, layer_no: int):
+        return shap.GradientExplainer(
+            (self.model.layers[layer_no].input, self.model.layers[-1].output),
             self.map2layer(self.background_data),
             local_smoothing=0  # std dev of smoothing noise
         )
 
-    # explain how the input to a layer of the model explains the top class
+    def reset_explainer(self, layer_no: int):
+        if layer_no is None:
+            return
+        if layer_no != self.layer_no:
+            self.explainer = self.generate_explainer(layer_no)
+            self.layer_no = layer_no
+
+    def get_layer_no(self):
+        return self.layer_no
+
     def map2layer(self, img):
-        #print(img.shape)
+        # explain how the input to a layer of the model explains the top class
         feed_dict = dict(zip([self.model.layers[0].input], [self.preprocess(img.copy())]))
-        return K.get_session().run(self.model.get_layer(self.layer_name).input, feed_dict)
+        return K.get_session().run(self.model.layers[self.layer_no].input, feed_dict)
 
     def attribute(self, ih: ImageHandler, visualise: bool = False, save: bool = True):
         # get outputs for top prediction count "ranked_outputs"
