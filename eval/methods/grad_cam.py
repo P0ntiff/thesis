@@ -64,6 +64,7 @@ class GradCam:
         guided_gradcam = guided_gradcam.sum(axis=np.argmax(np.asarray(guided_gradcam.shape) == 3))
         guided_gradcam /= np.max(np.abs(guided_gradcam))
 
+
         # only interested in guided gradcam (the class discriminative "high-resolution" combination of guided-BP and GC.
         if save:
             # not necessary with above normalisation

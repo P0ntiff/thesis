@@ -1,9 +1,9 @@
 import sys
 import logging
+import os
 
 # keras models
 from keras.applications import InceptionV3, VGG16
-from keras import backend as K
 
 # methods
 from eval.methods.LIME import Lime
@@ -12,7 +12,7 @@ from eval.methods.SHAP import Shap
 from eval.methods.grad_cam import GradCam
 
 # util
-from eval.util.constants import GOOD_EXAMPLES
+from eval.util.constants import GOOD_EXAMPLES, LIFT, LIME, SHAP, GRAD, VGG, INCEPT
 from eval.util.image_util import ImageHandler, BatchImageHelper
 from eval.util.image_util import get_classification_mappings
 from keras.applications.imagenet_utils import decode_predictions
@@ -26,16 +26,12 @@ from eval.util.imagenet_annotator import draw_annotations
 # K.set_session(tf.Session(graph=model.output.graph)) init = K.tf.global_variables_initializer() K.get_session().run(init)
 # logging.basicConfig(level=logging.ERROR)
 # #suppress output
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 # tf.logging.set_verbosity(tf.logging.ERROR)
 
-LIFT = 'deeplift'
-LIME = 'lime'
-SHAP = 'shap'
-GRAD = 'gradcam'
+
 METHODS = [LIFT, LIME, SHAP, GRAD]
-VGG = 'vgg16'
-INCEPT = 'inception'
+
 MODELS = [VGG, INCEPT]
 
 VGG_LAYER_MAP = {"block5_conv3": 17,
@@ -69,7 +65,7 @@ def main(method: str, model: str):
 
     # run some attributions
     att = Attributer(model)
-    for i in range(2, 3):
+    for i in range(2, 6):
         att.attribute(img_no=GOOD_EXAMPLES[i],
                       method=method,
                       layer_no=LAYER_TARGETS[method][model])
@@ -150,6 +146,8 @@ class Attributer:
         """Top level wrapper for collecting attributions from each method. """
         self.initialise_for_method(method_name=method, layer_no=layer_no)
         ih = ImageHandler(img_no=img_no, model_name=self.curr_model_name)
+        # attribution should be a (X,Y,RGB) array returned by each method
+        attribution = None
         if method == LIFT:
             self.deep_lift_method.attribute(ih)
         elif method == LIME:
@@ -162,6 +160,8 @@ class Attributer:
             self.gradcam_method.attribute(ih)
         else:
             print('Error: Invalid attribution method chosen')
+
+
 
 
 if __name__ == "__main__":
