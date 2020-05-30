@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
+import numpy as np
 
 # LIME explanation
 from lime import lime_image
-from skimage.segmentation import mark_boundaries
 
-from ..util.constants import INCEPT
 from ..util.image_util import ImageHandler, deprocess_image, get_preprocess_for_model
-import numpy as np
 
 
 class Lime:
@@ -24,7 +21,7 @@ class Lime:
         explanation = self.explainer.explain_instance(ih.get_raw_img(),
                                                       classifier_fn=self.prediction_wrapper,
                                                       top_labels=1,
-                                                      num_samples=1000)
+                                                      num_samples=100)
 
         # TODO fix support for positive and negative evidence
         top_exp = explanation.local_exp[explanation.top_labels[0]]

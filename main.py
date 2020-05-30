@@ -65,7 +65,7 @@ def main(method: str, model: str):
 
     # run some attributions
     att = Attributer(model)
-    for i in range(2, 3):
+    for i in range(2, 6):
         att.attribute(img_no=GOOD_EXAMPLES[i],
                       method=method,
                       layer_no=LAYER_TARGETS[method][model])

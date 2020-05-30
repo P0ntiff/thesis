@@ -1,13 +1,10 @@
-import keras.backend as K
 import numpy as np
-import matplotlib.pyplot as plt
-import tensorflow as tf
+import cv2
+import keras.backend as K
 
-from keras.applications.vgg16 import preprocess_input
 import shap
 
 from eval.util.image_util import ImageHandler, get_preprocess_for_model, BatchImageHelper
-from eval.util.image_util import get_classification_classes
 
 
 class Shap:
@@ -49,7 +46,10 @@ class Shap:
     def attribute(self, ih: ImageHandler):
         # get outputs for top prediction count "ranked_outputs"
         input_to_layer_n = self.map2layer(ih.get_expanded_img())
-        shap_values, indexes = self.explainer.shap_values(input_to_layer_n, ranked_outputs=1)
+        shap_values, indexes = self.explainer.shap_values(X=input_to_layer_n,
+                                                          nsamples=200,
+                                                          ranked_outputs=1)
+
 
         # plot the explanations (SHAP value matrices) and save to file
         # print(len(shap_values))
@@ -61,4 +61,7 @@ class Shap:
         sv = sh[0].sum(-1)
         sv /= np.max(np.abs(sv))
 
-        return sv
+        # resize into input shape (~4x rescale for some models)
+        output = cv2.resize(sv, ih.get_size(), cv2.INTER_CUBIC)
+
+        return output
