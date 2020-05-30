@@ -102,7 +102,7 @@ class ImageHelper:
         return preprocessor(expanded_img)
 
     @classmethod
-    def getSize(cls, model_name: str):
+    def get_size(cls, model_name: str):
         if model_name == 'inception' or model_name == 'xception':
             return NONSTD_IMG_SIZE
         else:
@@ -115,11 +115,23 @@ def show_figure(attribution):
     plt.cla()
 
 
+def apply_threshold(attribution, threshold: float, take_absolute: bool):
+    """ Threshold should be bounded between (-1, 1) """
+    if threshold < -1 or threshold > 1:
+        print('Invalid threshold')
+        return attribution
+    if take_absolute:
+        attribution = np.abs(attribution)
+    # apply threshold
+    attribution[attribution < threshold] = 0
+    return attribution
+
+
 class ImageHandler:
     def __init__(self, img_no: int, model_name: str):
         self.img_no = img_no
         self.model_name = model_name
-        self.size = ImageHelper.getSize(model_name)
+        self.size = ImageHelper.get_size(model_name)
         self.input_img_path = get_image_file_name(IMG_BASE_PATH, img_no) + '.JPEG'
 
         self.original_img = load_img(self.input_img_path, target_size=self.size)
@@ -160,7 +172,7 @@ class BatchImageHelper:
     def __init__(self, img_nos: list, model_name: str):
         self.img_nos = img_nos
         self.model_name = model_name
-        self.size = ImageHelper.getSize(model_name)
+        self.size = ImageHelper.get_size(model_name)
         self.input_paths = [get_image_file_name(IMG_BASE_PATH, img_no) + '.JPEG' for img_no in img_nos]
 
         self.original_images = [load_img(path, target_size=self.size) for path in self.input_paths]

@@ -7,8 +7,8 @@ IMAGENET_OBJ_DET_CLASSES_OUTPUT = 'data/imagenet_obj_det_classes.json'
 # For image annotation (imagenet_annotator.py)
 IMG_BASE_PATH = 'data/imagenet_val_subset/ILSVRC2012_val_'
 XML_BASE_PATH = 'data/imagenet_bb_subset/ILSVRC2012_val_'
-OUTPUT_BASE_PATH = 'data/imagenet_annotated_subset/ILSVRC2012_val_'
-
+ANNOTATE_BASE_PATH = 'data/imagenet_annotated_subset/ILSVRC2012_val_'
+MASK_BASE_PATH = 'data/imagenet_masked_ground_truth/ILSVRC2012_val_'
 
 # strong confidence ImageNet examples (p > 0.75) for VGG-16
 GOOD_EXAMPLES = [7, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 24, 25, 27, 31, 33, 35, 36, 42, 43, 45, 47, 52, 53, 54, 56,

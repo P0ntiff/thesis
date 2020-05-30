@@ -3,6 +3,7 @@ import logging
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 import pandas as pd
+import numpy as np
 
 # keras models
 from keras.applications import InceptionV3, VGG16
@@ -15,12 +16,12 @@ from eval.methods.grad_cam import GradCam
 
 # util
 from eval.util.constants import GOOD_EXAMPLES, LIFT, LIME, SHAP, GRAD, VGG, INCEPT, RESULTS_EVAL_PATH, INTERSECT
-from eval.util.image_util import ImageHandler, BatchImageHelper, show_figure
+from eval.util.image_util import ImageHandler, show_figure, apply_threshold, ImageHelper
 from eval.util.image_util import get_classification_mappings
 from keras.applications.imagenet_utils import decode_predictions
 
 # misc
-from eval.util.imagenet_annotator import draw_annotations
+from eval.util.imagenet_annotator import draw_annotations, get_masks_for_eval
 
 # K.clear_session()
 # tf.global_variables_initializer()
@@ -44,6 +45,7 @@ INCEPTION_LAYER_MAP = {"conv2d_94": 299,
                        "conv2d_188": 299,
                        "mixed9": 279,
                        "mixed10": 310}
+
 LAYER_TARGETS = {
     SHAP:
         {INCEPT: INCEPTION_LAYER_MAP["conv2d_188"],
@@ -74,6 +76,19 @@ def evaluator_wrapper(method: str, model: str):
     # current evaluation metric
     metric = INTERSECT
     evaluator = Evaluator(metric=metric, model_name=model)
+
+    # test attributor
+    for i in range(1, 8):
+        evaluator.att.attribute(img_no=GOOD_EXAMPLES[i],
+                                method=method,
+                                layer_no=LAYER_TARGETS[method][model],
+                                threshold=0.1, take_absolute=True,
+                                visualise=False, save=True)
+
+
+def annotator_wrapper():
+    # just for testing this works independently so it can be embedded elsewhere
+    get_masks_for_eval(GOOD_EXAMPLES[:8], ImageHelper.get_size(VGG))
 
 
 def print_confident_predictions(model_name: str):
@@ -210,11 +225,15 @@ class Attributer:
         return max_pred, max_p
 
     def attribute(self, img_no: int, method: str, layer_no: int = None,
+                  threshold: float = None, take_absolute: bool = None,
                   visualise: bool = False, save: bool = True):
         self.initialise_for_method(method_name=method, layer_no=layer_no)
         ih = ImageHandler(img_no=img_no, model_name=self.curr_model_name)
         # get the 2D numpy array which represents the attribution
         attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
+        # check if applying any thresholds / adjustments based on +ve / -ve evidence
+        if threshold is not None:
+            attribution = apply_threshold(attribution, threshold, take_absolute)
         if check_invalid_attribution(attribution, ih):
             return
         if save:
@@ -240,6 +259,9 @@ class Attributer:
 
 
 if __name__ == "__main__":
+    if sys.argv[1] == 'annotate':
+        annotator_wrapper()
+        sys.exit()
     if len(sys.argv) != 4:
         print('Usage: main <mode>[attribute|evaluate] <method>[shap|deeplift|gradcam|lime] <model>[vgg16|inception]')
         sys.exit()
