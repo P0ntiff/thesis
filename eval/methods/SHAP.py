@@ -46,10 +46,9 @@ class Shap:
         feed_dict = dict(zip([self.model.layers[0].input], [self.preprocess(img.copy())]))
         return K.get_session().run(self.model.layers[self.layer_no].input, feed_dict)
 
-    def attribute(self, ih: ImageHandler, visualise: bool = False, save: bool = True):
+    def attribute(self, ih: ImageHandler):
         # get outputs for top prediction count "ranked_outputs"
         input_to_layer_n = self.map2layer(ih.get_expanded_img())
-
         shap_values, indexes = self.explainer.shap_values(input_to_layer_n, ranked_outputs=1)
 
         # plot the explanations (SHAP value matrices) and save to file
@@ -58,35 +57,8 @@ class Shap:
             shap_values = [shap_values]
 
         sh = shap_values[0]
-        #sh = shap_values
-        # print(sh.size)
-        # aggregate along third axis and normalise
+        # aggregate along third axis (the RGB axis) and normalise to (-1, 1)
         sv = sh[0].sum(-1)
         sv /= np.max(np.abs(sv))
-        # print(sv.shape)
 
-        if save:
-            plt.imshow(sv, cmap='seismic', clim=(-1, 1))
-            plt.savefig(ih.get_output_path('shap'))
-            plt.cla()
-
-        if visualise:
-            plt.figure(figsize=(15, 10))
-            plt.subplot(121)
-            plt.title('SHAP')
-            plt.axis('off')
-            plt.imshow(ih.get_original_img())
-
-            plt.subplot(122)
-            plt.axis('off')
-            plt.imshow(sv, cmap='seismic', clim=(-1, 1))
-
-            # plt.subplot(133)
-            # plt.axis('off')
-            # im = cv2.resize(sv, (224, 224), cv2.INTER_LINEAR)
-            # plt.imshow(im, cmap='seismic', clim=(-1, 1))
-
-            plt.show()
-        plt.cla()
-
-        # modified_SHAP_plot(shap_values, input_image, imgLabels)
+        return sv

@@ -10,6 +10,7 @@ from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
 from keras import backend as K
 import numpy as np
+import matplotlib.pyplot as plt
 
 from ..util.constants import IMG_BASE_PATH
 from ..util.constants import IMAGENET_CLASSES_OUTPUT
@@ -131,7 +132,6 @@ def deprocess_gradcam(x):
     return x
 
 
-
 def get_image_file_name(base_path: str, img_no: int):
     zeros = ''.join(['0' for _ in range(0, 8 - len(str(img_no)))])
 
@@ -162,6 +162,12 @@ class ImageHelper:
             return STD_IMG_SIZE
 
 
+def show_figure(attribution):
+    plt.imshow(attribution, cmap='seismic', clim=(-1, 1))
+    plt.show()
+    plt.cla()
+
+
 class ImageHandler:
     def __init__(self, img_no: int, model_name: str):
         self.img_no = img_no
@@ -181,6 +187,11 @@ class ImageHandler:
         method_path = method + "/" + \
                       method + '_' + str(self.img_no) + '_' + self.model_name + '_test.png'
         return self.output_base_path + method_path
+
+    def save_figure(self, attribution, method: str):
+        plt.imshow(attribution, cmap='seismic', clim=(-1, 1))
+        plt.savefig(self.get_output_path(method))
+        plt.cla()
 
     def get_original_img(self):
         return self.original_img

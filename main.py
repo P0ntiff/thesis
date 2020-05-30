@@ -13,7 +13,7 @@ from eval.methods.grad_cam import GradCam
 
 # util
 from eval.util.constants import GOOD_EXAMPLES, LIFT, LIME, SHAP, GRAD, VGG, INCEPT
-from eval.util.image_util import ImageHandler, BatchImageHelper
+from eval.util.image_util import ImageHandler, BatchImageHelper, show_figure
 from eval.util.image_util import get_classification_mappings
 from keras.applications.imagenet_utils import decode_predictions
 
@@ -65,7 +65,7 @@ def main(method: str, model: str):
 
     # run some attributions
     att = Attributer(model)
-    for i in range(2, 6):
+    for i in range(2, 3):
         att.attribute(img_no=GOOD_EXAMPLES[i],
                       method=method,
                       layer_no=LAYER_TARGETS[method][model])
@@ -78,6 +78,21 @@ def print_confident_predictions(model_name: str):
         label, max_p = att.predict_for_model(img_no=i)
         if max_p > 0.75:
             print('image_no: {}, label: {}, probability: {:.2f}'.format(i, label, max_p))
+
+
+def check_invalid_attribution(attribution, ih):
+    # attribution should be a (X,Y,RGB) array returned by each method
+    if attribution is None:
+        return 1
+    # check shape of attribution is what is expected
+    if attribution.ndim != 2:
+        print('Attribution returned has {} dimensions'.format(attribution.ndim))
+        return 1
+    if attribution.shape != ih.get_size():
+        print('Attribution returned with shape {} is not the expected shape of {}'.format(
+            attribution.shape, ih.get_size()))
+        return 1
+    return 0
 
 
 class Attributer:
@@ -142,26 +157,34 @@ class Attributer:
             print('')
         return max_pred, max_p
 
-    def attribute(self, img_no: int, method: str, layer_no: int = None):
-        """Top level wrapper for collecting attributions from each method. """
+    def attribute(self, img_no: int, method: str, layer_no: int = None,
+                  visualise: bool = False, save: bool = True):
         self.initialise_for_method(method_name=method, layer_no=layer_no)
         ih = ImageHandler(img_no=img_no, model_name=self.curr_model_name)
-        # attribution should be a (X,Y,RGB) array returned by each method
-        attribution = None
+        # get the 2D numpy array which represents the attribution
+        attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
+        if check_invalid_attribution(attribution, ih):
+            return
+        if save:
+            ih.save_figure(attribution, method)
+        if visualise:
+            show_figure(attribution)
+
+    def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None):
+        """Top level wrapper for collecting attributions from each method. """
         if method == LIFT:
-            self.deep_lift_method.attribute(ih)
+            return self.deep_lift_method.attribute(ih)
         elif method == LIME:
-            self.lime_method.attribute(ih)
+            return self.lime_method.attribute(ih)
         elif method == SHAP:
             self.shap_method.reset_explainer(layer_no=layer_no)
-            self.shap_method.attribute(ih)
+            return self.shap_method.attribute(ih)
         elif method == GRAD:
             self.gradcam_method.reset_layer_no(layer_no=layer_no)
-            self.gradcam_method.attribute(ih)
+            return self.gradcam_method.attribute(ih)
         else:
             print('Error: Invalid attribution method chosen')
-
-
+            return None
 
 
 if __name__ == "__main__":

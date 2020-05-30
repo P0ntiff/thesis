@@ -47,7 +47,7 @@ class GradCam:
             return
         self.layer_no = layer_no
 
-    def attribute(self, ih: ImageHandler, visualize=False, save=True):
+    def attribute(self, ih: ImageHandler):
         """Compute saliency.
             -layer_name: layer to compute gradients;
             -cls: class number to localize (-1 for most probable class).
@@ -60,41 +60,13 @@ class GradCam:
         gb = self.guided_backprop(ih)
         guided_gradcam = gb * gradcam[..., np.newaxis]
 
-        # # normalise
+        # only interested in guided gradcam (the class discriminative "high-resolution" combination of guided-BP and GC.
+        # # normalise along color channels and normalise to (-1, 1)
         guided_gradcam = guided_gradcam.sum(axis=np.argmax(np.asarray(guided_gradcam.shape) == 3))
         guided_gradcam /= np.max(np.abs(guided_gradcam))
 
-
-        # only interested in guided gradcam (the class discriminative "high-resolution" combination of guided-BP and GC.
-        if save:
-            # not necessary with above normalisation
-            # plt.imshow(deprocess_image(guided_gradcam[0]), cmap='seismic', clim=(-1, 1))
-            plt.imshow(guided_gradcam[0], cmap='seismic', clim=(-1, 1))
-            plt.savefig(ih.get_output_path('gradcam'))
-            plt.cla()
-
-        if visualize:
-            plt.figure(figsize=(15, 10))
-            plt.subplot(131)
-            plt.title('GradCAM')
-            plt.axis('off')
-            plt.imshow(ih.get_original_img())
-            plt.imshow(gradcam, cmap='jet', alpha=0.5)
-
-            plt.subplot(132)
-            plt.title('Guided Backprop')
-            plt.axis('off')
-            plt.imshow(np.flip(deprocess_gradcam(gb[0]), -1))
-
-            plt.subplot(133)
-            plt.title('Guided GradCAM')
-            plt.axis('off')
-            plt.imshow(guided_gradcam[0], -1)
-
-            plt.show()
-            plt.cla()
-
-        # return gradcam, gb, guided_gradcam
+        # output attribution (numpy 2D array)
+        return guided_gradcam[0]
 
     def guided_backprop(self, ih: ImageHandler):
         """Guided Backpropagation method for visualizing input saliency."""

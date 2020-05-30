@@ -28,21 +28,5 @@ class DeepLift:
         a = a.sum(axis=np.argmax(np.asarray(a.shape) == 3))
         a /= np.max(np.abs(a))
 
-        if save:
-            plt.imshow(a[0], cmap='seismic', clim=(-1, 1))
-            plt.savefig(ih.get_output_path('deeplift'))
-            plt.cla()
-
-        if visualise:
-            plt.figure(figsize=(15, 10))
-            plt.title('DeepLIFT')
-            plt.subplot(121)
-            plt.axis('off')
-            plt.imshow(ih.get_original_img())
-
-            plt.subplot(122)
-            plt.axis('off')
-            plt.imshow(a[0], cmap='seismic', clim=(-1, 1))
-
-            plt.show()
-            plt.cla()
+        # output attribution (numpy 2D array)
+        return a[0]

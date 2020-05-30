@@ -20,11 +20,11 @@ class Lime:
         # these x are batches of 10, where each example is generated around the neighbourhood of the OG source
         return self.model.predict(self.preprocess(x))
 
-    def attribute(self, ih: ImageHandler, visualise: bool = False, save: bool = True):
+    def attribute(self, ih: ImageHandler):
         explanation = self.explainer.explain_instance(ih.get_raw_img(),
                                                       classifier_fn=self.prediction_wrapper,
                                                       top_labels=1,
-                                                      num_samples=100)
+                                                      num_samples=1000)
 
         # TODO fix support for positive and negative evidence
         top_exp = explanation.local_exp[explanation.top_labels[0]]
@@ -36,6 +36,7 @@ class Lime:
         # output = deprocess_image(output)
         #print(np.amin(output, axis=(0, 1)))
         #print(np.amax(output, axis=(0, 1)))
+        # normalise to (-1, 1) [already in one colour channel/axis]
         output /= np.max(np.abs(output))
         # output *= 255.0
         # output = output.astype('uint8')
@@ -45,12 +46,9 @@ class Lime:
         # output = np.stack((red, np.zeros(output.shape), blue), axis=2)
         #output = output.astype('uint8')
 
-        plt.imshow(output, cmap='seismic', clim=(-1, 1))
+        return output
 
-        if save:
-            plt.savefig(ih.get_output_path('lime'))
-        if visualise:
-            plt.show()
+
 
 
 def get_attribution(exp, segments, size, num_features=5):
