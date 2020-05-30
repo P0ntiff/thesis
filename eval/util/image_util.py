@@ -12,13 +12,10 @@ from keras import backend as K
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ..util.constants import IMG_BASE_PATH
+from ..util.constants import IMG_BASE_PATH, RESULTS_BASE_PATH
 from ..util.constants import IMAGENET_CLASSES_OUTPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_INPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_OUTPUT
-
-# results folder
-RESULTS_BASE_PATH = 'results/adapted'
 
 # For feeding into model architectures
 STD_IMG_SIZE = (224, 224)
@@ -82,56 +79,6 @@ def get_preprocess_for_model(model_name):
     return imagenet_utils.preprocess_input
 
 
-# def normalize(self, x):
-#     """Utility function to normalize a tensor by its L2 norm"""
-#     return (x + 1e-10) / (K.sqrt(K.mean(K.square(x))) + 1e-10)
-
-def deprocess_image(x):
-    """Same normalization as in:
-    https://github.com/fchollet/keras/blob/master/examples/conv_filter_visualization.py
-    """
-    x = x.copy()
-    if np.ndim(x) > 3:
-        x = np.squeeze(x)
-    # normalize tensor: center on 0., ensure std is 0.1
-    x -= x.mean()
-    x /= (x.std() + 1e-5)
-    x *= 0.1
-
-    # clip to [0, 1]
-    x += 0.5
-    x = np.clip(x, 0, 1)
-
-    # convert to RGB array
-    x *= 255
-    if K.common.image_dim_ordering() == 'th':
-        x = x.transpose((1, 2, 0))
-    x = np.clip(x, 0, 255).astype('uint8')
-    return x
-
-
-def deprocess_gradcam(x):
-    """Same normalization as in:
-    https://github.com/fchollet/keras/blob/master/examples/conv_filter_visualization.py
-    """
-    # normalize tensor: center on 0., ensure std is 0.25
-    x = x.copy()
-    x -= x.mean()
-    x /= (x.std() + K.epsilon())
-    x *= 0.25
-
-    # clip to [0, 1]
-    x += 0.5
-    x = np.clip(x, 0, 1)
-
-    # convert to RGB array
-    x *= 255
-    if K.image_data_format() == 'channels_first':
-        x = x.transpose((1, 2, 0))
-    x = np.clip(x, 0, 255).astype('uint8')
-    return x
-
-
 def get_image_file_name(base_path: str, img_no: int):
     zeros = ''.join(['0' for _ in range(0, 8 - len(str(img_no)))])
 
@@ -181,11 +128,11 @@ class ImageHandler:
         self.processed_img = ImageHelper.process(self.model_name, self.expanded_img)
 
         # output base path for the model (vgg/inception) folder
-        self.output_base_path = RESULTS_BASE_PATH + "_" + self.model_name + "/"
+        self.output_base_path = RESULTS_BASE_PATH + "/" + self.model_name + "/"
 
     def get_output_path(self, method: str):
         method_path = method + "/" + \
-                      method + '_' + str(self.img_no) + '_' + self.model_name + '_test.png'
+                      method + '_' + str(self.img_no) + '_' + self.model_name + '.png'
         return self.output_base_path + method_path
 
     def save_figure(self, attribution, method: str):

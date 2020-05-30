@@ -3,14 +3,10 @@ import numpy as np
 import innvestigate
 import innvestigate.utils
 
-from ..util.image_util import ImageHandler, deprocess_image
+from ..util.image_util import ImageHandler
 
 # high level wrapper for DeepLIFT
 # TODO: replace with direct implementation
-
-# suppress output
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
-# tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class DeepLift:
@@ -20,7 +16,7 @@ class DeepLift:
         #self.analyzer = innvestigate.create_analyzer("deep_lift.wrapper", model)
         self.analyzer = innvestigate.analyzer.DeepLIFT(self.model)
 
-    def attribute(self, ih: ImageHandler, visualise: bool = False, save: bool = True):
+    def attribute(self, ih: ImageHandler):
         a = self.analyzer.analyze(ih.get_processed_img())
 
         # Aggregate along color channels and normalize to [-1, 1]

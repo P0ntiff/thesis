@@ -1,6 +1,8 @@
 import sys
 import logging
 import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
+import pandas as pd
 
 # keras models
 from keras.applications import InceptionV3, VGG16
@@ -12,7 +14,7 @@ from eval.methods.SHAP import Shap
 from eval.methods.grad_cam import GradCam
 
 # util
-from eval.util.constants import GOOD_EXAMPLES, LIFT, LIME, SHAP, GRAD, VGG, INCEPT
+from eval.util.constants import GOOD_EXAMPLES, LIFT, LIME, SHAP, GRAD, VGG, INCEPT, RESULTS_EVAL_PATH, INTERSECT
 from eval.util.image_util import ImageHandler, BatchImageHelper, show_figure
 from eval.util.image_util import get_classification_mappings
 from keras.applications.imagenet_utils import decode_predictions
@@ -26,13 +28,12 @@ from eval.util.imagenet_annotator import draw_annotations
 # K.set_session(tf.Session(graph=model.output.graph)) init = K.tf.global_variables_initializer() K.get_session().run(init)
 # logging.basicConfig(level=logging.ERROR)
 # #suppress output
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 # tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 METHODS = [LIFT, LIME, SHAP, GRAD]
-
 MODELS = [VGG, INCEPT]
+METRICS = [INTERSECT]
 
 VGG_LAYER_MAP = {"block5_conv3": 17,
                  "block4_conv3": 13,
@@ -59,16 +60,20 @@ LAYER_TARGETS = {
 }
 
 
-def main(method: str, model: str):
+def attributer_wrapper(method: str, model: str):
     # draw_annotations([i for i in range(16, 300)])
-    instance_count = 4
-
     # run some attributions
     att = Attributer(model)
-    for i in range(2, 6):
+    for i in range(1, 8):
         att.attribute(img_no=GOOD_EXAMPLES[i],
                       method=method,
                       layer_no=LAYER_TARGETS[method][model])
+
+
+def evaluator_wrapper(method: str, model: str):
+    # current evaluation metric
+    metric = INTERSECT
+    evaluator = Evaluator(metric=metric, model_name=model)
 
 
 def print_confident_predictions(model_name: str):
@@ -93,6 +98,53 @@ def check_invalid_attribution(attribution, ih):
             attribution.shape, ih.get_size()))
         return 1
     return 0
+
+
+class Analyser:
+    def __init__(self):
+        # analytics class for comparing metrics across models and methods
+        pass
+
+
+class Evaluator:
+    def __init__(self, metric: str, model_name: str):
+        self.att = Attributer(model_name=model_name)
+        self.metric = metric
+        self.model_name = model_name
+        self.experiment_length = 5
+        self.file_headers = ["img_no"] + METHODS
+        self.result_file = RESULTS_EVAL_PATH + '/' + metric + '_results.csv'
+        self.results_df = self.read_file(self.result_file, wipe=True)
+        # test
+        self.write_file(self.results_df)
+
+    def read_file(self, file_path: str, wipe=False):
+        # gets a dataframe from the results file
+        if wipe:
+            f = open(file_path, "w+")
+            f.close()
+            return pd.DataFrame(columns=self.file_headers)
+        df = pd.read_csv(file_path)
+        return df
+
+    def write_file(self, df):
+        df.to_csv(self.result_file, index=False)
+
+    def collect_result_batch(self, method: str):
+        df = pd.DataFrame(columns=self.file_headers)
+        for img_no in range(0, self.experiment_length):
+            res = self.collect_result(GOOD_EXAMPLES[img_no], method)
+            # if img_no > len(self.results_df.index):
+
+    def collect_result(self, img_no: int, method: str):
+        evaluation = 1
+        if self.metric == INTERSECT:
+            evaluation = self.evaluate_intersection(img_no, method)
+        elif self.metric is None:
+            print('Unimplemented evaluation metric')
+
+    def evaluate_intersection(self, img_no: int, method: str):
+        return 1
 
 
 class Attributer:
@@ -188,13 +240,20 @@ class Attributer:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print('Usage: main [method] [model]')
+    if len(sys.argv) != 4:
+        print('Usage: main <mode>[attribute|evaluate] <method>[shap|deeplift|gradcam|lime] <model>[vgg16|inception]')
         sys.exit()
-    if sys.argv[1] not in METHODS:
-        print('unrecognised method: ' + sys.argv[1])
+    if sys.argv[1] not in ['attribute', 'evaluate']:
+        print('Unrecognised mode: {}'.format(sys.argv[1]))
+    if sys.argv[2] not in METHODS:
+        print('Unrecognised method: {}'.format(sys.argv[1]))
         sys.exit()
-    if sys.argv[2] not in MODELS:
-        print('unrecognised model: ' + sys.argv[2])
+    if sys.argv[3] not in MODELS:
+        print('Unrecognised model: {}'.format(sys.argv[2]))
         sys.exit()
-    main(sys.argv[1], sys.argv[2])
+
+    # send commands to wrappers
+    if sys.argv[1] == 'attribute':
+        attributer_wrapper(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == 'evaluate':
+        evaluator_wrapper(sys.argv[2], sys.argv[3])

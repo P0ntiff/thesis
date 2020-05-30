@@ -27,3 +27,13 @@ GRAD = 'gradcam'
 # models
 VGG = 'vgg16'
 INCEPT = 'inception'
+
+
+# metrics
+INTERSECT = 'intersect'
+
+# results folder
+RESULTS_EVAL_PATH = 'results/eval'
+RESULTS_ADAPTED_PATH = 'results/adapted'
+RESULTS_BASE_PATH = RESULTS_EVAL_PATH
+#RESULTS_BASE_PATH = RESULTS_ADAPTED_PATH

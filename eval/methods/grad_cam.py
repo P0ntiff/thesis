@@ -11,7 +11,7 @@ import tensorflow as tf
 from keras import backend as K
 from tensorflow.python.framework import ops
 
-from eval.util.image_util import ImageHandler, deprocess_gradcam
+from eval.util.image_util import ImageHandler
 
 
 def build_guided_model(build_model_fn):

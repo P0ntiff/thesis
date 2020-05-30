@@ -3,7 +3,7 @@ import numpy as np
 # LIME explanation
 from lime import lime_image
 
-from ..util.image_util import ImageHandler, deprocess_image, get_preprocess_for_model
+from ..util.image_util import ImageHandler, get_preprocess_for_model
 
 
 class Lime:
