@@ -71,7 +71,7 @@ def draw_annotation(img_no: int, class_map: dict, save_to_file=True, display=Fal
 
 def get_mask_for_eval(img_no: int, target_size: tuple, save=True, visualise=False,
                       image_base_path: str = IMG_BASE_PATH, xml_base_path: str = XML_BASE_PATH):
-    print('Drawing mask for img_no = \t' + str(img_no))
+    #print('Drawing mask for img_no = \t' + str(img_no))
     xml_path = get_image_file_name(xml_base_path, img_no) + '.xml'
     image_path = get_image_file_name(image_base_path, img_no) + '.JPEG'
     output_path = get_image_file_name(MASK_BASE_PATH, img_no) + '.png'

@@ -10,9 +10,10 @@ from ..util.image_util import ImageHandler
 
 
 class DeepLift:
-    def __init__(self, model):
+    def __init__(self, model, build_model_fn):
+        self.model = build_model_fn()
         # strip softmax layer
-        self.model = innvestigate.utils.model_wo_softmax(model)
+        self.model = innvestigate.utils.model_wo_softmax(self.model)
         #self.analyzer = innvestigate.create_analyzer("deep_lift.wrapper", model)
         self.analyzer = innvestigate.analyzer.DeepLIFT(self.model)
 

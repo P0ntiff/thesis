@@ -16,7 +16,7 @@ from eval.methods.SHAP import Shap
 from eval.methods.grad_cam import GradCam
 
 # util
-from eval.util.constants import GOOD_EXAMPLES, LIFT, LIME, SHAP, GRAD, VGG, INCEPT, RESULTS_EVAL_PATH, INTERSECT
+from eval.util.constants import *
 from eval.util.image_util import ImageHandler, show_figure, apply_threshold, ImageHelper
 from eval.util.image_util import get_classification_mappings
 from keras.applications.imagenet_utils import decode_predictions
@@ -33,9 +33,9 @@ from eval.util.imagenet_annotator import draw_annotations, get_masks_for_eval, g
 # tf.logging.set_verbosity(tf.logging.ERROR)
 
 
-METHODS = [LIFT, LIME, SHAP, GRAD]
+METHODS = [LIME, LIFT, SHAP, GRAD]
 MODELS = [VGG, INCEPT]
-METRICS = [INTERSECT]
+METRICS = [INTERSECT, INTENSITY]
 
 VGG_LAYER_MAP = {"block5_conv3": 17,
                  "block4_conv3": 13,
@@ -74,8 +74,13 @@ def attributer_wrapper(method: str, model: str):
                       layer_no=LAYER_TARGETS[method][model])
 
 
+def evaluate_panel_wrapper(metric: str, model: str):
+    evaluator = Evaluator(metric=metric, model_name=model)
+    evaluator.collect_panel_result_batch(range(1, 5))
+
+
 def evaluator_wrapper(method: str, model: str):
-    # current evaluation metric
+    # hardcoded evaluation metric
     metric = INTERSECT
     evaluator = Evaluator(metric=metric, model_name=model)
     evaluator.collect_result_batch(method, range(2, 3))
@@ -134,25 +139,43 @@ class Evaluator:
             f.close()
             df = pd.DataFrame(columns=['img_no'] + self.file_headers).set_index('img_no')
             return df
+        if not os.path.exists(file_path):
+            open(file_path, "w").close()
         df = pd.read_csv(file_path).set_index('img_no')
         return df
 
     def write_results_to_file(self):
         self.results_df.to_csv(self.result_file, index=True, index_label='img_no')
 
-    def collect_result_batch(self, method: str, experiment_range: range = range(3)):
+    def collect_panel_result_batch(self, experiment_range: range):
+        new_rows = {}
+        for img_no in experiment_range:
+            new_row = {}
+            for method in METHODS:
+                # TODO replace GOOD_EXAMPLES no's with actual img_nos later
+                result = self.collect_result(GOOD_EXAMPLES[img_no], method)
+                if img_no <= len(self.results_df.index):
+                    self.results_df.at[img_no, method] = result
+                else:
+                    new_row[method] = result
+            new_rows[img_no] = new_row
+        new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
+        self.results_df = self.results_df.append(new_data)
+        self.write_results_to_file()
+
+    def collect_result_batch(self, method: str, experiment_range: range):
         new_rows = {}
         for img_no in experiment_range:
             # TODO replace GOOD_EXAMPLES no's with actual img_nos later
             result = self.collect_result(GOOD_EXAMPLES[img_no], method)
             if img_no <= len(self.results_df.index):
-                self.results_df.append(pd.Series(), ignore_index=True)
                 self.results_df.at[img_no, method] = result
             else:
                 new_row = {method: result}
                 new_rows[img_no] = new_row
-        new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
-        self.results_df = self.results_df.append(new_data)
+        if len(new_rows) > 0:
+            new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
+            self.results_df = self.results_df.append(new_data)
         self.write_results_to_file()
 
     def collect_result(self, img_no: int, method: str):
@@ -162,6 +185,7 @@ class Evaluator:
             print('Unimplemented evaluation metric')
 
     def evaluate_intersection(self, img_no: int, method: str) -> float:
+        print('Evaluating for {} method on image number {}'.format(method, img_no))
         # take an attribution, and a bounding box mask, and calculate the IOU metric
         ih = ImageHandler(img_no=img_no, model_name=self.model_name)
         # threshold applied, and absolute value set (positive and negative evidence treated the same)
@@ -169,7 +193,7 @@ class Evaluator:
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
                                          threshold=True, take_absolute=True,
-                                         visualise=True, save=False)
+                                         visualise=False, save=True)
         # bounding box in the format of the model's input shape / attribution shape
         mask = get_mask_for_eval(img_no=img_no, target_size=ih.get_size(),
                                  save=False, visualise=False)
@@ -192,6 +216,13 @@ class Evaluator:
         print('Intersect / Union=\t{:.2f}%'.format(iou_percentage * 100))
 
         return iou_percentage
+
+    def evaluate_intensity(self, img_no: int, method: str) -> float:
+        ih = ImageHandler(img_no=img_no, model_name=self.model_name)
+
+
+
+        return 0
 
 
 class Attributer:
@@ -225,7 +256,7 @@ class Attributer:
 
     def initialise_for_method(self, method_name: str, layer_no: int = None):
         if method_name == LIFT and self.deep_lift_method is None:
-            self.deep_lift_method = DeepLift(self.curr_model)
+            self.deep_lift_method = DeepLift(self.curr_model, self.build_model)
         elif method_name == LIME and self.lime_method is None:
             self.lime_method = Lime(self.curr_model, self.curr_model_name)
         elif method_name == SHAP and self.shap_method is None:
@@ -258,6 +289,7 @@ class Attributer:
     def attribute(self, ih: ImageHandler, method: str, layer_no: int = None,
                   threshold: bool = False, take_absolute: bool = False,
                   visualise: bool = False, save: bool = True):
+
         self.initialise_for_method(method_name=method, layer_no=layer_no)
         # get the 2D numpy array which represents the attribution
         attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
@@ -293,10 +325,23 @@ if __name__ == "__main__":
     if sys.argv[1] == 'annotate':
         annotator_wrapper()
         sys.exit()
+    # 'evaluate_panel' command line option
+    if sys.argv[1] == 'evaluate_panel':
+        if len(sys.argv) != 4:
+            print('Usage: main evaluate_panel <metric>[intersect|intensity] <model>[vgg16|inception]')
+            sys.exit()
+        if sys.argv[2] not in METRICS:
+            print('Unrecognised metric: {}'.format(sys.argv[2]))
+            sys.exit()
+        if sys.argv[3] not in MODELS:
+            print('Unrecognised model: {}'.format(sys.argv[3]))
+        evaluate_panel_wrapper(sys.argv[2], sys.argv[3])
+        sys.exit()
+    # individual method command line options (attributing and evaluating)
     if len(sys.argv) != 4:
         print('Usage: main <mode>[attribute|evaluate] <method>[shap|deeplift|gradcam|lime] <model>[vgg16|inception]')
         sys.exit()
-    if sys.argv[1] not in ['attribute', 'evaluate']:
+    if sys.argv[1] not in ['attribute', 'evaluate', 'evaluate_panel']:
         print('Unrecognised mode: {}'.format(sys.argv[1]))
     if sys.argv[2] not in METHODS:
         print('Unrecognised method: {}'.format(sys.argv[1]))
@@ -304,7 +349,6 @@ if __name__ == "__main__":
     if sys.argv[3] not in MODELS:
         print('Unrecognised model: {}'.format(sys.argv[2]))
         sys.exit()
-
     # send commands to wrappers
     if sys.argv[1] == 'attribute':
         attributer_wrapper(sys.argv[2], sys.argv[3])

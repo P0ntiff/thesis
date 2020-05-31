@@ -28,9 +28,13 @@ GRAD = 'gradcam'
 VGG = 'vgg16'
 INCEPT = 'inception'
 
+# number of standard deviations to apply to each attribution as a 'threshold' for contribution scores to be compared
+# against the ground truth bounding box label
+STD_DEV_MULTIPLIER = 2
 
 # metrics
 INTERSECT = 'intersect'
+INTENSITY = 'intensity'
 
 # results folder
 RESULTS_EVAL_PATH = 'results/eval'
