@@ -12,7 +12,7 @@ from keras import backend as K
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ..util.constants import IMG_BASE_PATH, RESULTS_BASE_PATH, STD_DEV_MULTIPLIER
+from ..util.constants import IMG_BASE_PATH, RESULTS_BASE_PATH
 from ..util.constants import IMAGENET_CLASSES_OUTPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_INPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_OUTPUT
@@ -115,13 +115,13 @@ def show_figure(numpy_array):
     plt.cla()
 
 
-def apply_threshold(attribution, threshold: bool, take_absolute: bool):
+def apply_threshold(attribution, sigma_multiple: int, take_absolute: bool):
     """ Threshold calculated as standard deviation (can be modified). Should be between (-1, 1) """
     if take_absolute:
         attribution = np.abs(attribution)
     # apply threshold
-    if threshold:
-        thresh = attribution.std() * STD_DEV_MULTIPLIER
+    if sigma_multiple != 0:
+        thresh = attribution.std() * sigma_multiple
         if thresh < -1 or thresh > 1:
             print('Invalid threshold calculated')
             return attribution

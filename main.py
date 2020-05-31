@@ -160,7 +160,7 @@ class Evaluator:
         new_rows = {}
         for img_no in experiment_range:
             new_row = {}
-            ih, annotation_mask = self.get_image_handler_and_mask(GOOD_EXAMPLES[img_no])
+            ih, annotation_mask = self.get_image_handler_and_mask(img_no)
             for method in METHODS:
                 result = self.collect_result(ih, annotation_mask, method)
                 # TODO replace GOOD_EXAMPLES no's with actual img_nos later
@@ -169,39 +169,51 @@ class Evaluator:
                 else:
                     new_row[method] = result
             new_rows[img_no] = new_row
-        new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
+            if img_no % 10 == 0:
+                self.append_to_results_df(new_rows)
+                new_rows = {}
+        self.append_to_results_df(new_rows)
+
+    def append_to_results_df(self, new_rows_dict, write=True):
+        new_data = pd.DataFrame.from_dict(new_rows_dict, columns=self.file_headers, orient='index')
         self.results_df = self.results_df.append(new_data)
-        self.write_results_to_file()
+        if write:
+            self.write_results_to_file()
 
     def collect_result_batch(self, method: str, experiment_range: range):
         new_rows = {}
         for img_no in experiment_range:
             # TODO replace GOOD_EXAMPLES no's with actual img_nos later (and in above func)
-            ih, annotation_mask = self.get_image_handler_and_mask(GOOD_EXAMPLES[img_no])
+            ih, annotation_mask = self.get_image_handler_and_mask(img_no)
             result = self.collect_result(ih, annotation_mask, method)
             if img_no <= len(self.results_df.index):
                 self.results_df.at[img_no, method] = result
             else:
                 new_rows[img_no] = {method: result}
-        if len(new_rows) > 0:
-            new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
-            self.results_df = self.results_df.append(new_data)
-        self.write_results_to_file()
+            if img_no % 10 == 0:
+                self.append_to_results_df(new_rows)
+                new_rows = {}
+
+        self.append_to_results_df(new_rows)
 
     def collect_result(self, ih: ImageHandler, mask, method: str):
+        # threshold for each attribution's "explainability" is the number of std deviations above
+        # the mean contribution score for a pixel
+        # against the ground truth bounding box label
+        # for normal intersection over union, this is one sigma. for "intensity" over union this is taken as two sigma
         if self.metric == INTERSECT:
-            return self.evaluate_intersection(ih, mask, method)
-        elif self.metric is None:
-            print('Unimplemented evaluation metric')
+            return self.evaluate_intersection(ih, mask, method, sigma=1)
+        elif self.metric == INTENSITY:
+            return self.evaluate_intensity(ih, mask, method, sigma=2)
 
-    def evaluate_intersection(self, ih: ImageHandler, mask, method: str, print_debug: bool = True) -> float:
+    def evaluate_intersection(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = True) -> float:
         # calculate an attribution and use a provided bounding box mask to calculate the IOU metric
         # attribution has threshold applied, and abs value set (positive and negative evidence treated the same)
         attribution = self.att.attribute(ih=ih,
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
-                                         threshold=True, take_absolute=True,
-                                         visualise=False, save=True)
+                                         threshold=True, sigma_multiple=sigma, take_absolute=True,
+                                         visualise=False, save=False)
         # calculate the intersection of the attribution and the bounding box mask
         intersect_array = np.zeros(attribution.shape)
         intersect_array[(attribution > 0.0) * (mask > 0.0)] = 1
@@ -213,24 +225,47 @@ class Evaluator:
         # calculate intersection and union areas for numerator and denominator respectively
         intersect_area = intersect_array.sum()
         union_area = union_array.sum()
-        mask_area = mask.sum()
-        iou_percentage = intersect_area / union_area
+        #mask_area = mask.sum()
+        intersection_over_union = intersect_area / union_area
         if print_debug:
-            print('Evaluating `{}` on example `{}`'.format(method, ih.img_no))
+            print('Evaluating `{}` on example `{}` ({})'.format(method, ih.img_no, 'intersection'))
             #print('--Mask Area =\t {}'.format(mask_area))
             print('--Intersect Area =\t {}'.format(intersect_area))
             print('--Union Area =\t {}'.format(union_area))
-            print('--Intersection / Union =\t{:.2f}%'.format(iou_percentage * 100))
+            print('--Intersection / Union =\t{:.2f}%'.format(intersection_over_union * 100))
             print('')
 
-        return iou_percentage
+        return intersection_over_union
 
-    def evaluate_intensity(self, img_no: int, method: str) -> float:
-        ih = ImageHandler(img_no=img_no, model_name=self.model_name)
+    def evaluate_intensity(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = True) -> float:
+        # # calculate an attribution and use a provided bounding box mask to calculate the IOU metric
+        # # attribution has threshold applied, and abs value set (positive and negative evidence treated the same)
+        attribution = self.att.attribute(ih=ih,
+                                         method=method,
+                                         layer_no=LAYER_TARGETS[method][self.model_name],
+                                         threshold=True, sigma_multiple=sigma, take_absolute=True,
+                                         visualise=False, save=False)
+        show_figure(attribution)
+        # calculate the weight/confidence of the attribution intersected with the bounding box mask
+        intensity_array = np.copy(attribution)
+        intensity_array[(attribution > 0.0) * (mask < 0.1)] = 0
+        show_figure(intensity_array)
+        # get the union array for the IOU calculation
+        union_array = np.zeros(attribution.shape)
+        union_array[(attribution > 0.0) + (mask > 0.0)] = 1
+        show_figure(union_array)
+        # calculate intersection and union areas for numerator and denominator respectively
+        intensity_area = intensity_array.sum()
+        union_area = union_array.sum()
+        intensity_over_union = intensity_area / union_area
+        if print_debug:
+            print('Evaluating `{}` on example `{}` ({})'.format(method, ih.img_no, 'intensity'))
+            print('--Intersect Area =\t {}'.format(intensity_area))
+            print('--Union Area =\t {}'.format(union_area))
+            print('--Intensity / Union =\t{:.2f}%'.format(intensity_over_union * 100))
+            print('')
 
-
-
-        return 0
+        return intensity_over_union
 
 
 class Attributer:
@@ -295,7 +330,7 @@ class Attributer:
         return max_pred, max_p
 
     def attribute(self, ih: ImageHandler, method: str, layer_no: int = None,
-                  threshold: bool = False, take_absolute: bool = False,
+                  threshold: bool = False, sigma_multiple: int = 0, take_absolute: bool = False,
                   visualise: bool = False, save: bool = True):
 
         self.initialise_for_method(method_name=method, layer_no=layer_no)
@@ -303,7 +338,7 @@ class Attributer:
         attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
         # check if applying any thresholds / adjustments based on +ve / -ve evidence
         if threshold or take_absolute:
-            attribution = apply_threshold(attribution, threshold, take_absolute)
+            attribution = apply_threshold(attribution, sigma_multiple, take_absolute)
         if check_invalid_attribution(attribution, ih):
             return
         if save:
