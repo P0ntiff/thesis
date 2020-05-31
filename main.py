@@ -147,13 +147,23 @@ class Evaluator:
     def write_results_to_file(self):
         self.results_df.to_csv(self.result_file, index=True, index_label='img_no')
 
+    def get_image_handler_and_mask(self, img_no):
+        # this gets the image wrapped in the ImageHandler object, and the bounding box annotation mask for the image,
+        # ImageHandler is used to calculate attributions by each method, and the the mask is used for evaluation
+        ih = ImageHandler(img_no=img_no, model_name=self.model_name)
+        # bounding box in the format of the model's input shape / attribution shape
+        annotation_mask = get_mask_for_eval(img_no=img_no, target_size=ih.get_size(),
+                                            save=False, visualise=False)
+        return ih, annotation_mask
+
     def collect_panel_result_batch(self, experiment_range: range):
         new_rows = {}
         for img_no in experiment_range:
             new_row = {}
+            ih, annotation_mask = self.get_image_handler_and_mask(GOOD_EXAMPLES[img_no])
             for method in METHODS:
+                result = self.collect_result(ih, annotation_mask, method)
                 # TODO replace GOOD_EXAMPLES no's with actual img_nos later
-                result = self.collect_result(GOOD_EXAMPLES[img_no], method)
                 if img_no <= len(self.results_df.index):
                     self.results_df.at[img_no, method] = result
                 else:
@@ -166,37 +176,32 @@ class Evaluator:
     def collect_result_batch(self, method: str, experiment_range: range):
         new_rows = {}
         for img_no in experiment_range:
-            # TODO replace GOOD_EXAMPLES no's with actual img_nos later
-            result = self.collect_result(GOOD_EXAMPLES[img_no], method)
+            # TODO replace GOOD_EXAMPLES no's with actual img_nos later (and in above func)
+            ih, annotation_mask = self.get_image_handler_and_mask(GOOD_EXAMPLES[img_no])
+            result = self.collect_result(ih, annotation_mask, method)
             if img_no <= len(self.results_df.index):
                 self.results_df.at[img_no, method] = result
             else:
-                new_row = {method: result}
-                new_rows[img_no] = new_row
+                new_rows[img_no] = {method: result}
         if len(new_rows) > 0:
             new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
             self.results_df = self.results_df.append(new_data)
         self.write_results_to_file()
 
-    def collect_result(self, img_no: int, method: str):
+    def collect_result(self, ih: ImageHandler, mask, method: str):
         if self.metric == INTERSECT:
-            return self.evaluate_intersection(img_no, method)
+            return self.evaluate_intersection(ih, mask, method)
         elif self.metric is None:
             print('Unimplemented evaluation metric')
 
-    def evaluate_intersection(self, img_no: int, method: str) -> float:
-        print('Evaluating for {} method on image number {}'.format(method, img_no))
-        # take an attribution, and a bounding box mask, and calculate the IOU metric
-        ih = ImageHandler(img_no=img_no, model_name=self.model_name)
-        # threshold applied, and absolute value set (positive and negative evidence treated the same)
+    def evaluate_intersection(self, ih: ImageHandler, mask, method: str, print_debug: bool = True) -> float:
+        # calculate an attribution and use a provided bounding box mask to calculate the IOU metric
+        # attribution has threshold applied, and abs value set (positive and negative evidence treated the same)
         attribution = self.att.attribute(ih=ih,
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
                                          threshold=True, take_absolute=True,
                                          visualise=False, save=True)
-        # bounding box in the format of the model's input shape / attribution shape
-        mask = get_mask_for_eval(img_no=img_no, target_size=ih.get_size(),
-                                 save=False, visualise=False)
         # calculate the intersection of the attribution and the bounding box mask
         intersect_array = np.zeros(attribution.shape)
         intersect_array[(attribution > 0.0) * (mask > 0.0)] = 1
@@ -209,11 +214,14 @@ class Evaluator:
         intersect_area = intersect_array.sum()
         union_area = union_array.sum()
         mask_area = mask.sum()
-        print('Mask Area =\t {}'.format(mask_area))
-        print('Intersect Area =\t {}'.format(intersect_area))
-        print('Union Area =\t {}'.format(union_area))
         iou_percentage = intersect_area / union_area
-        print('Intersect / Union=\t{:.2f}%'.format(iou_percentage * 100))
+        if print_debug:
+            print('Evaluating `{}` on example `{}`'.format(method, ih.img_no))
+            #print('--Mask Area =\t {}'.format(mask_area))
+            print('--Intersect Area =\t {}'.format(intersect_area))
+            print('--Union Area =\t {}'.format(union_area))
+            print('--Intersection / Union =\t{:.2f}%'.format(iou_percentage * 100))
+            print('')
 
         return iou_percentage
 
