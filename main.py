@@ -75,8 +75,11 @@ def attributer_wrapper(method: str, model: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    evaluator = Evaluator(metric=metric, model_name=model)
-    evaluator.collect_panel_result_batch(range(1, 5))
+    evaluator = Evaluator(metric=INTERSECT, model_name=model)
+    evaluator.collect_panel_result_batch(range(1, 301))
+
+    evaluator = Evaluator(metric=INTENSITY, model_name=model)
+    evaluator.collect_panel_result_batch(range(1, 301))
 
 
 def evaluator_wrapper(method: str, model: str):
@@ -169,10 +172,10 @@ class Evaluator:
                 else:
                     new_row[method] = result
             new_rows[img_no] = new_row
-            if img_no % 10 == 0:
+            if (img_no % 10) == 0:
                 self.append_to_results_df(new_rows)
                 new_rows = {}
-        self.append_to_results_df(new_rows)
+        #self.append_to_results_df(new_rows)
 
     def append_to_results_df(self, new_rows_dict, write=True):
         new_data = pd.DataFrame.from_dict(new_rows_dict, columns=self.file_headers, orient='index')
@@ -245,15 +248,15 @@ class Evaluator:
                                          layer_no=LAYER_TARGETS[method][self.model_name],
                                          threshold=True, sigma_multiple=sigma, take_absolute=True,
                                          visualise=False, save=False)
-        show_figure(attribution)
+        #show_figure(attribution)
         # calculate the weight/confidence of the attribution intersected with the bounding box mask
         intensity_array = np.copy(attribution)
         intensity_array[(attribution > 0.0) * (mask < 0.1)] = 0
-        show_figure(intensity_array)
+        #show_figure(intensity_array)
         # get the union array for the IOU calculation
         union_array = np.zeros(attribution.shape)
         union_array[(attribution > 0.0) + (mask > 0.0)] = 1
-        show_figure(union_array)
+        #show_figure(union_array)
         # calculate intersection and union areas for numerator and denominator respectively
         intensity_area = intensity_array.sum()
         union_area = union_array.sum()

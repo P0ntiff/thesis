@@ -21,7 +21,7 @@ class Lime:
         explanation = self.explainer.explain_instance(ih.get_raw_img(),
                                                       classifier_fn=self.prediction_wrapper,
                                                       top_labels=1,
-                                                      num_samples=100)
+                                                      num_samples=1000)
 
         # TODO fix support for positive and negative evidence
         top_exp = explanation.local_exp[explanation.top_labels[0]]
