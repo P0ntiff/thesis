@@ -1,6 +1,7 @@
 import sys
 import logging
 import os
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 import pandas as pd
 import numpy as np
@@ -20,8 +21,8 @@ from eval.util.image_util import ImageHandler, show_figure, apply_threshold, Ima
 from eval.util.image_util import get_classification_mappings
 from keras.applications.imagenet_utils import decode_predictions
 
-# misc
-from eval.util.imagenet_annotator import draw_annotations, get_masks_for_eval
+# image annotations and mask util
+from eval.util.imagenet_annotator import draw_annotations, get_masks_for_eval, get_mask_for_eval
 
 # K.clear_session()
 # tf.global_variables_initializer()
@@ -39,7 +40,7 @@ METRICS = [INTERSECT]
 VGG_LAYER_MAP = {"block5_conv3": 17,
                  "block4_conv3": 13,
                  "block3_conv3": 9,
-                 "block3_conv1": 7,      # shap original target
+                 "block3_conv1": 7,  # shap original target
                  "block2_conv2": 5}
 INCEPTION_LAYER_MAP = {"conv2d_94": 299,
                        "conv2d_188": 299,
@@ -49,7 +50,7 @@ INCEPTION_LAYER_MAP = {"conv2d_94": 299,
 LAYER_TARGETS = {
     SHAP:
         {INCEPT: INCEPTION_LAYER_MAP["conv2d_188"],
-         VGG: VGG_LAYER_MAP["block3_conv3"]},   # block5_conv3, block3_conv1
+         VGG: VGG_LAYER_MAP["block3_conv3"]},  # block5_conv3, block3_conv1
     GRAD:
         {INCEPT: INCEPTION_LAYER_MAP["conv2d_188"],
          VGG: VGG_LAYER_MAP["block5_conv3"]},
@@ -67,7 +68,8 @@ def attributer_wrapper(method: str, model: str):
     # run some attributions
     att = Attributer(model)
     for i in range(1, 8):
-        att.attribute(img_no=GOOD_EXAMPLES[i],
+        ih = ImageHandler(img_no=GOOD_EXAMPLES[i], model_name=model)
+        att.attribute(ih=ih,
                       method=method,
                       layer_no=LAYER_TARGETS[method][model])
 
@@ -76,14 +78,7 @@ def evaluator_wrapper(method: str, model: str):
     # current evaluation metric
     metric = INTERSECT
     evaluator = Evaluator(metric=metric, model_name=model)
-
-    # test attributor
-    for i in range(1, 8):
-        evaluator.att.attribute(img_no=GOOD_EXAMPLES[i],
-                                method=method,
-                                layer_no=LAYER_TARGETS[method][model],
-                                threshold=0.1, take_absolute=True,
-                                visualise=False, save=True)
+    evaluator.collect_result_batch(method, range(2, 3))
 
 
 def annotator_wrapper():
@@ -95,7 +90,8 @@ def print_confident_predictions(model_name: str):
     att = Attributer(model_name)
     att.initialise_for_method("")
     for i in range(1, 300):
-        label, max_p = att.predict_for_model(img_no=i)
+        ih = ImageHandler(img_no=i, model_name=model_name)
+        label, max_p = att.predict_for_model(ih=ih)
         if max_p > 0.75:
             print('image_no: {}, label: {}, probability: {:.2f}'.format(i, label, max_p))
 
@@ -126,40 +122,76 @@ class Evaluator:
         self.att = Attributer(model_name=model_name)
         self.metric = metric
         self.model_name = model_name
-        self.experiment_length = 5
-        self.file_headers = ["img_no"] + METHODS
-        self.result_file = RESULTS_EVAL_PATH + '/' + metric + '_results.csv'
-        self.results_df = self.read_file(self.result_file, wipe=True)
-        # test
-        self.write_file(self.results_df)
+        self.file_headers = METHODS  # [m + "+_" + self.model_name for m in METHODS]
+        self.result_file = "{}/{}/{}_results.csv".format(
+            RESULTS_EVAL_PATH, model_name, metric)
+        self.results_df = self.read_file(self.result_file, wipe=False)
 
     def read_file(self, file_path: str, wipe=False):
         # gets a dataframe from the results file
         if wipe:
             f = open(file_path, "w+")
             f.close()
-            return pd.DataFrame(columns=self.file_headers)
-        df = pd.read_csv(file_path)
+            df = pd.DataFrame(columns=['img_no'] + self.file_headers).set_index('img_no')
+            return df
+        df = pd.read_csv(file_path).set_index('img_no')
         return df
 
-    def write_file(self, df):
-        df.to_csv(self.result_file, index=False)
+    def write_results_to_file(self):
+        self.results_df.to_csv(self.result_file, index=True, index_label='img_no')
 
-    def collect_result_batch(self, method: str):
-        df = pd.DataFrame(columns=self.file_headers)
-        for img_no in range(0, self.experiment_length):
-            res = self.collect_result(GOOD_EXAMPLES[img_no], method)
-            # if img_no > len(self.results_df.index):
+    def collect_result_batch(self, method: str, experiment_range: range = range(3)):
+        new_rows = {}
+        for img_no in experiment_range:
+            # TODO replace GOOD_EXAMPLES no's with actual img_nos later
+            result = self.collect_result(GOOD_EXAMPLES[img_no], method)
+            if img_no <= len(self.results_df.index):
+                self.results_df.append(pd.Series(), ignore_index=True)
+                self.results_df.at[img_no, method] = result
+            else:
+                new_row = {method: result}
+                new_rows[img_no] = new_row
+        new_data = pd.DataFrame.from_dict(new_rows, columns=self.file_headers, orient='index')
+        self.results_df = self.results_df.append(new_data)
+        self.write_results_to_file()
 
     def collect_result(self, img_no: int, method: str):
-        evaluation = 1
         if self.metric == INTERSECT:
-            evaluation = self.evaluate_intersection(img_no, method)
+            return self.evaluate_intersection(img_no, method)
         elif self.metric is None:
             print('Unimplemented evaluation metric')
 
-    def evaluate_intersection(self, img_no: int, method: str):
-        return 1
+    def evaluate_intersection(self, img_no: int, method: str) -> float:
+        # take an attribution, and a bounding box mask, and calculate the IOU metric
+        ih = ImageHandler(img_no=img_no, model_name=self.model_name)
+        # threshold applied, and absolute value set (positive and negative evidence treated the same)
+        attribution = self.att.attribute(ih=ih,
+                                         method=method,
+                                         layer_no=LAYER_TARGETS[method][self.model_name],
+                                         threshold=True, take_absolute=True,
+                                         visualise=True, save=False)
+        # bounding box in the format of the model's input shape / attribution shape
+        mask = get_mask_for_eval(img_no=img_no, target_size=ih.get_size(),
+                                 save=False, visualise=False)
+        # calculate the intersection of the attribution and the bounding box mask
+        intersect_array = np.zeros(attribution.shape)
+        intersect_array[(attribution > 0.0) * (mask > 0.0)] = 1
+        #show_figure(intersect_array)
+        # get the union array for the IOU calculation
+        union_array = np.zeros(attribution.shape)
+        union_array[(attribution > 0.0) + (mask > 0.0)] = 1
+        #show_figure(union_array)
+        # calculate intersection and union areas for numerator and denominator respectively
+        intersect_area = intersect_array.sum()
+        union_area = union_array.sum()
+        mask_area = mask.sum()
+        print('Mask Area =\t {}'.format(mask_area))
+        print('Intersect Area =\t {}'.format(intersect_area))
+        print('Union Area =\t {}'.format(union_area))
+        iou_percentage = intersect_area / union_area
+        print('Intersect / Union=\t{:.2f}%'.format(iou_percentage * 100))
+
+        return iou_percentage
 
 
 class Attributer:
@@ -201,12 +233,11 @@ class Attributer:
         elif method_name == GRAD and self.gradcam_method is None:
             self.gradcam_method = GradCam(self.curr_model, self.build_model, layer_no)
 
-    def predict_for_model(self, img_no: int, top_n: int = 5, print_to_stdout: bool = True) -> (str, float):
+    def predict_for_model(self, ih: ImageHandler, top_n: int = 5, print_to_stdout: bool = True) -> (str, float):
         # returns a tuple with the top prediction, and the probability of the top prediction (i.e confidence)
-        img = ImageHandler(img_no=img_no, model_name=self.curr_model_name)
         # classify
         logging.info('Classifying...')
-        predictions = self.curr_model.predict(img.get_processed_img())
+        predictions = self.curr_model.predict(ih.get_processed_img())
         decoded_predictions = decode_predictions(predictions, top=top_n)
 
         # print the top 5 predictions, labels and probabilities
@@ -224,15 +255,14 @@ class Attributer:
             print('')
         return max_pred, max_p
 
-    def attribute(self, img_no: int, method: str, layer_no: int = None,
-                  threshold: float = None, take_absolute: bool = None,
+    def attribute(self, ih: ImageHandler, method: str, layer_no: int = None,
+                  threshold: bool = False, take_absolute: bool = False,
                   visualise: bool = False, save: bool = True):
         self.initialise_for_method(method_name=method, layer_no=layer_no)
-        ih = ImageHandler(img_no=img_no, model_name=self.curr_model_name)
         # get the 2D numpy array which represents the attribution
         attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
         # check if applying any thresholds / adjustments based on +ve / -ve evidence
-        if threshold is not None:
+        if threshold or take_absolute:
             attribution = apply_threshold(attribution, threshold, take_absolute)
         if check_invalid_attribution(attribution, ih):
             return
@@ -240,6 +270,7 @@ class Attributer:
             ih.save_figure(attribution, method)
         if visualise:
             show_figure(attribution)
+        return attribution
 
     def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None):
         """Top level wrapper for collecting attributions from each method. """

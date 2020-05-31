@@ -21,7 +21,7 @@ class Lime:
         explanation = self.explainer.explain_instance(ih.get_raw_img(),
                                                       classifier_fn=self.prediction_wrapper,
                                                       top_labels=1,
-                                                      num_samples=100)
+                                                      num_samples=500)
 
         # TODO fix support for positive and negative evidence
         top_exp = explanation.local_exp[explanation.top_labels[0]]
@@ -44,8 +44,6 @@ class Lime:
         #output = output.astype('uint8')
 
         return output
-
-
 
 
 def get_attribution(exp, segments, size, num_features=5):

@@ -71,6 +71,7 @@ def draw_annotation(img_no: int, class_map: dict, save_to_file=True, display=Fal
 
 def get_mask_for_eval(img_no: int, target_size: tuple, save=True, visualise=False,
                       image_base_path: str = IMG_BASE_PATH, xml_base_path: str = XML_BASE_PATH):
+    print('Drawing mask for img_no = \t' + str(img_no))
     xml_path = get_image_file_name(xml_base_path, img_no) + '.xml'
     image_path = get_image_file_name(image_base_path, img_no) + '.JPEG'
     output_path = get_image_file_name(MASK_BASE_PATH, img_no) + '.png'
@@ -79,7 +80,8 @@ def get_mask_for_eval(img_no: int, target_size: tuple, save=True, visualise=Fals
     wnid_map = read_annotations(xml_path)
     data = plt.imread(image_path)
 
-    output_mask = np.zeros(data.shape)
+    # data is a 3D array, only interested in a 2D mask, therefore use first two dimensions
+    output_mask = np.zeros(data.shape[0:2])
     # for each class annotation in the image
     for wnid in wnid_map:
         # for each annotation of the same class
@@ -90,7 +92,6 @@ def get_mask_for_eval(img_no: int, target_size: tuple, save=True, visualise=Fals
             output_mask[y1:y2, x1:x2] = 1
 
     # resize for desired target shape
-    output_mask = output_mask.sum(-1)
     output_mask = cv2.resize(output_mask, target_size, cv2.INTER_AREA)
 
     if visualise:
@@ -115,7 +116,6 @@ def draw_annotations(img_no_array: list):
 def get_masks_for_eval(img_no_array: list, target_size: tuple):
     output = []
     for img_no in img_no_array:
-        print('Drawing mask for img_no=' + str(img_no))
         output.append(get_mask_for_eval(img_no, target_size))
 
     return output

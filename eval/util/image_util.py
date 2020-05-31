@@ -109,21 +109,25 @@ class ImageHelper:
             return STD_IMG_SIZE
 
 
-def show_figure(attribution):
-    plt.imshow(attribution, cmap='seismic', clim=(-1, 1))
+def show_figure(numpy_array):
+    plt.imshow(numpy_array, cmap='seismic', clim=(-1, 1))
     plt.show()
     plt.cla()
 
 
-def apply_threshold(attribution, threshold: float, take_absolute: bool):
-    """ Threshold should be bounded between (-1, 1) """
-    if threshold < -1 or threshold > 1:
-        print('Invalid threshold')
-        return attribution
+def apply_threshold(attribution, threshold: bool, take_absolute: bool):
+    """ Threshold calculated as standard deviation (can be modified). Should be between (-1, 1) """
+    print(threshold)
     if take_absolute:
         attribution = np.abs(attribution)
     # apply threshold
-    attribution[attribution < threshold] = 0
+    if threshold:
+        thresh = attribution.std()
+        if thresh < -1 or thresh > 1:
+            print('Invalid threshold calculated')
+            return attribution
+        print('Applying threshold of {} to attribution'.format(thresh))
+        attribution[attribution < thresh] = 0
     return attribution
 
 
