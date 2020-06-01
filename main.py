@@ -67,11 +67,23 @@ def attributer_wrapper(method: str, model: str):
     # draw_annotations([i for i in range(16, 300)])
     # run some attributions
     att = Attributer(model)
-    for i in range(1, 8):
+    for i in range(2, 3):
         ih = ImageHandler(img_no=GOOD_EXAMPLES[i], model_name=model)
         att.attribute(ih=ih,
                       method=method,
-                      layer_no=LAYER_TARGETS[method][model])
+                      layer_no=LAYER_TARGETS[method][model],
+                      save=True, visualise=False)
+
+
+def attribute_panel_wrapper(model: str):
+    att = Attributer(model)
+    for i in range(2, 3):
+        ih = ImageHandler(img_no=GOOD_EXAMPLES[i], model_name=model)
+        for method in METHODS:
+            att.attribute(ih=ih,
+                          method=method,
+                          layer_no=LAYER_TARGETS[method][model],
+                          save=True, visualise=False)
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
@@ -382,6 +394,14 @@ if __name__ == "__main__":
         if sys.argv[3] not in MODELS:
             print('Unrecognised model: {}'.format(sys.argv[3]))
         evaluate_panel_wrapper(sys.argv[2], sys.argv[3])
+        sys.exit()
+    # `attribute_panel` command line option
+    if sys.argv[1] == 'attribute_panel':
+        if len(sys.argv) != 3:
+            print('Usage: main attribute_panel <model>[vgg16|inception]')
+        if sys.argv[2] not in MODELS:
+            print('Unrecognised model: {}'.format(sys.argv[2]))
+        attribute_panel_wrapper(sys.argv[2])
         sys.exit()
     # individual method command line options (attributing and evaluating)
     if len(sys.argv) != 4:
