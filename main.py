@@ -76,10 +76,10 @@ def attributer_wrapper(method: str, model: str):
 
 def evaluate_panel_wrapper(metric: str, model: str):
     evaluator = Evaluator(metric=INTERSECT, model_name=model)
-    evaluator.collect_panel_result_batch(range(1, 301))
+    evaluator.collect_panel_result_batch(range(299, 300))
 
     evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    evaluator.collect_panel_result_batch(range(1, 301))
+    evaluator.collect_panel_result_batch(range(299, 300))
 
 
 def evaluator_wrapper(method: str, model: str):
@@ -175,13 +175,7 @@ class Evaluator:
             if (img_no % 10) == 0:
                 self.append_to_results_df(new_rows)
                 new_rows = {}
-        #self.append_to_results_df(new_rows)
-
-    def append_to_results_df(self, new_rows_dict, write=True):
-        new_data = pd.DataFrame.from_dict(new_rows_dict, columns=self.file_headers, orient='index')
-        self.results_df = self.results_df.append(new_data)
-        if write:
-            self.write_results_to_file()
+        self.append_to_results_df(new_rows)
 
     def collect_result_batch(self, method: str, experiment_range: range):
         new_rows = {}
@@ -198,6 +192,12 @@ class Evaluator:
                 new_rows = {}
 
         self.append_to_results_df(new_rows)
+
+    def append_to_results_df(self, new_rows_dict, write=True):
+        new_data = pd.DataFrame.from_dict(new_rows_dict, columns=self.file_headers, orient='index')
+        self.results_df = self.results_df.append(new_data)
+        if write:
+            self.write_results_to_file()
 
     def collect_result(self, ih: ImageHandler, mask, method: str):
         # threshold for each attribution's "explainability" is the number of std deviations above
