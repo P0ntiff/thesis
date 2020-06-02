@@ -12,14 +12,11 @@ from keras import backend as K
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ..util.constants import IMG_BASE_PATH, RESULTS_BASE_PATH
+from ..util.constants import IMG_BASE_PATH, RESULTS_BASE_PATH, NONSTD_IMG_SIZE, STD_IMG_SIZE
 from ..util.constants import IMAGENET_CLASSES_OUTPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_INPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_OUTPUT
 
-# For feeding into model architectures
-STD_IMG_SIZE = (224, 224)
-NONSTD_IMG_SIZE = (299, 299)
 
 
 def get_classification_classes():
