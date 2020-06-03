@@ -3,7 +3,7 @@ import numpy as np
 # LIME explanation
 from lime import lime_image
 
-from ..util.image_util import ImageHandler, get_preprocess_for_model
+from ..util.image_util import ImageHandler, get_preprocess_for_model, show_figure
 
 
 class Lime:
@@ -21,6 +21,7 @@ class Lime:
         explanation = self.explainer.explain_instance(ih.get_raw_img(),
                                                       classifier_fn=self.prediction_wrapper,
                                                       top_labels=1,
+                                                      hide_color=0,
                                                       num_samples=1000)
 
         # TODO fix support for positive and negative evidence
@@ -29,19 +30,17 @@ class Lime:
                                  segments=explanation.segments,
                                  size=ih.get_size(),
                                  num_features=5)
+
+        #temp, mask = explanation.get_image_and_mask(explanation.top_labels[0], positive_only=True,
+        #                                            num_features=5, hide_rest=True)
+        #output = mark_boundaries(deprocess_image(temp), mask)
         # deprocess
-        # output = deprocess_image(output)
-        #print(np.amin(output, axis=(0, 1)))
-        #print(np.amax(output, axis=(0, 1)))
-        # normalise to (-1, 1) [already in one colour channel/axis]
-        output /= np.max(np.abs(output))
-        # output *= 255.0
-        # output = output.astype('uint8')
-        # turn into RGB array (currently 2D numpy array)
-        # red = np.clip(output, min=0)
-        # blue = np.abs(np.clip(output, max=0))
-        # output = np.stack((red, np.zeros(output.shape), blue), axis=2)
-        #output = output.astype('uint8')
+        # normalize tensor: center on 0., ensure std is 0.1
+        output -= output.mean()
+        output /= (output.std() + 1e-5)
+        output *= 0.2
+        # clip to (-1, 1)
+        output = np.clip(output, -1, 1)
 
         return output
 

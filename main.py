@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 
 # util
 from eval.util.constants import *
-from eval.util.image_util import ImageHandler, ImageHelper
+from eval.util.image_util import ImageHandler, get_classification_mappings, get_image_file_name
+
 # image annotations and mask util
-from eval.util.imagenet_annotator import get_masks_for_eval, draw_annotations, demo_annotator
+from eval.util.imagenet_annotator import draw_annotation, demo_resizer, get_mask_for_eval
+
 # Attributer and Evaluator
 from eval.Attributer import Attributer, print_confident_predictions
 from eval.Evaluator import Evaluator
@@ -17,19 +19,23 @@ def attributer_wrapper(method: str, model: str):
     # draw_annotations([i for i in range(16, 300)])
     # run some attributions
     att = Attributer(model)
-    for i in range(2, 3):
+    for i in [6, 11]:
         ih = ImageHandler(img_no=i, model_name=model)
         att.attribute(ih=ih,
                       method=method,
-                      save=True, visualise=True)
+                      save=True, visualise=True,
+                      take_threshold=True, take_absolute=True,
+                      sigma_multiple=1)
 
 
 def attribute_panel_wrapper(model: str):
     att = Attributer(model)
-    for i in range(6, 7):
+    for i in [283, 284]:  # range(6, 7):
         ih = ImageHandler(img_no=i, model_name=model)
         att.attribute_panel(ih=ih, methods=METHODS,
-                            save=True, visualise=True)
+                            save=True, visualise=True,
+                            take_threshold=True, take_absolute=True,
+                            sigma_multiple=1)
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
@@ -48,12 +54,55 @@ def evaluator_wrapper(method: str, model: str):
 
 
 def annotator_wrapper():
-    # hardcoded test output function
-    demo_annotator(img_no=11, target_size=STD_IMG_SIZE)
+    img_nos = [6, 283]
+    class_map = get_classification_mappings()
+    for img_no in img_nos:
+        # demo_annotator(img_no=283, target_size=STD_IMG_SIZE)
+        draw_annotation(img_no=img_no, class_map=class_map)
+        # get_masks_for_eval(GOOD_EXAMPLES[2:3], ImageHelper.get_size(VGG), visualise=True, save=False)
+        # output predictions for interest
+        print_confident_predictions(VGG, experiment_range=[img_no])
 
-    # get_masks_for_eval(GOOD_EXAMPLES[2:3], ImageHelper.get_size(VGG), visualise=True, save=False)
-    # output predictions for interest
-    print_confident_predictions(VGG, experiment_range=range(2, 3))
+
+def demo_attribute():
+    img_nos = [6, 283]
+    model_name = VGG
+    class_map = get_classification_mappings()
+    att = Attributer(model_name)
+    plt.figure(figsize=(15, 10))
+    for img_no in img_nos:
+        # image handler for later (method attributions)
+        ih = ImageHandler(img_no=img_no, model_name=VGG)
+        # predictions
+        print_confident_predictions(VGG, experiment_range=[img_no])
+        # original image
+        plt.subplot(2, 4, 1)
+        plt.title('ImageNet Example {}'.format(img_no))
+        plt.imshow(plt.imread(get_image_file_name(IMG_BASE_PATH, img_no) + '.JPEG'))
+        # annotated image
+        plt.subplot(2, 4, 2)
+        plt.title('Annotated Example')
+        plt.imshow(plt.imread(get_image_file_name(ANNOTATE_BASE_PATH, img_no) + '.JPEG'))
+        # processed image
+        plt.subplot(2, 4, 3)
+        plt.title('Reshaped for Model Input')
+        plt.imshow(demo_resizer(img_no=img_no, target_size=ih.get_size()))
+        # processed image
+        plt.subplot(2, 4, 4)
+        plt.title('Annotation Mask')
+        plt.imshow(get_mask_for_eval(img_no=img_no, target_size=ih.get_size()), cmap='seismic', clim=(-1, 1))
+
+        attributions = att.attribute_panel(ih=ih, methods=METHODS,
+                                           save=False, visualise=False,
+                                           take_threshold=True, take_absolute=True,
+                                           sigma_multiple=1)
+        # show attributions
+        for i, a in enumerate(attributions.keys()):
+            plt.subplot(2, 4, 5 + i)
+            plt.title(a)
+            plt.imshow(attributions[a], cmap='seismic', clim=(-1, 1))
+        plt.show()
+        plt.cla()
 
 
 def analyser_wrapper():
@@ -114,6 +163,9 @@ class Analyser:
 if __name__ == "__main__":
     if sys.argv[1] == 'analyse':
         analyser_wrapper()
+        sys.exit()
+    if sys.argv[1] == 'demo_attribute':
+        demo_attribute()
         sys.exit()
     if sys.argv[1] == 'annotate':
         annotator_wrapper()

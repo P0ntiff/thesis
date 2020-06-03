@@ -65,14 +65,20 @@ def draw_annotation(img_no: int, class_map: dict, save=True, visualise=False):
             plt.text(x1, y1, label, color='white')
     # output
     if save:
-        plt.savefig(output_path)
+        plt.axis('off')
+        plt.savefig(output_path, bbox_inches='tight', transparent=True, pad_inches=0)
     if visualise:
         plt.show()
         plt.close()
     plt.cla()
 
 
-def get_mask_for_eval(img_no: int, target_size: tuple, save=True, visualise=False):
+def get_annotated_image(img_no: int):
+    output_path = get_image_file_name(ANNOTATE_BASE_PATH, img_no) + '.JPEG'
+    return plt.imread(output_path)
+
+
+def get_mask_for_eval(img_no: int, target_size: tuple, save=False, visualise=False):
     #print('Drawing mask for img_no = \t' + str(img_no))
     xml_path, image_path, output_path = get_xml_image_and_output_paths(img_no)
 
@@ -107,51 +113,27 @@ def get_mask_for_eval(img_no: int, target_size: tuple, save=True, visualise=Fals
     return output_mask
 
 
-def demo_annotator(img_no: int, target_size: tuple, save=True, visualise=True):
+def demo_resizer(img_no: int, target_size: tuple):
     # only used to get a BB-annotated image squeezed in to model dimensions for input size
     # modification of draw_annotation() above
     # just for visualisation / demo purposes
-    print('Annotating img_no=' + str(img_no))
-    class_map = get_classification_mappings()
-    xml_path, image_path, output_path = get_xml_image_and_output_paths(img_no)
-    # ingest data
-    wnid_map = read_annotations(xml_path)
-    data = plt.imread(image_path)
-    plt.imshow(data)
-    ax = plt.gca()
-    # for each class annotation in the image
-    for wnid in wnid_map:
-        # for each annotation of the same class
-        for box in wnid_map[wnid]:
-            # get rectangle information
-            y1, x1, y2, x2 = box['ymin'], box['xmin'], box['ymax'], box['xmax']
-            width, height = x2 - x1, y2 - y1
-            rect = Rectangle(xy=(x1, y1), width=width, height=height, fill=False, color='white')
-            # draw rectangle
-            ax.add_patch(rect)
-            # draw label in top left (class and wnid)
-            label = "{}: '{}'".format(class_map[wnid], wnid)
-            plt.text(x1, y1, label, color='white')
-    # output
-    if save:
-        plt.axis('off')
-        plt.savefig(output_path, bbox_inches='tight', transparent=True, pad_inches=0)
-        plt.clf()
-        #plt.close()
-    if visualise:
-        annotated_img = cv2.imread(output_path)
-        height, width = annotated_img.shape[:2]
-        max_height, max_width = target_size
-        x_scale = 0.0
-        y_scale = 0.0
-        if max_width < width:
-            x_scale = max_width / float(width)
-        if max_height < height:
-            y_scale = max_height / float(height)
-        # re-read and resize
-        output = cv2.resize(annotated_img, None, fx=x_scale, fy=y_scale, interpolation=cv2.INTER_AREA)
-        #cv2.imshow("Scaled Annotation", output)
-        cv2.imwrite('results/temp/{}_rescale.PNG'.format(img_no), output)
+    output_path = get_image_file_name(ANNOTATE_BASE_PATH, img_no) + '.JPEG'
+    # read from file and return
+    annotated_img = cv2.imread(output_path)
+    height, width = annotated_img.shape[:2]
+    max_height, max_width = target_size
+    x_scale = 0.0
+    y_scale = 0.0
+    if max_width < width:
+        x_scale = max_width / float(width)
+    if max_height < height:
+        y_scale = max_height / float(height)
+    # re-read and resize
+    output = cv2.resize(annotated_img, None, fx=x_scale, fy=y_scale, interpolation=cv2.INTER_AREA)
+    #cv2.imshow("Scaled Annotation", output)
+    cv2.imwrite('data/temp/{}_rescale.PNG'.format(img_no), output)
+
+    return cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
 
 
 def draw_annotations(img_no_array: list):

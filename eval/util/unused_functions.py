@@ -1,10 +1,13 @@
 
 
+import numpy as np
+from keras import backend as K
 
 
 def normalize(self, x):
     """Utility function to normalize a tensor by its L2 norm"""
     return (x + 1e-10) / (K.sqrt(K.mean(K.square(x))) + 1e-10)
+
 
 def deprocess_image(x):
     """Same normalization as in:

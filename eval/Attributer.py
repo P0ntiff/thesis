@@ -1,16 +1,15 @@
 import os
 import logging
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 
 # keras models
 from keras.applications import InceptionV3, VGG16
 from keras.applications.imagenet_utils import decode_predictions
 
-
 # util
 from eval.util.constants import *
 from eval.util.image_util import ImageHandler, show_figure, apply_threshold, get_classification_mappings
-
 
 # methods
 from eval.methods.LIME import Lime
@@ -19,17 +18,18 @@ from eval.methods.SHAP import Shap
 from eval.methods.grad_cam import GradCam
 
 
-def print_confident_predictions(model_name: str, experiment_range: range = range(1, 300)):
+def print_confident_predictions(model_name: str, experiment_range: list):
     att = Attributer(model_name)
     for i in experiment_range:
-        ih = ImageHandler(img_no=GOOD_EXAMPLES[i], model_name=model_name)
+        ih = ImageHandler(img_no=i, model_name=model_name)
         label, max_p = att.predict_for_model(ih=ih)
         if max_p > 0.75:
             print('image_no: {}, label: {}, probability: {:.2f}'.format(i, label, max_p))
 
 
 def check_invalid_attribution(attribution, ih):
-    # attribution should be a (X,Y,RGB) array returned by each method
+    # attribution should be a 2D array returned by each method
+    # i.e grayscale not RGB
     if attribution is None:
         return 1
     # check shape of attribution is what is expected
@@ -126,11 +126,14 @@ class Attributer:
     def attribute_panel(self, ih: ImageHandler, methods: list = METHODS,
                         take_threshold: bool = False, sigma_multiple: int = 0, take_absolute: bool = False,
                         visualise: bool = False, save: bool = True):
+        output_attributions = {}
         for method in methods:
             layer_no = LAYER_TARGETS[method][self.curr_model_name]
-            self.attribute(ih=ih, method=method, layer_no=layer_no,
-                           take_absolute=take_absolute, take_threshold=take_threshold, sigma_multiple=sigma_multiple,
-                           visualise=visualise, save=save)
+            output_attributions[method] = self.attribute(ih=ih, method=method, layer_no=layer_no,
+                                                         take_absolute=take_absolute, take_threshold=take_threshold,
+                                                         sigma_multiple=sigma_multiple,
+                                                         visualise=visualise, save=save)
+        return output_attributions
 
     def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None):
         """Top level wrapper for collecting attributions from each method. """
