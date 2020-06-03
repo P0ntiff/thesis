@@ -18,7 +18,6 @@ from ..util.constants import IMAGENET_OBJ_DET_CLASSES_INPUT
 from ..util.constants import IMAGENET_OBJ_DET_CLASSES_OUTPUT
 
 
-
 def get_classification_classes():
     """ Gets the list of 1000 classification classes for ILSVRC (2012)"""
     if not os.path.exists('data'):

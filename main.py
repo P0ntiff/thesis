@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # util
 from eval.util.constants import *
 from eval.util.image_util import ImageHandler, ImageHelper
@@ -19,22 +18,18 @@ def attributer_wrapper(method: str, model: str):
     # run some attributions
     att = Attributer(model)
     for i in range(2, 3):
-        ih = ImageHandler(img_no=GOOD_EXAMPLES[i], model_name=model)
+        ih = ImageHandler(img_no=i, model_name=model)
         att.attribute(ih=ih,
                       method=method,
-                      layer_no=LAYER_TARGETS[method][model],
-                      save=True, visualise=False)
+                      save=True, visualise=True)
 
 
 def attribute_panel_wrapper(model: str):
     att = Attributer(model)
-    for i in range(2, 3):
-        ih = ImageHandler(img_no=GOOD_EXAMPLES[i], model_name=model)
-        for method in METHODS:
-            att.attribute(ih=ih,
-                          method=method,
-                          layer_no=LAYER_TARGETS[method][model],
-                          save=True, visualise=False)
+    for i in range(6, 7):
+        ih = ImageHandler(img_no=i, model_name=model)
+        att.attribute_panel(ih=ih, methods=METHODS,
+                            save=True, visualise=True)
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
@@ -56,7 +51,7 @@ def annotator_wrapper():
     # hardcoded test output function
     demo_annotator(img_no=11, target_size=STD_IMG_SIZE)
 
-    #get_masks_for_eval(GOOD_EXAMPLES[2:3], ImageHelper.get_size(VGG), visualise=True, save=False)
+    # get_masks_for_eval(GOOD_EXAMPLES[2:3], ImageHelper.get_size(VGG), visualise=True, save=False)
     # output predictions for interest
     print_confident_predictions(VGG, experiment_range=range(2, 3))
 
@@ -67,7 +62,8 @@ def analyser_wrapper():
 
 
 class Analyser:
-    def __init__(self, model_name: str, methods = METHODS, metrics = METRICS, filter_high_confidence = False):
+    def __init__(self, model_name: str, methods: list = METHODS, metrics: list = METRICS,
+                 filter_high_confidence: bool = False):
         self.methods = methods
         self.metrics = [INTERSECT, INTENSITY]
         self.filter_high_confidence = True
@@ -103,6 +99,7 @@ class Analyser:
     def view_panel_results(self):
         ind = np.arange(4)
         width = 0.4
+        print(self.method_means)
         for i, metric in enumerate(self.metrics):
             method_means = tuple(mean for method, mean in self.method_means[metric].items())
             print(method_means)

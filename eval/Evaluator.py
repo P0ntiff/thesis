@@ -102,7 +102,7 @@ class Evaluator:
         attribution = self.att.attribute(ih=ih,
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
-                                         threshold=True, sigma_multiple=sigma, take_absolute=True,
+                                         take_threshold=True, sigma_multiple=sigma, take_absolute=True,
                                          visualise=False, save=True)
         # calculate the intersection of the attribution and the bounding box mask
         intersect_array = np.zeros(attribution.shape)
@@ -133,7 +133,7 @@ class Evaluator:
         attribution = self.att.attribute(ih=ih,
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
-                                         threshold=True, sigma_multiple=sigma, take_absolute=True,
+                                         take_threshold=True, sigma_multiple=sigma, take_absolute=True,
                                          visualise=False, save=False)
         #show_figure(attribution)
         # calculate the weight/confidence of the attribution intersected with the bounding box mask

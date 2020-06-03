@@ -105,14 +105,15 @@ class Attributer:
         return max_pred, max_p
 
     def attribute(self, ih: ImageHandler, method: str, layer_no: int = None,
-                  threshold: bool = False, sigma_multiple: int = 0, take_absolute: bool = False,
+                  take_absolute: bool = False, take_threshold: bool = False, sigma_multiple: int = 0,
                   visualise: bool = False, save: bool = True):
-
+        if layer_no is None:
+            layer_no = LAYER_TARGETS[method][self.curr_model_name]
         self.initialise_for_method(method_name=method, layer_no=layer_no)
         # get the 2D numpy array which represents the attribution
         attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
         # check if applying any thresholds / adjustments based on +ve / -ve evidence
-        if threshold or take_absolute:
+        if take_threshold or take_absolute:
             attribution = apply_threshold(attribution, sigma_multiple, take_absolute)
         if check_invalid_attribution(attribution, ih):
             return
@@ -121,6 +122,15 @@ class Attributer:
         if visualise:
             show_figure(attribution)
         return attribution
+
+    def attribute_panel(self, ih: ImageHandler, methods: list = METHODS,
+                        take_threshold: bool = False, sigma_multiple: int = 0, take_absolute: bool = False,
+                        visualise: bool = False, save: bool = True):
+        for method in methods:
+            layer_no = LAYER_TARGETS[method][self.curr_model_name]
+            self.attribute(ih=ih, method=method, layer_no=layer_no,
+                           take_absolute=take_absolute, take_threshold=take_threshold, sigma_multiple=sigma_multiple,
+                           visualise=visualise, save=save)
 
     def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None):
         """Top level wrapper for collecting attributions from each method. """
