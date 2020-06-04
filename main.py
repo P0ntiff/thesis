@@ -39,11 +39,11 @@ def attribute_panel_wrapper(model: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    evaluator = Evaluator(metric=INTERSECT, model_name=model)
-    evaluator.collect_panel_result_batch(range(160, 165))
+    # evaluator = Evaluator(metric=INTERSECT, model_name=model)
+    # evaluator.collect_panel_result_batch(range(1, 301))
 
     evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    evaluator.collect_panel_result_batch(range(1, 2))
+    evaluator.collect_panel_result_batch(range(220, 301))
 
 
 def evaluator_wrapper(method: str, model: str):
@@ -65,7 +65,7 @@ def annotator_wrapper():
 
 
 def demo_attribute():
-    img_nos = [6, 283]
+    img_nos = [283] # 6, 283, 56
     model_name = VGG
     class_map = get_classification_mappings()
     att = Attributer(model_name)
@@ -100,7 +100,9 @@ def demo_attribute():
         for i, a in enumerate(attributions.keys()):
             plt.subplot(2, 4, 5 + i)
             plt.title(a)
-            plt.imshow(attributions[a], cmap='seismic', clim=(-1, 1))
+            plt.axis('off')
+            plt.imshow(ih.get_original_img(), cmap='gray', alpha=0.75)
+            plt.imshow(attributions[a], cmap='seismic', clim=(-1, 1), alpha=0.8)
         plt.show()
         plt.cla()
 

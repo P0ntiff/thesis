@@ -134,7 +134,7 @@ class Evaluator:
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
                                          take_threshold=True, sigma_multiple=sigma, take_absolute=True,
-                                         visualise=False, save=False)
+                                         visualise=False, save=True)
         #show_figure(attribution)
         # calculate the weight/confidence of the attribution intersected with the bounding box mask
         intensity_array = np.copy(attribution)
