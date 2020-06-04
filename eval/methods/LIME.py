@@ -3,7 +3,7 @@ import numpy as np
 # LIME explanation
 from lime import lime_image
 
-from ..util.image_util import ImageHandler, get_preprocess_for_model, show_figure
+from ..util.image_util import ImageHandler, get_preprocess_for_model
 
 
 class Lime:
@@ -22,7 +22,7 @@ class Lime:
                                                       classifier_fn=self.prediction_wrapper,
                                                       top_labels=1,
                                                       hide_color=0,
-                                                      num_samples=1000)
+                                                      num_samples=500)
 
         # TODO fix support for positive and negative evidence
         top_exp = explanation.local_exp[explanation.top_labels[0]]

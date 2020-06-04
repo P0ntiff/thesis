@@ -111,6 +111,19 @@ def show_figure(numpy_array):
     plt.cla()
 
 
+def show_intersect_union_subfigures(intersect_array, union_array, metric: str, method: str, res: float):
+    #plt.figure(figsize=(8, 6))
+    plt.suptitle('{} result for `{}` method \n = {:.2f}'.format(metric, method, res))
+    plt.subplot(1, 2, 1)
+    plt.title('Intersection w/ Mask')
+    plt.imshow(intersect_array, cmap='seismic', clim=(-1, 1))
+    plt.subplot(1, 2, 2)
+    plt.title('Union w/ Mask')
+    plt.imshow(union_array, cmap='seismic', clim=(-1, 1))
+    plt.show()
+    plt.clf()
+
+
 def apply_threshold(attribution, sigma_multiple: int, take_absolute: bool):
     """ Threshold calculated as standard deviation (can be modified). Should be between (-1, 1) """
     if take_absolute:

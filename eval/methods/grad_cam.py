@@ -47,9 +47,7 @@ class GradCam:
         self.layer_no = layer_no
 
     def attribute(self, ih: ImageHandler):
-        """Compute saliency.
-            -layer_name: layer to compute gradients;
-            -cls: class number to localize (-1 for most probable class).
+        """Compute saliency
         """
         # get the class to localise if it's not available
         predictions = self.model.predict(ih.get_processed_img())

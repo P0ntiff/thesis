@@ -1,7 +1,4 @@
-import os
 import logging
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 
 # keras models
 from keras.applications import InceptionV3, VGG16
@@ -16,15 +13,6 @@ from eval.methods.LIME import Lime
 from eval.methods.deep_lift import DeepLift
 from eval.methods.SHAP import Shap
 from eval.methods.grad_cam import GradCam
-
-
-def print_confident_predictions(model_name: str, experiment_range: list):
-    att = Attributer(model_name)
-    for i in experiment_range:
-        ih = ImageHandler(img_no=i, model_name=model_name)
-        label, max_p = att.predict_for_model(ih=ih)
-        if max_p > 0.75:
-            print('image_no: {}, label: {}, probability: {:.2f}'.format(i, label, max_p))
 
 
 def check_invalid_attribution(attribution, ih):
@@ -61,7 +49,7 @@ class Attributer:
 
     def load_model(self, model_name: str):
         self.curr_model_name = model_name
-        logging.info('Loading {} model architecture and weights...'.format(model_name))
+        print('Loading {} model architecture and weights...'.format(model_name))
         return self.models[self.curr_model_name](weights='imagenet')
 
     def build_model(self):
@@ -137,6 +125,7 @@ class Attributer:
 
     def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None):
         """Top level wrapper for collecting attributions from each method. """
+        print('Collecting attribution for `{}`'.format(method))
         if method == LIFT:
             return self.deep_lift_method.attribute(ih)
         elif method == LIME:

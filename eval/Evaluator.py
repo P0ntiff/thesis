@@ -7,7 +7,7 @@ from eval.Attributer import Attributer
 
 # util
 from eval.util.constants import *
-from eval.util.image_util import ImageHandler
+from eval.util.image_util import ImageHandler, show_figure, show_intersect_union_subfigures
 from eval.util.imagenet_annotator import get_mask_for_eval
 
 
@@ -49,7 +49,7 @@ class Evaluator:
                                             save=False, visualise=False)
         return ih, annotation_mask
 
-    def collect_panel_result_batch(self, experiment_range: range):
+    def collect_panel_result_batch(self, experiment_range: list):
         new_rows = {}
         for img_no in experiment_range:
             new_row = {}
@@ -85,7 +85,7 @@ class Evaluator:
 
     def append_to_results_df(self, new_rows_dict, write=True):
         new_data = pd.DataFrame.from_dict(new_rows_dict, columns=self.file_headers, orient='index')
-        self.results_df = self.results_df.append(new_data)
+        self.results_df = self.results_df.append(new_data, sort=True)
         if write:
             self.write_results_to_file()
 
@@ -95,9 +95,9 @@ class Evaluator:
         # against the ground truth bounding box label
         # for normal intersection over union, this is one sigma. for "intensity" over union this is taken as two sigma
         if self.metric == INTERSECT:
-            return self.evaluate_intersection(ih, mask, method, sigma=1)
+            return self.evaluate_intersection(ih, mask, method, sigma=INTERSECT_THRESHOLD)
         elif self.metric == INTENSITY:
-            return self.evaluate_intensity(ih, mask, method, sigma=2)
+            return self.evaluate_intensity(ih, mask, method, sigma=INTENSITY_THRESHOLD)
 
     def evaluate_intersection(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = True) -> float:
         # calculate an attribution and use a provided bounding box mask to calculate the IOU metric
@@ -128,6 +128,7 @@ class Evaluator:
             print('--Intersection / Union =\t{:.2f}%'.format(intersection_over_union * 100))
             print('')
 
+        show_intersect_union_subfigures(intersect_array, union_array, 'IOU', method, intersection_over_union)
         return intersection_over_union
 
     def evaluate_intensity(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = True) -> float:
@@ -143,7 +144,7 @@ class Evaluator:
         intensity_array = np.copy(attribution)
         intensity_array[(attribution > 0.0) * (mask < 0.1)] = 0
         #show_figure(intensity_array)
-        # get the union array for the IOU calculation
+        # get the union array for the IOU* calculation
         union_array = np.zeros(attribution.shape)
         union_array[(attribution > 0.0) + (mask > 0.0)] = 1
         #show_figure(union_array)
@@ -157,5 +158,5 @@ class Evaluator:
             print('--Union Area =\t {}'.format(union_area))
             print('--Intensity / Union =\t{:.2f}%'.format(intensity_over_union * 100))
             print('')
-
+        show_intersect_union_subfigures(intensity_array, union_array, 'IOU*', method, intensity_over_union)
         return intensity_over_union
