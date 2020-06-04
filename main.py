@@ -13,6 +13,7 @@ from eval.util.imagenet_annotator import draw_annotation, demo_resizer, get_mask
 # Attributer and Evaluator
 from eval.Attributer import Attributer, print_confident_predictions
 from eval.Evaluator import Evaluator
+from eval.Analyser import Analyser
 
 
 def attributer_wrapper(method: str, model: str):
@@ -39,8 +40,8 @@ def attribute_panel_wrapper(model: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    # evaluator = Evaluator(metric=INTERSECT, model_name=model)
-    # evaluator.collect_panel_result_batch(range(1, 301))
+    evaluator = Evaluator(metric=INTERSECT, model_name=model)
+    evaluator.collect_panel_result_batch(range(1, 301))
 
     evaluator = Evaluator(metric=INTENSITY, model_name=model)
     evaluator.collect_panel_result_batch(range(220, 301))
@@ -54,7 +55,7 @@ def evaluator_wrapper(method: str, model: str):
 
 
 def annotator_wrapper():
-    img_nos = [6, 283]
+    img_nos = [1, 301]
     class_map = get_classification_mappings()
     for img_no in img_nos:
         # demo_annotator(img_no=283, target_size=STD_IMG_SIZE)
@@ -64,8 +65,10 @@ def annotator_wrapper():
         print_confident_predictions(VGG, experiment_range=[img_no])
 
 
-def demo_attribute():
-    img_nos = [283] # 6, 283, 56
+def demo_attribute(img_nos: list = None):
+    if img_nos is None:
+        img_nos = [1]
+    img_nos = [13] # 6, 283, 56
     model_name = VGG
     class_map = get_classification_mappings()
     att = Attributer(model_name)
@@ -77,6 +80,7 @@ def demo_attribute():
         print_confident_predictions(VGG, experiment_range=[img_no])
         # original image
         plt.subplot(2, 4, 1)
+        plt.axis('off')
         plt.title('ImageNet Example {}'.format(img_no))
         plt.imshow(plt.imread(get_image_file_name(IMG_BASE_PATH, img_no) + '.JPEG'))
         # annotated image
@@ -112,57 +116,20 @@ def analyser_wrapper():
     analyser.view_panel_results()
 
 
-class Analyser:
-    def __init__(self, model_name: str, methods: list = METHODS, metrics: list = METRICS,
-                 filter_high_confidence: bool = False):
-        self.methods = methods
-        self.metrics = [INTERSECT, INTENSITY]
-        self.filter_high_confidence = True
-        # analytics class for comparing metrics across models and methods
-        self.data_map = {m: {} for m in self.metrics}
-        self.method_means = {m: {} for m in self.metrics}
-        for metric in self.metrics:
-            metric_result_file = "{}/{}/{}_results.csv".format(
-                RESULTS_EVAL_PATH, model_name, metric)
-            # read data from dataframe into a Python dictionary
-            self.data_map[metric] = self.ingest_metric_data(metric_result_file)
-            # get statistics / aggregations
-            self.method_means[metric] = self.get_method_means(metric)
+def repl_wrapper():
+    input_line = input('  >> ')
+    while input_line != 'exit':
+        split_input = input_line.split(' ')
 
-    def ingest_metric_data(self, file_path: str):
-        df = pd.read_csv(file_path)
-        if self.filter_high_confidence:
-            df = df[df['img_no'].isin(GOOD_EXAMPLES)]
-        metric_data_map = {'img_nos': df['img_no'].to_numpy()}
-        for method in self.methods:
-            metric_data_map[method] = df[method].to_numpy()
-        return metric_data_map
-
-    def get_method_means(self, metric: str):
-        output_means = {}
-        for method in self.methods:
-            output_means[method] = np.nanmean(self.data_map[metric][method])
-        return output_means
-
-    def get_method_variances(self, metric: str):
-        pass
-
-    def view_panel_results(self):
-        ind = np.arange(4)
-        width = 0.4
-        print(self.method_means)
-        for i, metric in enumerate(self.metrics):
-            method_means = tuple(mean for method, mean in self.method_means[metric].items())
-            print(method_means)
-            plt.bar(ind + width * (i - 1), method_means, width, label=metric)
-        plt.ylabel('Eval Metric')
-        plt.title(','.join(self.metrics) + ' results for ' + ','.join(self.methods))
-        plt.xticks(ind + width / 2, tuple(self.methods))
-        plt.legend(loc='best')
-        plt.show()
+        if split_input[0] == 'demo_attribute':
+            img_nos = [int(i) for i in split_input[1:]]
+            demo_attribute(img_nos)
 
 
 if __name__ == "__main__":
+    if sys.argv[1] == 'repl':
+        repl_wrapper()
+        sys.exit()
     if sys.argv[1] == 'analyse':
         analyser_wrapper()
         sys.exit()

@@ -12,8 +12,11 @@ from eval.util.imagenet_annotator import get_mask_for_eval
 
 
 class Evaluator:
-    def __init__(self, metric: str, model_name: str):
-        self.att = Attributer(model_name=model_name)
+    def __init__(self, metric: str, model_name: str, att: Attributer = None):
+        if att is None:
+            self.att = Attributer(model_name=model_name)
+        else:
+            self.att = att
         self.metric = metric
         self.model_name = model_name
         self.file_headers = METHODS  # [m + "+_" + self.model_name for m in METHODS]
