@@ -1,7 +1,7 @@
 import logging
 
 # keras models
-from keras.applications import InceptionV3, VGG16
+from keras.applications import InceptionV3, VGG16, ResNet50
 from keras.applications.imagenet_utils import decode_predictions
 
 # util
@@ -36,9 +36,13 @@ class Attributer:
         self.models = {
             VGG: VGG16,
             INCEPT: InceptionV3,
+            RESNET: ResNet50
         }
         self.curr_model_name = model_name
         self.curr_model = self.load_model(model_name)
+        #print(self.curr_model.summary())
+        #for i, layer in enumerate(self.curr_model.layers):
+        #    print(str(i) + ' ' + layer.name)
         # set up methods
         self.lime_method = None
         self.deep_lift_method = None
@@ -59,6 +63,8 @@ class Attributer:
             return VGG16(include_top=True, weights='imagenet')
         elif self.curr_model_name == INCEPT:
             return InceptionV3(include_top=True, weights='imagenet')
+        elif self.curr_model_name == RESNET:
+            return ResNet50(include_top=True, weights='imagenet')
 
     def initialise_for_method(self, method_name: str, layer_no: int = None):
         if method_name == LIFT and self.deep_lift_method is None:

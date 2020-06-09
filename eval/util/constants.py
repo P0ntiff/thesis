@@ -18,6 +18,7 @@ GRAD = 'gradcam'
 # models
 VGG = 'vgg16'
 INCEPT = 'inception'
+RESNET = 'resnet'
 
 # metrics
 INTERSECT = 'intersect'
@@ -54,7 +55,7 @@ GOOD_EXAMPLES = [7, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 24, 25, 27, 31, 33, 
 VGG_LAYER_MAP = {"block5_conv3": 17,
                  "block4_conv3": 13,
                  "block3_conv3": 9,
-                 "block3_conv1": 7,  # shap original target
+                 "block3_conv1": 7,     # shap original target
                  "block2_conv2": 5}
 
 INCEPTION_LAYER_MAP = {"conv2d_94": 299,
@@ -62,13 +63,18 @@ INCEPTION_LAYER_MAP = {"conv2d_94": 299,
                        "mixed9": 279,
                        "mixed10": 310}
 
+RESNET_LAYER_MAP = {"res5c_branch2c": 171,
+                    "res2c_branch2c": 35}
+
 LAYER_TARGETS = {
     SHAP:
         {INCEPT: INCEPTION_LAYER_MAP["conv2d_188"],
-         VGG: VGG_LAYER_MAP["block3_conv3"]},  # block5_conv3, block3_conv1
+         VGG: VGG_LAYER_MAP["block3_conv3"],  # block5_conv3, block3_conv1
+         RESNET: RESNET_LAYER_MAP["res2c_branch2c"]},
     GRAD:
         {INCEPT: INCEPTION_LAYER_MAP["conv2d_188"],
-         VGG: VGG_LAYER_MAP["block5_conv3"]},
+         VGG: VGG_LAYER_MAP["block5_conv3"],
+         RESNET: RESNET_LAYER_MAP["res5c_branch2c"]},
     LIFT:
         {INCEPT: None,
          VGG: None},

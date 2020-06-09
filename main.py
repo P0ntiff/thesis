@@ -20,7 +20,7 @@ def attributer_wrapper(method: str, model: str):
     # draw_annotations([i for i in range(16, 300)])
     # run some attributions
     att = Attributer(model)
-    for i in [6, 11]:
+    for i in [11]:
         ih = ImageHandler(img_no=i, model_name=model)
         att.attribute(ih=ih,
                       method=method,
@@ -29,11 +29,12 @@ def attributer_wrapper(method: str, model: str):
                       sigma_multiple=1)
 
 
-def attribute_panel_wrapper(model: str):
-    att = Attributer(model)
+def attribute_panel_wrapper(model_name: str):
+    methods = [GRAD, SHAP]
+    att = Attributer(model_name)
     for i in [283, 284]:  # range(6, 7):
-        ih = ImageHandler(img_no=i, model_name=model)
-        att.attribute_panel(ih=ih, methods=METHODS,
+        ih = ImageHandler(img_no=i, model_name=model_name)
+        att.attribute_panel(ih=ih, methods=methods,
                             save=True, visualise=True,
                             take_threshold=True, take_absolute=True,
                             sigma_multiple=1)
@@ -127,8 +128,12 @@ def demo_evaluate(img_nos: list = None, att: Attributer = None, metric: str = No
     evaluator.collect_panel_result_batch(img_nos)
 
 
-def analyser_wrapper():
-    analyser = Analyser(model_name=VGG)
+def analyser_wrapper(filter: str = ''):
+    filter_high_confidence = False
+    if filter == 'filter':
+        filter_high_confidence = True
+    analyser = Analyser(model_name=VGG, filter_high_confidence=filter_high_confidence)
+    #analyser = Analyser(model_name=INCEPT, methods=[LIME, GRAD], metrics=[INTERSECT])
     analyser.view_panel_results()
 
 
@@ -153,6 +158,12 @@ def repl_wrapper():
                 if len(split_input) >= 3:
                     img_nos = [int(i) for i in split_input[2:]]
                 demo_evaluate(img_nos, att, split_input[1], model_name=model_name)
+        if split_input[0] == 'demo_analyse':
+            if len(split_input) == 2:
+                if split_input[1] == 'filter':
+                    analyser_wrapper(split_input[1])
+            else:
+                analyser_wrapper()
         input_line = input(' >> ')
 
 
