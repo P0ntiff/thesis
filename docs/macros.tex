@@ -1,0 +1,95 @@
+% THEOREM-LIKE ENVIRONMENTS:
+\newtheorem{defn}	{Definition}	% cf. \dfn for cross-referencing
+\newtheorem{theorem}	{Theorem}	% cf. \thrm for cross-referencing
+\newtheorem{lemma}	{Lemma}		% cf. \lem for cross-referencing
+
+% AIDS TO CROSS-REFERENCING (All take a label as argument):
+\newcommand{\eref}[1] {(\ref{#1})}		% (...)
+\newcommand{\eq}[1]   {Eq.\,(\ref{#1})}		% Eq.~(...)
+\newcommand{\eqs}[2]  {Eqs.~(\ref{#1}) and~(\ref{#2})}
+\newcommand{\dfn}[1]  {Definition~\ref{#1}}	% Definition~...
+\newcommand{\thrm}[1] {Theorem~\ref{#1}}	% Theorem~...
+\newcommand{\lem}[1]  {Lemma~\ref{#1}}		% Lemma~...
+\newcommand{\fig}[1]  {Fig.\,\ref{#1}}		% Fig.~...
+\newcommand{\tab}[1]  {Table~\ref{#1}}		% Table~...
+\newcommand{\chap}[1] {Chapter~\ref{#1}}	% Chapter~...
+\newcommand{\secn}[1] {Section~\ref{#1}}	% Section~...
+\newcommand{\ssec}[1] {Subsection~\ref{#1}}	% Subsection~...
+
+% AIDS TO FORMATTING:
+\newcommand{\teq}[1]	{\mbox{$#1$}}	% in-Text EQuation (unbreakable)
+\newcommand{\qed}	{\hspace*{\fill}$\bullet$}	% end of proof
+
+% MATHEMATICAL TEMPLATES:
+% Text or math mode:
+\newcommand{\half}	{\ensuremath{\frac{1}{2}}}	% one-half
+\newcommand{\halftxt}	{\mbox{$\frac{1}{2}$}}	  	% one-half, small
+% Math mode only:
+% N.B. Parentheses are ROUND; brackets are SQUARE!
+\newcommand{\oneon}[1]	{\frac{1}{#1}}		  % reciprocal
+\newcommand{\pow}[2]	{\left({#1}\right)^{#2}}  % Parenthesized pOWer
+\newcommand{\bow}[2]	{\left[{#1}\right]^{#2}}  % Bracketed pOWer
+\newcommand{\evalat}[2]	{\left.{#1}\right|_{#2}}  % EVALuated AT with bar
+\newcommand{\bevalat}[2]{\left[{#1}\right]_{#2}}  % Bracketed EVALuated AT
+% Total derivatives:
+\newcommand{\sdd}[2]	{\frac{d{#1}}{d{#2}}}		    % Short
+\newcommand{\sqdd}[2]	{\frac{d^2{#1}}{d{#2}^2}}	    % 2nd ("SQuared")
+\newcommand{\ldd}[2]	{\frac{d}{d{#1}}\left({#2}\right)}  % Long paren'ed
+\newcommand{\bdd}[2]	{\frac{d}{d{#2}}\left[{#2}\right]}  % long Bracketed
+% Partial derivatives (same sequence as for total derivatives):
+\newcommand{\sdada}[2]	{\frac{\partial {#1}}{\partial {#2}}}
+\newcommand{\sqdada}[2]	{\frac{\partial ^{2}{#1}}{\partial {#2}^{2}}}
+\newcommand{\ldada}[2]	{\frac{\partial}{\partial {#1}}\left({#2}\right)}
+\newcommand{\bdada}[2]	{\frac{\partial}{\partial {#1}}\left[{#2}\right]}
+\newcommand{\da}	{\partial}
+
+% ORDINAL NUMBERS:
+\newcommand{\ith}	{\ensuremath{i^{\rm th}}}
+\newcommand{\jth}	{\ensuremath{j^{\rm th}}}
+\newcommand{\kth}	{\ensuremath{k^{\rm th}}}
+\newcommand{\lth}	{\ensuremath{l^{\rm th}}}
+\newcommand{\mth}	{\ensuremath{m^{\rm th}}}
+\newcommand{\nth}	{\ensuremath{n^{\rm th}}}
+
+% SINUSOIDAL TIME AND SPACE-DEPENDENCY FACTORS:
+\newcommand{\ejot}	{\ensuremath{e^{j\omega t}}}
+\newcommand{\emjot}	{\ensuremath{e^{-j\omega t}}}
+
+% UNITS (TEXT OR MATH MODE, WITH LEADING PADDING SPACE IF APPLICABLE):
+% NB: These have not been tested since being modified for LaTeX2e.
+\newcommand{\pack}	{\hspace{-0.08em}}
+\newcommand{\Pack}	{\hspace{-0.12em}}
+\newcommand{\mA}	{\ensuremath{\rm\,m\pack A}}
+\newcommand{\dB}	{\ensuremath{\rm\,d\pack B}}
+\newcommand{\dBm}	{\ensuremath{\rm\,d\pack B\pack m}}
+\newcommand{\dBW}	{\ensuremath{\rm\,d\pack B\Pack W}}
+\newcommand{\uF}	{\ensuremath{\rm\,\mu\pack F}}
+\newcommand{\pF}	{\ensuremath{\rm\,p\pack F}}
+\newcommand{\nF}	{\ensuremath{\rm\,n\pack F}}
+\newcommand{\uH}	{\ensuremath{\rm\,\mu\pack H}}
+\newcommand{\mH}	{\ensuremath{\rm\,m\pack H}}
+\newcommand{\Hz}	{\ensuremath{\rm\,H\pack z}}
+\newcommand{\kHz}	{\ensuremath{\rm\,k\pack H\pack z}}
+\newcommand{\MHz}	{\ensuremath{\rm\,M\pack H\pack z}}
+\newcommand{\GHz}	{\ensuremath{\rm\,G\pack H\pack z}}
+\newcommand{\J}		{\ensuremath{\rm\,J}}
+\newcommand{\kg}	{\ensuremath{\rm\,k\pack g}}
+\newcommand{\K}		{\ensuremath{\rm\,K}}
+\newcommand{\m}		{\ensuremath{\rm\,m}}
+\newcommand{\cm}	{\ensuremath{\rm\,cm}}
+\newcommand{\km}	{\ensuremath{\rm\,k\pack m}}
+\newcommand{\mm}	{\ensuremath{\rm\,m\pack m}}
+\newcommand{\nm}	{\ensuremath{\rm\,n\pack m}}
+\newcommand{\um}	{\ensuremath{\rm\,\mu m}}
+\newcommand{\Np}	{\ensuremath{\rm\,N\pack p}}
+\newcommand{\s}		{\ensuremath{\rm\,s}}
+\newcommand{\ms}	{\ensuremath{\rm\,m\pack s}}
+\newcommand{\us}	{\ensuremath{\rm\,\mu s}}
+\newcommand{\V}		{\ensuremath{\rm\,V}}
+\newcommand{\mV}	{\ensuremath{\rm\,m\Pack V}}
+\newcommand{\W}		{\ensuremath{\rm\,W}}
+\newcommand{\mW}	{\ensuremath{\rm\,m\Pack W}}
+\newcommand{\ohm}	{\ensuremath{\rm\,\Omega}}
+\newcommand{\kohm}	{\ensuremath{\rm\,k\Omega}}
+\newcommand{\Mohm}	{\ensuremath{\rm\,M\Omega}}
+\newcommand{\degs}	{\ensuremath{\rm^{\circ}}}
