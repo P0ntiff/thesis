@@ -207,10 +207,10 @@ if __name__ == "__main__":
     if sys.argv[1] not in ['attribute', 'evaluate', 'evaluate_panel']:
         print('Unrecognised mode: {}'.format(sys.argv[1]))
     if sys.argv[2] not in METHODS:
-        print('Unrecognised method: {}'.format(sys.argv[1]))
+        print('Unrecognised method: {}'.format(sys.argv[2]))
         sys.exit()
     if sys.argv[3] not in MODELS:
-        print('Unrecognised model: {}'.format(sys.argv[2]))
+        print('Unrecognised model: {}'.format(sys.argv[3]))
         sys.exit()
     # send commands to wrappers
     if sys.argv[1] == 'attribute':

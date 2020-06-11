@@ -29,7 +29,7 @@ INTERSECT_THRESHOLD = 1
 INTENSITY_THRESHOLD = 2
 
 METHODS = [LIME, SHAP, LIFT, GRAD]
-MODELS = [VGG, INCEPT]
+MODELS = [VGG, INCEPT, RESNET]
 METRICS = [INTERSECT, INTENSITY]
 
 # results folder
@@ -77,8 +77,10 @@ LAYER_TARGETS = {
          RESNET: RESNET_LAYER_MAP["res5c_branch2c"]},
     LIFT:
         {INCEPT: None,
-         VGG: None},
+         VGG: None,
+         RESNET: None},
     LIME:
         {INCEPT: None,
-         VGG: None}
+         VGG: None,
+         RESNET: None}
 }
