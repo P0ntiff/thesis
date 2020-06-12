@@ -5,14 +5,32 @@
 
 \chapter{Introduction}
 
-The introductory chapter describes the importance of the field and the
-scope and significance of your project.  It usually ends with an
-overview of the remainder of the thesis.
 
-Notice that Arabic page numbering begins with Chapter 1.  Preceding
-pages (known as ``frontmatter'') have Roman numbering.  The
-\texttt{book} document class in \LaTeX\ follows this numbering
-convention by default (see Lamport~\cite{lamport}, p.\,80).
+``State-of-the-art'' machine learning models have achieved above expert-level performance in fields as diverse as medical imaging and public policy design. However, their lack of interpretability has prevented adoption in many of the fields that would see the greatest benefit from adoption. These domains are often ones where decisions made have a tangible impact on people's lives, and because of this requirement for trust and accountability they cannot use the predictions made by a highly accurate but opaque model, no matter its predictive accuracy.
 
+The requirement for explainability is not in order to replace human experts, but to understand and alleviate contradictions between expert and algorithm. For example, a radiologist might disagree with a diagnosis made by a model trained to predict pneumonia from chest X-rays. Attributing the error to a factor that one or the other relied upon is desirable. Was it the model relying on some unimportant part of the scan (a spurious feature) or the radiologist failing to pick up on a subtle pneumonia differential? The former was observed in practice by [1] after applying an explanation technique to a CNN model trained on such data. 
+
+Under this view, explanations for false positives and false negatives are equally important as low rates of false positives and false negatives. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective. The premise of effectiveness requires a level of \textit{trust} that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks to simply minimise prediction error. With no visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior - this disconnect between "performance" in the sense of test set accuracy and performance in the sense of accountability and reliability is a major problem.
+
+Interpretability in a Facebook algorithm recommending product categories, for example, might not be seen as important as interpretability in a cancer diagnosis model, though the possibility of unethical model behaviour from reliance on biased data is as tangible in both. One study of 200 sentiment analysis classifiers found several to have significant race and gender bias
+
+There is a very active literature aimed at addressing this 'black-box' critique, however. Approaches include model-specific techniques for neural network architectures, model-agnostic techniques that are compatible with any model family, and within both classes a variety of techniques. The variety of approaches in the literature - as well as the number of works providing technique iteration and relatively few unification or evaluation studies in comparison - mirrors the same experimental and leaderboard-driven motivations of model proposals supposing a new "state of the art". In this sense the motivation for more interpretability is the same as the motivation for more reproducibility, and therefore easier tools for interpretability are one step on the road to re-aligning research incentives away from performance solely, instead towards accountability, reliability, reproducibility and other equally valid criteria for a "state-of-the-art" model.
+
+
+\section{Accuracy vs Interpretability}
+
+Complex, non-linear architectures diminish accountability and often let predictive biases go undetected.
+
+Inherently interpretable models include (among others) linear and logistic regression, decision trees, k-nearest neighbours and Naive Bayes. Within these families are both parametric and non-parametric techniques, which demonstrates that interpretability is more a function of model complexity and the number of parameters than a particular type of formulation. Since many of these models are too simplistic for obtaining competitive performance, the motivation to attack the 'black-box' critique by using these simpler models is quite low. Instead, methods to introduce interpretability to modern, high-performance models is a more studied and popular angle to take in the literature. 
+
+An underlying problem though is that a trade-off between accuracy and interpretability exists. As deep learning and other state-of-the-art model families proliferate in their typical number of parameters, their global behaviour becomes less and less comprehensible. For example, filters within a convolutional neural network (CNN) can be intuitively understood as 'feature detectors' of patterns, shapes and other connected regions, though these per-layer intuitions can't equate to a full explanation of a trained network of 100 million parameters.
+
+\section{Research Motivations for Interpretability}
+
+"Independent verification of published claims for the purpose of credibility confirmation, extension
+and building a ‘body of knowledge’ is a standard scientific practice" (Reproducibility in Machine Learning-Based Studies: An Example of Text Mining)
+
+
+\section{Application Motivations for Interpretability}
 
 \end{document}
