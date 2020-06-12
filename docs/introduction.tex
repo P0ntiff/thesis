@@ -5,32 +5,78 @@
 
 \chapter{Introduction}
 
+\section{Background}
 
-``State-of-the-art'' machine learning models have achieved above expert-level performance in fields as diverse as medical imaging and public policy design. However, their lack of interpretability has prevented adoption in many of the fields that would see the greatest benefit from adoption. These domains are often ones where decisions made have a tangible impact on people's lives, and because of this requirement for trust and accountability they cannot use the predictions made by a highly accurate but opaque model, no matter its predictive accuracy.
+``State-of-the-art'' machine learning models have achieved above expert-level performance in fields as diverse as medical imaging and criminal justice. However, lack of interpretability has prevented their adoption in many of the fields that would benefit the most from adoption. These domains are often ones where the decisions made have a tangible impact on people's lives. Because of their requirement for trust and accountability, decision-makers in those domains are unlikely to use the predictions made by a highly accurate but opaque model. 
 
-The requirement for explainability is not in order to replace human experts, but to understand and alleviate contradictions between expert and algorithm. For example, a radiologist might disagree with a diagnosis made by a model trained to predict pneumonia from chest X-rays. Attributing the error to a factor that one or the other relied upon is desirable. Was it the model relying on some unimportant part of the scan (a spurious feature) or the radiologist failing to pick up on a subtle pneumonia differential? The former was observed in practice by [1] after applying an explanation technique to a CNN model trained on such data. 
+The requirement for explainability is not in order to replace human experts, but to understand contradictions between expert and algorithm. For example, a radiologist might disagree with a diagnosis made by a model trained to predict pneumonia from chest X-rays, and attributing the error to a factor that one or the other relied upon would be helpful. Was the model relying on some unrelated part of the scan (a spurious feature) or the radiologist failing to pick up on a subtle pneumonia differential? The former was observed in practice after applying an explanation technique to a convolutional neural network (CNN) trained on such data \cite{xray}. 
 
-Under this view, explanations for false positives and false negatives are equally important as low rates of false positives and false negatives. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective. The premise of effectiveness requires a level of \textit{trust} that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks to simply minimise prediction error. With no visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior - this disconnect between "performance" in the sense of test set accuracy and performance in the sense of accountability and reliability is a major problem.
+Extrapolating this view, explanations for model predictions can be as equally important as low rates of incorrect ones. The counter-argument to the notion that a highly accurate model need not be interpretable to be effective, is that the premise of effectiveness requires a level of \textit{trust} that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between ``performance'' in the sense of test set accuracy and performance in the sense of accountability and reliability is not ideal.
 
-Interpretability in a Facebook algorithm recommending product categories, for example, might not be seen as important as interpretability in a cancer diagnosis model, though the possibility of unethical model behaviour from reliance on biased data is as tangible in both. One study of 200 sentiment analysis classifiers found several to have significant race and gender bias
+Interpretability in a Facebook algorithm recommending product categories, for example, might not be seen as important as interpretability in a cancer diagnosis model, though the possibility of unethical model behaviour from reliance on biased data is as tangible in both domains. One study of 200 sentiment analysis classifiers found several to have significant race and gender bias \cite{bias}. The consequences of errors can certainly be higher in some domains however - a poor Netflix recommendation is not as disastrous as a naive algorithm used in government decision-making, such as the ``robo-debt'' scheme recently employed by the Australian Government \cite{nous}.
 
-There is a very active literature aimed at addressing this 'black-box' critique, however. Approaches include model-specific techniques for neural network architectures, model-agnostic techniques that are compatible with any model family, and within both classes a variety of techniques. The variety of approaches in the literature - as well as the number of works providing technique iteration and relatively few unification or evaluation studies in comparison - mirrors the same experimental and leaderboard-driven motivations of model proposals supposing a new "state of the art". In this sense the motivation for more interpretability is the same as the motivation for more reproducibility, and therefore easier tools for interpretability are one step on the road to re-aligning research incentives away from performance solely, instead towards accountability, reliability, reproducibility and other equally valid criteria for a "state-of-the-art" model.
+\subsection*{Approaches to Interpretability}
+
+There is fortunately an active literature aimed at addressing this `black-box' critique in machine learning. The top-level distinction among approaches is to either use inherently intepretable models to achieve explainability, or take complex, black-box models and find techniques to isolate and explain a piece of their complexity, such as an individual prediction.
+
+The first approach includes model families with low complexity like linear/logistic regression, decision trees, k-nearest neighbours and Naive Bayes. Within these families are both parametric and non-parametric techniques, which demonstrates that lack of interpretability is more related to model complexity than a particular type of formulation - this empirically observed trade-off between accuracy and interpretability is discussed further in the next section\footnote{There is a view by some researchers (\cite{rudin}) that in many domains the accuracy vs interpretability trade-off does not exist, and thus there is a responsibility to use equally effective, inherently interpretable models for high-stakes decisions where those are available.}. Since many of these models are often too simplistic for obtaining competitive performance, the motivation to attack the `black-box' critique from this angle is quite low. Instead, methods to introduce interpretability to modern, high-performance models are a more studied and popular approach to take in the literature, as in the second approach.
+
+The second approach includes ``feature attribution'' or ``feature importance'' methods. This class includes model-specific techniques for neural network architectures, like those based on activations in a hidden layer, and model-agnostic techniques that are compatible with any model family. Within both ``sub-classes'' are a variety of techniques, with varying levels of model agnosticity and task compatibility. For example, some methods are designed solely for CNNs and are therefore mainly suited for image classification or related tasks. Importantly, these methods do not try to globally explain a model's behaviour, but rather a single prediction. When the dimensionality of the data is high, such as in visual data, or when the number of parameters is too high to make conclusions about global model behaviour (as in most modern architectures) this tends to be the only effective approach to interpretability. 
+
+\subsection*{Accuracy vs Interpretability}
+
+As deep learning and other state-of-the-art model families proliferate in their typical number of parameters, global behaviour has become even less explainable. Researchers maintain some intuitions about the impact of architectural design decisions, though not on predictive behaviour. For example, filters within a CNN model can be understood as `feature detectors' of patterns, shapes and other connected regions, though these per-layer intuitions don't explain how a network of dozens of layers will determine a husky from a wolf.
+
+Feature attribution methods can therefore re-introduce transparency into complex, non-linear models and highlight predictive biases in the context of individual predictions. They also can reveal unexpected features involved in a prediction, such as the spurious features mentioned in the previous X-ray data example, or bugs that could lead to exploitation of adversarial examples \cite{adversary}. Note these methods do not seek to add causal interpretability to the models they are applied to, only to isolate and highlight a piece of complexity in a way that might make sense to an expert reviewing the explanation. This does not make them shallow - the benefit of the `post-training' approach is that model designers have more flexibility in their choice of models, and few restrictive assumptions about model complexity are made\footnote{The counter-argument made by those who argue for the inherently interpretable model approach is that there is no guarantee these explanations are faithful to the model, and that they extend the authority of the black box instead of making it a ``glass box'' \cite{rudin}. This is revisited in the Discussion.}. More model-agnostic methods, with the least restrictive requirements, are not well understood in context with model-specific ones in terms of this accuracy and interpretability trade-off.
+
+\subsection*{Existing Literature}
+
+Some comparisons of feature attribution methods do exist, though typically either in a qualitative context, as a pairwise comparison, \textbf{cite} or within a single class of methods. They are not normally compared on speed/performance, \textit{adoptability} in terms of task or model compatibility, nor explanation \textit{quality} (a difficult criteria to design). One can reason this is because the literature for some model families (i.e. deep learning) is relatively new, but it is also because of differences in method formulation and their own hyper-parameters that make it difficult to compare different approaches fairly.
 
 
-\section{Accuracy vs Interpretability}
+%\section{Summary of Motivation}
 
-Complex, non-linear architectures diminish accountability and often let predictive biases go undetected.
+%Research motivation:
+%\begin{itemize}
+%\item Provide a stronger understanding of the context of different feature attribution approaches
+%\item Support the creation of more adoptable models
+%\item Help diagnose spurious features and 
+%\end{itemize}
+%"Independent verification of published claims for the purpose of credibility confirmation, extension
+%and building a ‘body of knowledge’ is a standard scientific practice" (Reproducibility in Machine Learning-Based Studies: An Example of Text Mining)
 
-Inherently interpretable models include (among others) linear and logistic regression, decision trees, k-nearest neighbours and Naive Bayes. Within these families are both parametric and non-parametric techniques, which demonstrates that interpretability is more a function of model complexity and the number of parameters than a particular type of formulation. Since many of these models are too simplistic for obtaining competitive performance, the motivation to attack the 'black-box' critique by using these simpler models is quite low. Instead, methods to introduce interpretability to modern, high-performance models is a more studied and popular angle to take in the literature. 
+%The variety of approaches in the literature - as well as the number of works providing technique iteration and relatively few unification or evaluation studies in comparison - mirrors the same experimental and leaderboard-driven motivations of model proposals supposing a new "state of the art". In this sense the motivation for more interpretability is the same as the motivation for more reproducibility, and therefore easier tools for interpretability are one step on the road to re-aligning research incentives away from performance solely, instead towards accountability, reliability, reproducibility and other equally valid criteria for a "state-of-the-art" model.
 
-An underlying problem though is that a trade-off between accuracy and interpretability exists. As deep learning and other state-of-the-art model families proliferate in their typical number of parameters, their global behaviour becomes less and less comprehensible. For example, filters within a convolutional neural network (CNN) can be intuitively understood as 'feature detectors' of patterns, shapes and other connected regions, though these per-layer intuitions can't equate to a full explanation of a trained network of 100 million parameters.
+%Application motivation:
 
-\section{Research Motivations for Interpretability}
+\section{Project Overview}
+This project has sought to evaluate a panel of feature attribution methods representative of different approaches to the interpretability problem. The aim was to highlight their relative strengths and weaknesses and thereby increase the understanding of the benefits of one method's approach over another.
 
-"Independent verification of published claims for the purpose of credibility confirmation, extension
-and building a ‘body of knowledge’ is a standard scientific practice" (Reproducibility in Machine Learning-Based Studies: An Example of Text Mining)
+Two key contributions made over the course of the project have been a quantitative evaluation framework for explanation quality in the image classification context, and the development of a software package to collect feature attributions for image data at scale.
+
+\subsection*{Goals}
+In summary, the project has aimed to:
+\begin{enumerate}
+	\item \textbf{Examine and evaluate} a panel of feature attribution methods for their use cases and performance, using proxy metrics of explanation quality supported by analysis.
+
+	\item \textbf{Develop} an attribution software package for testing methods at scale with modular support for different models, making it easier for researchers to collect explanations and build more adoptable models.
+	
+\end{enumerate}
+
+\subsection*{Project Scope}
+
+The Background section introduced a broad motivation for interpretability, though this project has focused specifically on image classification for two main reasons. 
+Firstly, many interpretability techniques from the pre-deep-learning era were born in this domain, and many deep learning specific methods continue to be developed and tested in this domain on modern CNN architectures. In other words, the natural `visual' aspect of  image data explanations has made computer vision a popular venue for interpretability research, with important applications such as medical imaging. 
+Secondly, well-annotated datasets and pre-trained `off the shelf' models are more easily acquired in this domain. This availability allowed for both richer evaluation metrics and the removal of model training as a project requirement.
+
+A more detailed scope is provided at the beginning of the Methodology section, including a description of the specific datasets, models, and feature attribution methods used.
+
+\newpage
+
+\section{Report Overview}
 
 
-\section{Application Motivations for Interpretability}
+
+
 
 \end{document}

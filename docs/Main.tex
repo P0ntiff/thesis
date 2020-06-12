@@ -1,4 +1,8 @@
 \documentclass[12pt,openany,a4paper]{book}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{references.bib}
 
 \usepackage{graphics}	
 \usepackage{subfiles}
@@ -25,6 +29,14 @@
 \renewcommand{\bottomfraction}{0.75}
 \renewcommand{\floatpagefraction}{0.75}
 
+% --- References --- 
+%\usepackage[english]{babel}
+%\usepackage{csquotes}
+%\usepackage{csquotes}
+%\usepackage[style=ieee, backend=biber]{biblatex}
+%\DeclareLanguageMapping{english}{english-apa}
+%\addbibresource{references.bib}
+
 
 \begin{document}
 
@@ -42,17 +54,7 @@
 
 \chapter{Acknowledgments}
 
-Acknowledge your supervisor, preferably with a few short and specific
-statements about his/her contribution to the content and direction of
-the project.  If you collaborated with another student, acknowledge
-your partner's contribution, including any parts of the thesis of
-which s/he was the principal author or co-author; this information can
-be duplicated in footnotes to the chapters or sections to which your
-partner has contributed.  Briefly describe any assistance that you
-received from technical or administrative staff.  Support of family
-and friends may also be acknowledged, but avoid sentimentality---or
-hide it in the dedication.
-
+I wish to acknowledge the direction and support provided by Dr Alina Bialkowski over the course of this project. Feedback after each milestone was invaluable and tips on different approaches helped provide guidance at key junctions. This ranged from helping narrow the scope at the start of the project, suggestions after each deliverable to help improve the next one, and regular appraisal of the direction I was heading throughout the project. I also wish to extend my congratulations for the birth of her daughter! To my family, I would like to thank my parents for their care and support, and my siblings for the same.
 \cleardoublepage
 
 \chapter{Abstract}
@@ -103,7 +105,6 @@ your thesis, seek advice from your supervisor.
 
 \subfile{conclusion}
 
-
 \appendix
 
 % Chapters after the \appendix command are lettered, not numbered.
@@ -120,29 +121,11 @@ your thesis, seek advice from your supervisor.
 % first appendix from be listed ABOVE the word ``Appendices'' in the
 % table of contents.
 
-% \include appendix chapters here.
-
-\chapter{Software Documentation}
-
-Notice that appendices are ``numbered'' with capital letters, not
-numerals.  When the \verb+\appendix+ command in
-\LaTeX~\cite[p.\,175]{lamport} is used with the \texttt{book} document
-class, it causes subsequent chapters to be treated as appendices.
-
-\chapter{Software Descriptions}
-
-\section{Attributer Class}
-
-Text
-
-\section{Evaluator Class}
-
-
-\chapter{Software Repository Link}
-
-
+\subfile{appendices}
 
 \cleardoublepage
+
+\printbibliography%[heading=bibnumbered]
 
 
 \end{document}
