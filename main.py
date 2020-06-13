@@ -30,9 +30,9 @@ def attributer_wrapper(method: str, model: str):
 
 
 def attribute_panel_wrapper(model_name: str):
-    methods = [GRAD, SHAP]
+    methods = [SHAP]
     att = Attributer(model_name)
-    for i in [283, 284]:  # range(6, 7):
+    for i in [6, 11]:  # range(6, 7):
         ih = ImageHandler(img_no=i, model_name=model_name)
         att.attribute_panel(ih=ih, methods=methods,
                             save=True, visualise=True,

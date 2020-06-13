@@ -13,19 +13,23 @@ In Chapter 1 (``Approaches to Interpretability'') a brief overview of feature at
 
 A major difficulty of this project was distilling the broad literature on these methods however. For the model-specific (neural network) family, different angles are commonly taken to calculate feature ``relevance'' or importance. These include generally:
 \begin{itemize}
-\item Saliency maps or \textbf{gradient-based} methods
-\item Layer `signals' or \textbf{backpropagation-based} methods
-\item Occlusion or \textbf{perturbation-based} methods
+\item \textbf{Gradient-based} methods, saliency maps and output sensitivity methods
+\item \textbf{Backpropagation-based} methods or `importance signal' visualisations (such as activations in a hidden layer)
+\item \textbf{Perturbation-based} methods and use of occlusion masks in the input space
 \end{itemize}
 
-This categorisation is based on two recent papers that group these approaches to feature attribution similarly \cite{deeplift} \cite{patternnet}. In this chapter a broad selection of methods based on traction over time, current popularity and representativeness of approach are described, though the reader should note there are many more methods under each of those three than have been described here.
+This categorisation is based on two recent papers that make similar categorisations of explanation approaches  \cite{deeplift} \cite{patternnet}. In this chapter a broad selection of methods based on traction over time, current popularity and representativeness of approach are described, though the reader should note there are many more methods under each of those three than have been described here.
 
-For model-agnostic methods, perturbation-based and surrogate model approaches are considered. Again the selection was based on traction and popularity in the literature.
+For model-agnostic methods, perturbation-based and surrogate model approaches are considered. Again the selection was based on traction and literature popularity.
 
 First reviewed are traditional, visual approaches to interpretability to provide context to the task of feature attribution. After the exploration of feature attribution methods, a review of existing evaluation metrics and comparison studies is provided.
 
 \subsection*{Terminology}
-A note on terminology is that all methods are variously referred to as \textit{attribution} methods in this project for any projection on the input space that causes an explanation to take place. Goodfellow, Kim, et al. refer to the broad category of ``visualisation and attribution methods aimed at interpreting trained models'' as \textit{saliency} methods instead \cite{sanity}. A `saliency map' is a widely-used, catch-all term to refer to input space projections (individual explanations themselves) in the context of interpreting deep neural networks for image data (\cite{sanity}. There seems to be no consensus. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature, i.e. excluding higher level `patterns' which cause specific neuron activations, as in Zeiler \& Fergus (\cite{zeilerfergus2013}) (Section \textbf{X}) or the back-propagation class generally. In summary, attribution methods are used here as a general term, but saliency methods is also widely-used in the context of neural networks and image data.
+A note on terminology is that all methods are variously referred to as \textit{attribution} methods in this project for any projection on the input space that causes an explanation to take place. Goodfellow, Kim, et al. refer to the broad category of ``visualisation and attribution methods aimed at interpreting trained models'' as \textit{saliency} methods instead \cite{sanity}. A \textit{saliency map} is widely-used as a `catch-all' term to refer to input space projections (individual explanations themselves) in the context of interpreting deep neural networks for image data (\cite{sanity}). However they also refer to a specific gradient-based method (\textbf{cite below}). 
+
+There seems to be little consensus around terminology. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature (i.e. excluding higher level `patterns' which cause  neuron activations, as in Zeiler \& Fergus (\cite{zeilerfergus2013}) (Section \textbf{X}) or the back-propagation class generally). 
+
+In summary, attribution methods are used here as a general term, but can refer specifically to contribution `calculators', and saliency methods/maps is widely used in the context of neural networks and image data.
 
 \section{Traditional Approaches}
 
@@ -47,16 +51,60 @@ A partial dependence plot (PDP) is a tool to demonstrate the marginal effect of 
 \begin{align}
 \widehat{f_{xs}}=\int \widehat{f}(x_{s}, x_{c})dP(x_{c})
 \end{align}
-It can be approximated with a Monte Carlo method. Friedman believed in 2001 that these might be used to help interpret ``any black box prediction method'', such as NN and SVM architectures, and that, ``when there are a large number of predictor variables, it is very useful to have a measure of relevance'' to help limit the number of potentially relevant variables and decide what to plot \cite{pdp1}. The mentioned relevance measure was defined only in the context of the decision trees which constituted the paper's gradient boosting machine. Certainly, PDPs are suited for the low-dimensional feature spaces that were imagined in the pre deep-learning era, and are less suitable for high-dimensional input spaces such as in image classification. They are also restricted by an unrealistic assumption of independence among features.
+It can be approximated with a Monte Carlo method. Friedman believed in 2001 that these might be used to help interpret ``any black box prediction method'' such as NN and SVM architectures, and that, ``[...] when there are a large number of predictor variables, it is very useful to have a measure of relevance to reduce the potentially large number of variables to be considered" \cite{pdp1}. The mentioned relevance measure was defined only in the context of the decision trees which constituted the paper's gradient boosting machine. Certainly, PDPs are suited for the low-dimensional feature spaces that were imagined in the pre-deep learning era, and are less suitable for high-dimensional input spaces such as in image classification. They are also restricted by an unrealistic assumption of independence among features.
 
 \section{Model-Specific Methods}
-Deep learning's associated opacity has led to many attempts to explain the predictions of complex NN architectures. This section examines representative methods from the gradient-based, backpropagation-based and perturbasion-based approaches overviewed in \ref{sec:scoperesearch}, with some emphasis on those tested in the image classification context.
+Deep learning's reputation for lack of transparency has led to many attempts to explain the predictions of complex NN architectures. This section examines representative attribution methods from the gradient-based, backpropagation-based and perturbation-based approaches overviewed in Section \ref{sec:scoperesearch}, with some emphasis on those developed in the context of CNNs (i.e. image data).
+
+
+\subsection{Backpropagation-Based}
+
+This class of methods try to isolate an internal model signal, such as neuron activations in a target hidden layer, and map these signals back into the input pixel space. Zeiler and Fergus (2014) introduced the motivation for signal backpropagation as, `[...] showing what input pattern originally caused a given activation in the feature maps" \cite{zeiler}. 
+
+\subsubsection{Feature Visualisation}
+First described is the feature visualisation approach, which is a technique to visualise inner model workings. This is not a true feature attribution method, as it is visualising internal `trained features' instead of attributing the contributions of input features, though it is briefly discussed for its relevance to formulations in the backpropagation family and to gradient-based methods as well.
+
+The success of  visualisation approach is a technique to explore internal model workings, via visualisations of units within a model. These units can be layers, individual convolutional channels (or feature maps) or even an individual neuron like out an output class neuron
+
+%https://christophm.github.io/interpretable-ml-book/cnn-features.html#fn73
+
+\subsubsection{DeConvNet}
+
+
+In their creation of class-based saliency maps (Section 1.3.1) Simonyan et al. showed that DeconvNet-based reconstruction of the input to a hidden is equivalent to computing the gradient of visualised neuron activations with respect to that input \cite{saliencyII}.
+
+Guided BackProp
+
+Layer-wise Relevance Propagation 
+
+DeepTaylorDecomposition
+%http://www.heatmapping.org/deeptaylor/
+
+
+
+
 
 \subsection{Gradient-Based}
+These methods aim to explain a class output in terms of sensitivity in the input space by relying on a gradient function of the output. The goal is to find the input features that make that prediction more or less confident.  For an output prediction of `tree' for example, they seek to answer ``what makes a tree more/less a tree?''.
+
+\subsubsection{Saliency Maps}
+An early formulation of a local explanation method was provided by Baehrens et al. (2010) for any nonlinear classification algorithm \cite{saliencyI} (though developed in the context of Bayesian classification). The local explanation gradient vectors that this paper devised were based on class probability gradients, characterising how much a data point has to be moved for a predicted label to change. Simonyan et al. (2014) later applied a similar idea to CNNs to create `class saliency maps' specific to a given image and class \cite{saliencyII}. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.8]{saliency.png}
+\caption{(From \cite{saliencyII}) Example of an image-specific class saliency map.}
+\label{tsneimg}
+\end{figure}
+
+The formulation is based on finding the derivative of an output class with respect to an input image via back-propagation. The authors also formulate a method to generate an image that maximises the output class score for a particular class, to visualise the model's `interpretation' of a class. This paper sparked popularity for saliency maps and further interest in creating explanations from network gradients. Note that a drawback of saliency maps is that noisy images can be produced when a model does not distinguish between objects that are being predicted and nearby objects that are associated (i.e. a tree with leaves, in an image of a bird).
+
+\subsubsection{Class Activation Maps}
+Another visual approach aimed at understanding the behaviour of CNNs was introduced by Zhou et al. (2015) and 
+
 
 GradCAM
 gradcam efficient variation https://arxiv.org/abs/1911.11293
-\subsection{Occlusion and Ablation}
 
 %Occlusions for Effective Data Augmentation in Image Classification
 %https://arxiv.org/abs/1910.10651
@@ -68,7 +116,16 @@ gradcam efficient variation https://arxiv.org/abs/1911.11293
 %http://openaccess.thecvf.com/content_ICCV_2017/papers/Fong_Interpretable_Explanations_of_ICCV_2017_paper.pdf
 
 
-\subsection{Backpropagation-Based}
+Integrated Gradients (ref DeepLIFT)
+
+SmoothGrad
+
+
+\subsection{Perturbation-Based}
+
+occlusion and ablation
+
+occlusion mask, zeiler and fergus
 
 \section{Model-Agnostic Methods}
 
@@ -98,6 +155,7 @@ are as accurate as black-box models."  Model-Agnostic Interpretability of Machin
 
 
 \subsection{Perturbation-Based}
+Both gradient and backpropagation-based methods operate under the assumption that propagating an output signal, back through a classifier model, is a means to explain how a relevant signal was originally encoded in an input \cite{patternnet}. An alternative approach is to treat the model as more of a black box, by perturbing the input space (such as occluding important parts) to study the effect on the output. Changes in output would reveal that occluded parts of the input are important in a prediction. 
 
 "The problem of attribution is concerned with identifying the parts of an input that are responsible for a model's output. An important family of attribution methods is based on measuring the effect of perturbations applied to the input"
 
@@ -127,6 +185,15 @@ variants of lime include KL-lime
 %https://arxiv.org/pdf/1711.00867.pdf
 
 %https://medium.com/swlh/breaking-down-the-black-box-39403b0f64a3
+
+%IOU: Network Dissection: Quantifying Interpretability
+%https://arxiv.org/abs/1704.05796
+
+%\cite{saliencyII}
+%Section 3.2 Weakly Supervised Object Localisation
+%weakly supervised object localisation from Saliency Maps
+%used a segmentation algorithm and entered their saliency
+% map into ILSVRC-2013 localisation challenge
 
 
 \section{Existing Explanation Frameworks}
