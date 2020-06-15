@@ -18,7 +18,7 @@ A major difficulty of this project was distilling the broad literature on these 
 \item \textbf{Perturbation-based} methods and input occlusion techniques
 \end{itemize}
 
-This categorisation is based on two recent papers that make similar categorisations of explanation approaches  \cite{deeplift} \cite{patternnet}. In this chapter a broad selection of methods based on traction over time, current popularity and representativeness of approach are described, though the reader should note there are many more methods under each of those three than have been described here.
+This categorisation is based on two recent papers that make similar categorisations of explanation approaches  \cite{deeplift} \cite{patternnet}. In this chapter a broad selection of methods based on traction over time, current popularity and representativeness of approach are described, though the reader should note there are more methods under each of those three than have been described here.
 
 For model-agnostic methods, perturbation-based and surrogate model approaches are considered. Again the selection was based on traction and literature popularity.
 
@@ -30,6 +30,8 @@ All methods are variously referred to as \textit{attribution} methods in this pr
 There seems to be little consensus around terminology. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature (i.e. excluding higher level `patterns' which cause neuron activations, as in Zeiler \& Fergus (2013) (\cite{zeilerfergus2013}), (Section \textbf{X}) or the back-propagation class generally). 
 
 In summary, attribution methods is used here as a general term, but can refer specifically to contribution `calculators', but saliency methods and saliency maps are also widely used in a general sense for image data.
+
+% also sensitivity map or pixel attribution map as by SmoothGrad
 
 \section{Traditional Approaches}
 
@@ -79,7 +81,7 @@ Guided Backpropagation was an enhancement by Sprigenberg et al. (2014) that adde
 
 \subsubsection{DeepLIFT}
 
-DeepLIFT (Deep Learning of Important FeaTures) \cite{deeplift} was created out of the motivation that the zero'ing of negative gradients by DeconvNet and Guided Backpropagation meant that neither are able to highlight inputs that contribute negatively to an output. In some sense they are therefore missing half the story of feature contribution. DeepLIFT's authors (Shrikumar et al. (2017)) also wanted to overcome the unaddressed saturation problem, which is that relevant neurons that contribute to a saturated output activation would not individually change the output if they were turned off (as might be tried in perturbation approaches).
+DeepLIFT (Deep Learning of Important FeaTures) \cite{deeplift} was created out of the motivation that the zero'ing of negative gradients by DeconvNet and Guided Backpropagation meant that neither are able to highlight inputs that contribute negatively to an output. In some sense they are therefore missing half the story of feature contribution / neuron activation. DeepLIFT's authors (Shrikumar et al. (2017)) also wanted to overcome the unaddressed saturation problem, which is that relevant neurons that contribute to a saturated output activation would not individually change the output if they were turned off (as might be tried in perturbation approaches).
 
 DeepLIFT's innovation over previous backpropagation and gradient-based methods was to realise that where this problem existed, a single gradient value of an output with respect to an input value did not adequately or necessarily capture input contributions to an output. The authors' proposal was to find input contributions by instead calculating the absolute change in output with respect to a neuron's `reference' activation. 
 
@@ -100,7 +102,7 @@ DeepLIFT is one of several modern methods to decompose a network's prediction on
 
 
 \subsection{Gradient-Based} \label{sec:gradient}
-These methods aim to explain a class output in terms of sensitivity in the input space by relying on a gradient function of the output\footnote{A strong overlap between gradient and backprop methods exists since gradients as derivatives are found and approximated via backprop, and the weights updated by these gradients in training/backprop are the contributions \textit{to} neuron activations.}. The goal is to find the input features that make that prediction more or less confident: for example, for an output class of `tree' they seek to answer ``what makes a tree more/less a tree?''.
+These methods aim to explain a class output in terms of sensitivity in the input space by relying on a gradient function of the output\footnote{There is a strong overlap between gradient and backprop. methods: gradients as derivatives are approximated via backprop, and the weights updated by these gradients in training are the contributions to the neuron activations measured via backprop. techniques.}. The goal is to find the input features that make that prediction more or less confident: for example, for an output class of `tree' they seek to answer ``what makes a tree more/less a tree?''.
 
 \subsubsection{Saliency Maps}
 An early formulation of a local explanation method was provided by Baehrens et al. (2010) for any nonlinear classification algorithm (though developed in the context of Bayesian classification) \cite{saliencyI}. The local explanation gradient vectors that this paper devised were based on class probability gradients, characterising how much a data point has to be moved for a predicted label to change.
@@ -122,7 +124,7 @@ The formulation is based on finding the derivative of an output class with respe
 This paper sparked great interest in CNN explanations and further interest in creating explanations from network gradients generally. Along with DeconvNet and Guided Backpropagation (developed relatively simultaneously with similar ideas) these three methods are the most historically popular and influential saliency techniques\footnote{Saliency maps are synonymous with gradient methods to the point where it is sometimes referred to as simply the `Gradients' technique, as in Adebayo et al. (2018) \cite{sanity}, who may have done so to disambiguate the technique from saliency maps generally - see Section 1.1 (``Terminology'').}. A drawback of saliency maps is that noisy images can be produced when a model does not distinguish between objects that are being predicted and nearby objects that are associated (i.e. a tree with leaves, in an image of a bird).
 
 \subsubsection{Grad-CAM}
-Class activation maps (CAMs) are another approach aimed at understanding the behaviour of CNNs introduced by Zhou et al. (2015) \cite{cam}, based on the motivation that deeper convolutional layers capture higher-level visual constructs while retaining spatial information \cite{gradcam}. While examining global average pooling (GAP) layers, a technique previously suggested for regularisation during training \cite{nin}, the authors realised a final convolutional layer's separate RGB channels (or `feature maps') could be input into a GAP layer, and then those outputs used as features in a fully-connected layer just before the final softmax layer. The class-associated weights in that fully-connected layer can be combined with the original final convolutional layer feature maps to capture deep representations as object localisations/class `activation' maps:
+Class activation maps (CAMs) are another approach aimed at understanding the behaviour of CNNs introduced by Zhou et al. (2015) \cite{cam}, based on the motivation that deeper convolutional layers capture higher-level visual constructs while retaining spatial information \cite{gradcam}. While examining global average pooling (GAP) layers, a technique previously suggested for regularisation during training \cite{nin}, the authors realised a final convolutional layer's separate RGB channels (or `feature maps') could be input into a GAP layer with outputs used as features in a fully-connected layer, just before the final softmax layer. The class-associated weights in that fully-connected layer can be combined with the original final convolutional layer feature maps to capture deep representations as object localisations/class `activation' maps:
 
 \begin{figure}[h]
 \centering
@@ -131,9 +133,9 @@ Class activation maps (CAMs) are another approach aimed at understanding the beh
 \label{camimg}
 \end{figure}
 
-A major limitation of the CAM approach is that it requires specific CNN architectures without previous fully-connected layers, and a GAP layer to be added before the output softmax layer to generate the deep representations it visualises. As well as this being a hurdle to adoption, the representations are highly coarse and only roughly approximate class-associated regions (a reason for their heatmap presentation).
+A major limitation of the CAM approach is that it requires specific CNN architectures without previous fully-connected layers, and a GAP layer to be added before the output softmax layer to generate the deep representations it visualises. As well as this being a hurdle to adoption, the representations are highly coarse and only roughly approximate class-associated regions (a reason for heatmap presentation).
 
-Grad-CAM was proposed by Selvaraju et al. (2016) aimed at making CAMs applicable to a wider range of CNN models, and for visual tasks other than image classification \cite{gradcam}. It requires no alteration to model architecture. It still targets the final convolutional layer's channels, as in CAM, but uses the \textit{gradient} of an output class score with respect to these channels' output activations, to then globally-average-pool the gradients over the layer's width and height dimensions. The importance weights produced can be visualised as a localised heatmap over the input space, though the authors also combine a Guided Backpropagation output (Section \ref{sec:backprop}) with the heatmaps to generate a class-discriminative, ``high-resolution'' version called Guided Grad-CAM (Figure \ref{gradimg}).
+Grad-CAM was proposed by Selvaraju et al. (2016) aimed at making CAMs applicable to a wider range of CNN models, and for visual tasks other than image classification \cite{gradcam}. It requires no alteration to model architecture. It still targets the final convolutional layer's channels, as in CAM, but uses the \textit{gradient} of an output class score with respect to these channels' output activations to then globally-average-pool the gradients over the layer's width and height dimensions. The importance weights produced can be visualised as a localised heatmap over the input space, though the authors also multiply a Guided Backpropagation output (Section \ref{sec:backprop}) with the heatmaps to generate a class-discriminative, ``high-resolution'' version called Guided Grad-CAM (Figure \ref{gradimg}).
 
 \begin{figure}[h]
 \centering
@@ -142,7 +144,7 @@ Grad-CAM was proposed by Selvaraju et al. (2016) aimed at making CAMs applicable
 \label{gradimg}
 \end{figure}
 
-One of Grad-CAM's strengths is that its authors prove its effectiveness for a variety of use cases. These include highlighting causes of incorrect predictions (`failure modes'), the effect of adversarial noise and causes of model confusion, and identifying training dataset bias\footnote{For example, they showed that a VGG model trained to classify nurses from doctors had learned to look at long hair to incorrectly label a female doctor a nurse, and the bias was because of gender-skewed training data.}. Its application to a variety of models by other researchers (\cite{gradcamplusplus}, \cite{xray}) is one testament to its authors' claims on cross-model applicability and explanation quality, and its popularity in the literature ($>$2000 citations). 
+One of Grad-CAM's strengths is that its authors prove its effectiveness for a variety of use cases. These include highlighting causes of incorrect predictions (`failure modes'), the effect of adversarial noise and causes of model confusion, and identifying training dataset bias\footnote{For example, they showed that a VGG model trained to classify nurses from doctors had learned to look at long hair to incorrectly label a female doctor a nurse, and the bias was because of gender-skewed training data.}. Its application to a variety of models by other researchers (\cite{gradcamplusplus}, \cite{xray}) is one testament to its authors' claims on cross-model applicability and explanation quality, as well as its popularity in the literature ($>$2000 citations). 
 
 %gradcam efficient variation https://arxiv.org/abs/1911.11293
 % gradCAM has over 2000 citations
@@ -153,11 +155,33 @@ One of Grad-CAM's strengths is that its authors prove its effectiveness for a va
 
 \subsubsection{Other Gradient Methods}
 
-Integrated Gradients (ref DeepLIFT) *also addresses saturation
+Three other gradient-based methods are widely cited and relevant to discussion - Integrated Gradients \cite{integrated}, Gradient * Input \cite{olddeeplift} and SmoothGrad \cite{smoothgrad}. 
 
-SmoothGrad
+Integrated Gradients is similar to DeepLIFT - instead of taking difference-from-reference activation as a signal of contribution, the approach is to integrate the possible gradients over all inputs (from 0 up to the activation caused by the input image) and then use this area under the activation function as an information measure of input relevance. It also addresses the saturation problem (Section \ref{sec:backprop}) though is naturally expensive to compute. Approximating the integral requires a baseline example that can provide zero input score as a comparison, and the method is applicable to a variety of architectures (two other similarities with DeepLIFT).
+
+Gradient * Input was a simple proposal by DeepLIFT's authors to sharpen the saliency maps of Simonyan et al. (2014) \cite{saliencyII} by multiplying the gradient with the original input signal. SmoothGrad was another attempt to sharpen gradient-based saliency maps, that noted gradients as derivatives can fluctuate sharply at local scales. To compensate for the noise in the output explanation, they propose a local average of gradient values that can be computed based on random samples of the original input image with Gaussian noise added.
+
+%<put figure in comparing gradient and backprop ones i.e. deep %explainer or patternattribution>
+
+\subsection{Other Model-Specific Techniques} \label{sec:otherms}
+
+Backpropagation and gradient methods can be viewed as reflections of one approach based on a similar assumption: that propagating a relevant signal back through a neural network model is a means to explain how the signal was originally encoded. A third and more unrelated category of model-specific methods are perturbation techniques. These treat the underlying model as a true black-box by iteratively occluding patches of the input feature space in order to measure the change in output class score. Where the occlusion caused a noticeable change, the inference is that the region masked was important. Zeiler \& Fergus (2013) (\cite{zeilerfergus2013}) pioneered this approach in the same paper that proposed DeconvNets described in Section \ref{sec:backprop}\footnote{The grey-square masking method from the DeconvNet paper is usually referred to as `Occlusion' in the literature.}. 
 
 
+An influential work by Fong \& Vedaldi(2017) \cite{perturb_fong} formalised a meta-predictor framework that can \textit{learn} masks via what they describe as a deletion minimisation problem. Summarised, the informative region is found by minimising the size of a small deletion mask that causes the output score to drop significantly. This mask generation framework leads to similar results as other methods mentioned so far (Figure \ref{comparisonimg}). The authors rely similarly on gradients to extract information to solve their optimisation problem, but a key performance drawback is that \textit{many} gradient calculations for successively increasing mask sizes are required.
+
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.65]{perturb.png}
+\caption{(Adapted from \cite{perturb_fong}) Comparison of methods discussed so far: Mask generation \cite{perturb_fong}, Gradient (saliency maps) \cite{saliencyII}, Guided Backpropagation \cite{springenberg}, Grad-CAM \cite{gradcam} and Occlusion \cite{zeilerfergus2013}. Ground truth bounding boxes are labelled ``gt bb''.}
+\label{comparisonimg}
+\end{figure}
+
+%occlusion and ablation
+
+%occlusion mask, zeiler and fergus
 
 %Understanding Deep Networks via Extremal Perturbations and Smooth Masks
 %https://arxiv.org/abs/1910.08485
@@ -166,53 +190,26 @@ SmoothGrad
 %http://openaccess.thecvf.com/content_ICCV_2017/papers/Fong_Interpretable_Explanations_of_ICCV_2017_paper.pdf
 
 
-%<put figure in comparing gradient and backprop ones i.e. deep %explainer or patternattribution>
+For completeness, some NN methods which do not attribute the contribution of input features specifically (or project internal model signals onto the input space) are not within project scope as a result, but are mentioned here. These are `concept vector' methods that extract model behaviour across layers: Net2Vec \cite{net2vec} and Testing with Concept Activation Vectors (TCAV) \cite{tcav}.
 
-\subsection{Perturbation-Based}
-
-occlusion and ablation
-
-occlusion mask, zeiler and fergus
+% \footnote{For the reader's interest, these were developed almost simultaneously from rival labs at Oxford and Google.}.
 
 
-\subsection{Other NN Techniques}
 
-Some model-specific methods which do not attribute the contribution of features, or project internal model signals onto the input space, may also be of interest to the reader. These include Net2CV, mentioned in Section 1.X .
 
 \section{Model-Agnostic Methods}
 
-
-"While we have made a case for model agnosticism, this
-approach is not without its challenges. For example,
-getting a global understanding of the model may be hard
-if the model is very complex, due to the trade-off between
-flexibility and interpretability. To make matters worse, local
-explanations may be inconsistent with one another, since a
-flexible model may use a certain feature in different ways
-depending on the other features. In Ribeiro et al. (2016)
-we explained text models by selecting a small number
-of representative and non-redundant individual prediction
-explanations obtained via submodular optimization, similar
-in spirit to showing prototypes (Kim et al., 2014). However,
-it is unclear on how to extend this approach to domains such
-as images or tabular data, where the data itself is not sparse.
-In some domains, exact explanations may be required (e.g.
-for legal or ethical reasons), and using a black-box may
-be unacceptable (or even illegal). Interpretable models
-may also be more desirable when interpretability is much
-more important than accuracy, or when interpretable models
-trained on a small number of carefully engineered features
-are as accurate as black-box models."  Model-Agnostic Interpretability of Machine Learning
+In parallel to the literature aimed at explaining neural network model behaviour, a standalone approach in the interpretability literature is to find model-agnostic explanations. Similar to the motivation for perturbation-based methods (and with overlap), these `black-box' methods make no restrictive requirements about model architecture or classification task, and therefore can theoretically be applied to any model class or task. Stark differences in approach and computational complexity still exist however. The most prominent methods in the literature are given an overview in this section.
 
 
 
 \subsection{Perturbation-Based}
-Both gradient and backpropagation-based methods operate under the assumption that propagating an output signal, back through a classifier model, is a means to explain how a relevant signal was originally encoded in an input \cite{patternnet}. An alternative approach is to treat the model as more of a black box, by perturbing the input space (such as occluding important parts) to study the effect on the output. Changes in output would reveal that occluded parts of the input are important in a prediction. 
+As described in \ref{sec:otherms}, an approach to attribution is to treat the model as a complete black box, by perturbing the input space (such as occluding important parts) to study the effect on the output. Changes in output would reveal that occluded parts of the input are important in a prediction. 
 
 "The problem of attribution is concerned with identifying the parts of an input that are responsible for a model's output. An important family of attribution methods is based on measuring the effect of perturbations applied to the input"
 
 
-
+The authors of the mask generation technique described in 1.3.3 note that LIME bears similarity to their perturbation approach, but takes significantly longer to converge and produces a coarser heatmap defined by super-pixels instead of pixel-level attribution \cite{perturb_fong}.
 
 \subsection{Surrogate Models}
 some overlap with perturbation-based methods for how they are trained
@@ -223,6 +220,11 @@ some overlap with perturbation-based methods for how they are trained
 variants of lime include KL-lime
 
 \section{Evaluation Metrics}
+
+Creators of feature attribution methods provide comparisons with existing methods, as in for example Figure 1.X adapted from the perturbation method's paper described in that section. An issue is that the qualitative evaluations are often left to the reader, encouraged to infer the author's method is either equal in standing or slightly more striking / aesthetically desirable than another method. Evaluation \textit{independent} of method creators is very uncommon. In other words, introduced methods do not necessarily further the interpretability field's understanding of desirable  benchmarks and standards for the interpretability property itself, though they often introduce their own suggested criteria to try. To some extent, the proliferation in attribution methods (mostly variants) can be `attributed' to this unresolved research problem. The goal of this research section is to overview the existing evaluation criteria that authors have independently proposed, and the following section describes the attempts that have been made for independent evaluation and `unification' studies.
+
+%Evaluating neural network explanation methods using hybrid documents
+% https://arxiv.org/pdf/1801.06422.pdf
 
 \subsection{What makes a visual explanation a quality one?}
 % gradcam paper "What makes a good visual explanation?"
@@ -253,20 +255,33 @@ variants of lime include KL-lime
 %http://cnnlocalization.csail.mit.edu/Zhou_Learning_Deep_Features_CVPR_2016_paper.pdf
 % CAM authors also test CAMs on object localisation without bounding box annotation %"Weakly-supervised object localization"
 
+
+% implementation invariance and sensitivity (integrated gradients)
+% https://arxiv.org/pdf/1703.01365.pdf
+
+
+\section{Existing Evaluation Studies}
+
+
+
+Comparisons
+
+
+
+
 \section{Existing Explanation Frameworks}
 
-
+Following the discussion at the beginning of the previous section, 
 %TreeExplainer repo??
 
+%TensorFlow implementation for SmoothGrad, Grad-CAM, Guided backprop, Integrated Gradients and other saliency techniques  https://github.com/PAIR-code/saliency
 
 %Skater - a unified framework for model-agnostic interpretation --> global and local
 %DeepExplainer
 
 %TorchRay https://github.com/facebookresearch/TorchRay
 
-\section{Existing Evaluation Studies}
 
-Comparisons
 
 % https://openreview.net/forum?id=Sy21R9JAW
 % pytorch
