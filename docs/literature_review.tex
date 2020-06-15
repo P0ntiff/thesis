@@ -217,7 +217,7 @@ LIME's authors propose that non-linear, complex decision boundaries can be appro
 
 To compute explanations, LIME trains an interpretable model (i.e. decision tree or Lasso regression) on permuted samples from a given instance, weighted by their proximity to the instance being explained. The training simply minimises mean-squared error based on the samples' black-box predictions. Finally, the interpretable model's weights on these proximal features (superpixels in the case of image data) represent the `explanation' for the underlying instance. 
 
-The formulation in the paper is relatively vague however, particularly with regards to the size of the region of influence / neighbourhood that should be used for finding relevant features. The vagueness was motivated by their intention to provide agnosticity in both the explanation model and the black-box model, though this leaves questions about the accuracy-interpretability compromise largely unaddressed. Generating samples and training models for each sample is also an extremely performance-heavy process. Even for a confident prediction and using many samples, instability from random sampling makes an explanation undesirably non-deterministic. This was noted by the authors themselves \cite{lime}. The authors of the mask generation technique described in Section 1.3.3 note that LIME bears similarity to their perturbation approach, but takes significantly longer to converge and produces a coarser heatmap via super-pixels instead of their pixel-level attribution \cite{perturb_fong}.
+The formulation in the paper is relatively vague however, particularly with regards to the size of the region of influence / neighbourhood that should be used for finding relevant features. The vagueness was potentially motivated by their intention to be agnostic about the choice of explanation model and the black-box model, though this leaves questions about the accuracy-interpretability compromise largely unaddressed. Generating samples and training models for each sample is also extremely performance costly. Even for a confident prediction and using many samples, instability from random sampling makes an explanation undesirably non-deterministic. This was noted by the authors \cite{lime}. The authors of the mask generation technique described in Section 1.3.3 note that LIME bears similarity to their perturbation approach, but takes significantly longer to converge and produces a coarser heatmap via super-pixels instead of their pixel-level attribution \cite{perturb_fong}.
 
 Despite these shortcomings, LIME's simplicity and complete compatibility across all model families and classification tasks explains its high popularity among model-agnostic methods.
 
@@ -225,7 +225,7 @@ Despite these shortcomings, LIME's simplicity and complete compatibility across 
 
 LIME's problems motivated a more recent successor called ``Anchors: High-Precision Model-Agnostic Explanations'' by its original authors \cite{anchors}. They replaced the use of simple local models with high fidelity if-then rules around a prediction, and give a framework for finding those rules efficiently. A rule (termed an `anchor' explanation) is one that, ``[...] sufficiently anchors an explanation locally, such that changes to the rest of the features of the instance do not matter'' \cite{anchors}. 
 
-Formal ways to define the find the optimal region of influence (`coverage'), build rule accuracy (`precision'), and calculate the rules efficiently were devised - three improvements over their LIME proposal.
+Formal ways to define the optimal region of influence (`coverage'), build rule accuracy (`precision'), and calculate rules efficiently were devised - three key improvements over their LIME proposal.
 
 Though these anchor rules are highly interpretable, code available from the authors is limited and (possibly as a result) it has less popularity both in practice and in the literature. The GitHub repository provides for example a rough implementation for only text and tabular data and not image data \cite{anchorsrepo}.
 
@@ -233,23 +233,42 @@ Though these anchor rules are highly interpretable, code available from the auth
 
 \subsubsection{SHAP Framework}
 
-At this point the reader may be fatigued of the numerous method formulations that exist. The SHAP framework (Shapley Additive Explanations) was a push-back on this issue of method proliferation, unifying six existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability, arguably due to its attractive formal properties and `outsider' approach, but also its implementation approximations for many model families and well-maintained GitHub repository to host those implementations\footnote{SHAP has over 1000 citations and 9000 GitHub `stars' despite only being published in late 2017.}. 
+Numerous methods have been listed so far and the reader may be fatigued of the variety. The SHAP framework (SHapley Additive exPlanations) by Lundberg \& Lee (2017) was a push-back on this issue of method proliferation, showing links between many existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability due to its attractive formal properties and `outsider' formulation, as well as its implementation approximations for many model families and a well-maintained GitHub repository to host those implementations\footnote{The SHAP paper has over 1000 citations and its GitHub has over 9000 `stars' \cite{shaprepo} at the time of writing, despite only being published in late 2017.}. 
+ 
+The game theoretic concept of Shapley values are a unique solution to the problem of calculating fair, marginal per-player rewards for the reward earned collectively in a cooperative game \cite{shapley}. Since each player's contribution may produce interaction effects with others, they are calculated by averaging contributions in all possible sub-coalitions of players. In the context of machine learning, if features are taken as players, the method can be applied to a prediction (the ``payoff'') and it retains its per-player theoretical properties. These qualities include efficiency, which is that the sum of \textit{p} constituent input feature contributions (Shapley values $\phi_{j}$ for feature \textit{j}) must equal the difference between a prediction of an input \textit{x} ($\widehat{f}_{x})$ and an average for all inputs (an `expectation' of model output $E_X(\widehat{f}(X))$):
+\begin{align}
+\sum_{j=1}^{p}\phi_{j} = \widehat{f}_{x} - E_X(\widehat{f}(X))
+\end{align}
 
-The game theory concept of Shapley values was established in the mid 20th century, 
+The issue is that finding $\phi_{j}j$ iteratively computing through every possible subset of features including \textit{j} and is therefore entirely computationally infeasible for large input spaces\footnote{They are used in low-dimensional linear regression settings, like in economics for example, for calculating global feature importances when features are dependent \cite{shapley}.}). 
 
-SHAP provides theoretical properties for its explanations like additivity (sum to 1)
+SHAP values are an implementable version of Shapley values. They connect Shapley value theory with local explanation techniques including LIME and DeepLIFT \cite{shap}.  They are formulated as the difference between expected model output (approximated by an average background data sample's prediction) and the instance at hand being predicted. The authors show that the game theoretical properties including efficiency apply to a whole class of `additive feature attribution methods', both model-specific (for example DeepLIFT) and model-agnostic. They provide two model-agnostic approximations for implementing their attribution values. (fix this, why two?)
 
 
+ %note a similarity between LIME and SHAP: 
+ 
+ 
+%\subsubsection{Explanation Vectors} 
+%Finally, an older model-agnostic method briefly mentionable is Explanation Vectors, by Baehrens et al. (2010)  \cite{explvectors}. 
 
-\section{Evaluation Criteria}
 
-The creators of feature attribution methods often provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that the qualitative evaluations are left to the reader, who is encouraged to infer the author's method is either equal in standing or slightly more aesthetically desirable than another method.
+\section{Evaluation Studies}
 
-Evaluation that is \textit{independent} of method creators is uncommon. Introduced methods introduce their own suggested criteria, and so do not necessarily further the interpretability field's understanding of desirable benchmarks and standards for the interpretability property. To some extent, the proliferation in attribution methods (mostly variants) can be attributed to these subjective and still actively researched desiderata.
+The creators of feature attribution methods often provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that the qualitative evaluations are left to the reader, who is encouraged to infer the author's method is either equal in standing or more aesthetically desirable than another method.
 
-SHAP's momentum in the literature can therefore be explained by its ability to show how methods are related and demonstrate when one is preferable. The goal of this research section is to: overview attempts like SHAP that have independently evaluated methods and performed `unification' or comparison studies; examine the existing evaluation criteria that authors have independently proposed, and; describe existing software frameworks for generating explanations that package several methods for visual comparison and for use by practitioners.
+Lack of evaluation \textit{independent} of method creators is another issue. Introduced methods tend to suggest their own interpretability criteria, with little reference to prior art criteria, and so the interpretability field's agreement on desirable benchmarks and standards for interpretability is low. To some extent, the proliferation in attribution methods (mostly variants) can be attributed to these unfortunately subjective and still actively researched desiderata.
 
-\section{Existing Evaluation Studies}
+SHAP's momentum in the literature can therefore be explained by its ability to show how existing methods are related and that it demonstrates where one is preferable. The goal of this research section is to: 
+
+\begin{itemize}
+
+\item Overview attempts like SHAP that have independently evaluated methods and performed `unification' or comparison studies;
+\item Examine existing evaluation criteria that method authors have independently proposed, and;
+\item Describe existing software for generating explanations that package several methods for visual comparison for use by researchers and practitioners.
+
+\end{itemize}
+
+\subsection{Existing Studies}
 
 % theoreticla contributions are scarce
 % https://arxiv.org/pdf/1705.05598.pdf
@@ -267,7 +286,10 @@ Comparisons
 % robustness
 % https://arxiv.org/abs/1806.08049
 
-\subsection{Existing Evaluation Criteria}
+% SHAP
+% "The thread of unity that SHAP weaves through the literature is an encouraging sign that common principles about model interpretation can inform the development of future methods."
+
+\subsection{Existing Criteria}
 
 \subsubsection{Visual Explanation Quality}
 % gradcam paper "What makes a good visual explanation?"
@@ -305,7 +327,7 @@ Comparisons
 % https://arxiv.org/pdf/1611.05817.pdf
 
 
-\section{Existing Explanation Frameworks}
+\subsection{Existing Explanation Frameworks}
 
 %TreeExplainer repo??
 
