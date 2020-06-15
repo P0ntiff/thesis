@@ -20,7 +20,7 @@ A major difficulty of this project was distilling the broad literature on these 
 
 This categorisation is based on two recent papers that make similar categorisations of explanation approaches  \cite{deeplift} \cite{patternnet}. In this chapter a broad selection of methods based on traction over time, current popularity and representativeness of approach are described, though the reader should note there are more methods under each of those three than have been described here.
 
-For model-agnostic methods, perturbation-based and surrogate model approaches are considered. Again the selection was based on traction and literature popularity.
+For model-agnostic methods, perturbation-based and other miscellaneous approaches are considered. Again the selection was based on traction and literature popularity.
 
 First reviewed are traditional, visual approaches to interpretability to provide context to the task of feature attribution. After the exploration of feature attribution methods, a review of existing evaluation metrics and comparison studies is provided.
 
@@ -199,36 +199,78 @@ For completeness, some NN methods which do not attribute the contribution of inp
 
 \section{Model-Agnostic Methods}
 
-In parallel to the literature aimed at explaining neural network model behaviour, a standalone approach in the interpretability literature is to find model-agnostic explanations. Similar to the motivation for perturbation-based methods (and with overlap), these `black-box' methods make no restrictive requirements about model architecture or classification task, and therefore can theoretically be applied to any model class or task. Stark differences in approach and computational complexity still exist however. The most prominent methods in the literature are given an overview in this section.
-
+In parallel to the literature aimed at explaining neural network model behaviour, a standalone approach in the interpretability literature is to find model-agnostic explanations. Similar to the motivation for perturbation-based methods (and with overlap), these are `black-box' methods that make no restrictive assumptions about model architecture or classification task at all, and therefore can theoretically be applied to any model or task. Stark differences in approach and computational complexity still exist however. The most prominent methods in this sub-field are listed below.
 
 
 \subsection{Perturbation-Based}
-As described in \ref{sec:otherms}, an approach to attribution is to treat the model as a complete black box, by perturbing the input space (such as occluding important parts) to study the effect on the output. Changes in output would reveal that occluded parts of the input are important in a prediction. 
+Described in Section \ref{sec:otherms}, perturbing the input space (by toggling feature patches) is one way to isolate model behaviour. Changes in output score reveal importance in the occluded inputs. Several methods implement this intuition by training ``surrogate'', interpretable models around the isolated features that are locally relevant to a single prediction. These include Local Interpretable Model-Agnostic Explanations (LIME) \cite{lime}, Anchors \cite{anchors} and similar variants \cite{local}.
 
-"The problem of attribution is concerned with identifying the parts of an input that are responsible for a model's output. An important family of attribution methods is based on measuring the effect of perturbations applied to the input"
+\subsubsection{LIME}
+LIME's authors propose that non-linear, complex decision boundaries can be approximated locally around a single prediction via a simpler model that only relies only on the ``neighbourhood'' of the relevant input space \cite{lime}. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.65]{lime_figure.png}
+\caption{(From \cite{lime}) LIME's intuition about complex decision boundaries.}
+\label{limeimg}
+\end{figure}
+
+To compute explanations, LIME trains an interpretable model (i.e. decision tree or Lasso regression) on permuted samples from a given instance, weighted by their proximity to the instance being explained. The training simply minimises mean-squared error based on the samples' black-box predictions. Finally, the interpretable model's weights on these proximal features (superpixels in the case of image data) represent the `explanation' for the underlying instance. 
+
+The formulation in the paper is relatively vague however, particularly with regards to the size of the region of influence / neighbourhood that should be used for finding relevant features. The vagueness was motivated by their intention to provide agnosticity in both the explanation model and the black-box model, though this leaves questions about the accuracy-interpretability compromise largely unaddressed. Generating samples and training models for each sample is also an extremely performance-heavy process. Even for a confident prediction and using many samples, instability from random sampling makes an explanation undesirably non-deterministic. This was noted by the authors themselves \cite{lime}. The authors of the mask generation technique described in Section 1.3.3 note that LIME bears similarity to their perturbation approach, but takes significantly longer to converge and produces a coarser heatmap via super-pixels instead of their pixel-level attribution \cite{perturb_fong}.
+
+Despite these shortcomings, LIME's simplicity and complete compatibility across all model families and classification tasks explains its high popularity among model-agnostic methods.
+
+\subsubsection{Anchors}
+
+LIME's problems motivated a more recent successor called ``Anchors: High-Precision Model-Agnostic Explanations'' by its original authors \cite{anchors}. They replaced the use of simple local models with high fidelity if-then rules around a prediction, and give a framework for finding those rules efficiently. A rule (termed an `anchor' explanation) is one that, ``[...] sufficiently anchors an explanation locally, such that changes to the rest of the features of the instance do not matter'' \cite{anchors}. 
+
+Formal ways to define the find the optimal region of influence (`coverage'), build rule accuracy (`precision'), and calculate the rules efficiently were devised - three improvements over their LIME proposal.
+
+Though these anchor rules are highly interpretable, code available from the authors is limited and (possibly as a result) it has less popularity both in practice and in the literature. The GitHub repository provides for example a rough implementation for only text and tabular data and not image data \cite{anchorsrepo}.
+
+\subsection{Other Model-Agnostic Methods}
+
+\subsubsection{SHAP Framework}
+
+At this point the reader may be fatigued of the numerous method formulations that exist. The SHAP framework (Shapley Additive Explanations) was a push-back on this issue of method proliferation, unifying six existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability, arguably due to its attractive formal properties and `outsider' approach, but also its implementation approximations for many model families and well-maintained GitHub repository to host those implementations\footnote{SHAP has over 1000 citations and 9000 GitHub `stars' despite only being published in late 2017.}. 
+
+The game theory concept of Shapley values was established in the mid 20th century, 
+
+SHAP provides theoretical properties for its explanations like additivity (sum to 1)
 
 
-The authors of the mask generation technique described in 1.3.3 note that LIME bears similarity to their perturbation approach, but takes significantly longer to converge and produces a coarser heatmap defined by super-pixels instead of pixel-level attribution \cite{perturb_fong}.
 
-\subsection{Surrogate Models}
-some overlap with perturbation-based methods for how they are trained
+\section{Evaluation Criteria}
 
-%https://christophm.github.io/interpretable-ml-book/lime.html
+The creators of feature attribution methods often provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that the qualitative evaluations are left to the reader, who is encouraged to infer the author's method is either equal in standing or slightly more aesthetically desirable than another method.
+
+Evaluation that is \textit{independent} of method creators is uncommon. Introduced methods introduce their own suggested criteria, and so do not necessarily further the interpretability field's understanding of desirable benchmarks and standards for the interpretability property. To some extent, the proliferation in attribution methods (mostly variants) can be attributed to these subjective and still actively researched desiderata.
+
+SHAP's momentum in the literature can therefore be explained by its ability to show how methods are related and demonstrate when one is preferable. The goal of this research section is to: overview attempts like SHAP that have independently evaluated methods and performed `unification' or comparison studies; examine the existing evaluation criteria that authors have independently proposed, and; describe existing software frameworks for generating explanations that package several methods for visual comparison and for use by practitioners.
+
+\section{Existing Evaluation Studies}
+
+% theoreticla contributions are scarce
+% https://arxiv.org/pdf/1705.05598.pdf
+
+Comparisons
 
 
-variants of lime include KL-lime
-
-\section{Evaluation Metrics}
-
-Creators of feature attribution methods provide comparisons with existing methods, as in for example Figure 1.X adapted from the perturbation method's paper described in that section. An issue is that the qualitative evaluations are often left to the reader, encouraged to infer the author's method is either equal in standing or slightly more striking / aesthetically desirable than another method. Evaluation \textit{independent} of method creators is very uncommon. In other words, introduced methods do not necessarily further the interpretability field's understanding of desirable  benchmarks and standards for the interpretability property itself, though they often introduce their own suggested criteria to try. To some extent, the proliferation in attribution methods (mostly variants) can be `attributed' to this unresolved research problem. The goal of this research section is to overview the existing evaluation criteria that authors have independently proposed, and the following section describes the attempts that have been made for independent evaluation and `unification' studies.
+% unification 
+% https://openreview.net/pdf?id=Sy21R9JAW
+% TOWARDS BETTER UNDERSTANDING OF GRADIENT-BASED ATTRIBUTION METHODS FOR DEEP NEURAL NETWORKS
 
 %Evaluating neural network explanation methods using hybrid documents
 % https://arxiv.org/pdf/1801.06422.pdf
 
-\subsection{What makes a visual explanation a quality one?}
-% gradcam paper "What makes a good visual explanation?"
+% robustness
+% https://arxiv.org/abs/1806.08049
 
+\subsection{Existing Evaluation Criteria}
+
+\subsubsection{Visual Explanation Quality}
+% gradcam paper "What makes a good visual explanation?"
 
 %https://arxiv.org/abs/1907.09701
 %https://distill.pub/2020/attribution-baselines/
@@ -259,19 +301,12 @@ Creators of feature attribution methods provide comparisons with existing method
 % implementation invariance and sensitivity (integrated gradients)
 % https://arxiv.org/pdf/1703.01365.pdf
 
-
-\section{Existing Evaluation Studies}
-
-
-
-Comparisons
-
-
+% coverage, precision and effort from a-LIME
+% https://arxiv.org/pdf/1611.05817.pdf
 
 
 \section{Existing Explanation Frameworks}
 
-Following the discussion at the beginning of the previous section, 
 %TreeExplainer repo??
 
 %TensorFlow implementation for SmoothGrad, Grad-CAM, Guided backprop, Integrated Gradients and other saliency techniques  https://github.com/PAIR-code/saliency
