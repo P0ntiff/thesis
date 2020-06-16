@@ -233,18 +233,18 @@ Though these anchor rules are highly interpretable, code available from the auth
 
 \subsubsection{SHAP Framework}
 
-Numerous methods have been listed so far and the reader may be fatigued of the variety. The SHAP framework (SHapley Additive exPlanations) by Lundberg \& Lee (2017) was a push-back on this issue of method proliferation, showing links between many existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability due to its attractive formal properties and `outsider' formulation, as well as its implementation approximations for many model families and a well-maintained GitHub repository to host those implementations\footnote{The SHAP paper has over 1000 citations and its GitHub has over 9000 `stars' \cite{shaprepo} at the time of writing, despite only being published in late 2017.}. 
+Many methods have been listed so far and a reader may be fatigued of the variety. The SHAP framework (SHapley Additive exPlanations) by Lundberg \& Lee (2017) was a push-back on this issue of method proliferation, showing links between many existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability due to its attractive formal properties and `outsider' formulation, as well as its implementation approximations for many model families and a well-maintained GitHub repository to host those implementations\footnote{The SHAP paper has over 1000 citations and its GitHub has over 9000 `stars' \cite{shaprepo} at the time of writing, despite only being published in late 2017.}.
  
-The game theoretic concept of Shapley values are a unique solution to the problem of calculating fair, marginal per-player rewards for the reward earned collectively in a cooperative game \cite{shapley}. Since each player's contribution may produce interaction effects with others, they are calculated by averaging contributions in all possible sub-coalitions of players. In the context of machine learning, if features are taken as players, the method can be applied to a prediction (the ``payoff'') and it retains its per-player theoretical properties. These qualities include efficiency, which is that the sum of \textit{p} constituent input feature contributions (Shapley values $\phi_{j}$ for feature \textit{j}) must equal the difference between a prediction of an input \textit{x} ($\widehat{f}_{x})$ and an average for all inputs (an `expectation' of model output $E_X(\widehat{f}(X))$):
+The game theoretic concept of Shapley values are a unique solution to the problem of calculating fair, marginal per-player rewards for the reward earned collectively in a cooperative game \cite{shapley}. Since each player's contribution may produce interaction effects with others, they are calculated by averaging contributions in all possible sub-coalitions of players. In the context of machine learning, if features are taken as players, the method can be applied to a prediction (the ``payoff'') and it retains its per-player theoretical properties. These qualities include \textit{efficiency}, which is that the sum of \textit{p} constituent input feature contributions (Shapley value $\phi_{j}$ for feature \textit{j}) must equal the difference between a prediction of an input \textit{x} ($\widehat{f}_{x})$ and an average for all inputs (an `expectation' of model output $E_X(\widehat{f}(X))$):
 \begin{align}
 \sum_{j=1}^{p}\phi_{j} = \widehat{f}_{x} - E_X(\widehat{f}(X))
 \end{align}
 
-The issue is that finding $\phi_{j}j$ iteratively computing through every possible subset of features including \textit{j} and is therefore entirely computationally infeasible for large input spaces\footnote{They are used in low-dimensional linear regression settings, like in economics for example, for calculating global feature importances when features are dependent \cite{shapley}.}). 
+A key problem is that finding $\phi_{j}$ requires iteratively computing outputs for all feature subsets including \textit{j} and is therefore computationally infeasible for large input spaces\footnote{They are however commonly used in low-dimensional linear regression settings, like in economics for example, for calculating global feature importances when features are dependent \cite{shapley}.}.
 
-SHAP values are an implementable version of Shapley values. They connect Shapley value theory with local explanation techniques including LIME and DeepLIFT \cite{shap}.  They are formulated as the difference between expected model output (approximated by an average background data sample's prediction) and the instance at hand being predicted. The authors show that the game theoretical properties including efficiency apply to a whole class of `additive feature attribution methods', both model-specific (for example DeepLIFT) and model-agnostic. They provide two model-agnostic approximations for implementing their attribution values. (fix this, why two?)
+SHAP values are an implementable version of Shapley values. They connect Shapley value theory with local explanation techniques including LIME and DeepLIFT \cite{shap}.  They are formulated as the difference between expected model output (approximated by an average background data sample's prediction) and the instance at hand being predicted. The authors show that the game theoretical properties including efficiency apply to a whole class of `additive feature attribution methods', both model-specific (e.g. DeepLIFT) and model-agnostic. They provide several model-specific approximations for implementing their attributions, one based on Integrated Gradients and another based on DeepLIFT.
 
-
+% MISSING CRITICAL EVALUATION: Discuss furter in below section??
  %note a similarity between LIME and SHAP: 
  
  
@@ -254,31 +254,51 @@ SHAP values are an implementable version of Shapley values. They connect Shapley
 
 \section{Evaluation Studies}
 
-The creators of feature attribution methods often provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that the qualitative evaluations are left to the reader, who is encouraged to infer the author's method is either equal in standing or more aesthetically desirable than another method.
+Creators of feature attribution methods often provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that qualitative evaluation is often left to the reader, who is encouraged to infer the author's saliency maps are either equal in standing or more aesthetically pleasing than another method's.
 
-Lack of evaluation \textit{independent} of method creators is another issue. Introduced methods tend to suggest their own interpretability criteria, with little reference to prior art criteria, and so the interpretability field's agreement on desirable benchmarks and standards for interpretability is low. To some extent, the proliferation in attribution methods (mostly variants) can be attributed to these unfortunately subjective and still actively researched desiderata.
+Lack of evaluation \textit{independent} of method creators is another issue. Introduced methods do often suggest their own interpretability criteria, though with little reference to criteria in the prior art, and so the interpretability field's agreement on desirable standards for interpretability is low. To some extent, the proliferation in attribution methods (mostly variants) can be attributed to these unfortunately subjective and still actively researched desiderata.
 
-SHAP's momentum in the literature can therefore be explained by its ability to show how existing methods are related and that it demonstrates where one is preferable. The goal of this research section is to: 
+There have however been efforts to unify existing methods. SHAP's momentum in the literature can somewhat be explained by its ability to show how existing methods are related and that it demonstrates where one can be preferable. This research section therefore aims to:
 
 \begin{itemize}
 
 \item Overview attempts like SHAP that have independently evaluated methods and performed `unification' or comparison studies;
 \item Examine existing evaluation criteria that method authors have independently proposed, and;
-\item Describe existing software for generating explanations that package several methods for visual comparison for use by researchers and practitioners.
+\item Describe existing software for generating explanations, that package several methods for visual comparison for use by researchers and practitioners.
 
 \end{itemize}
 
 \subsection{Existing Studies}
+\subsubsection{Towards a Rigorous Science of Interpretable Machine Learning \cite{paradigms}}
+
+Doshi-Velez \& Kim (2017) provided an influential set of guidelines or ``evaluation paradigms'' for evaluating interpretability techniques, arranged in three levels of increasing abstraction \cite{paradigms}. Their motivation was to provide a scientific basis for the different approaches to evaluation that method authors implicity use (both qualitative and quantitative). The three paradigms are based around what the authors highlight are different objectives in evaluation (in order of increasing abstraction):
+
+\begin{enumerate}
+\item \textbf{Functionally-grounded}: How well the attribution method performs on quantitative criteria: `proxy' metrics for explainability like weakly supervised object localisation (Section X).
+\item \textbf{Human-grounded}: How much everyday people agree that an explanation is visually superior to another: user studies are one example.
+\item \textbf{Application-grounded}: How well the explanation helps domain experts solve real tasks; such as a radiologist agreeing with fractures pointed out by a model trained on X-ray data.
+
+\end{enumerate} 
+
+Research on evaluation criteria below (Section \ref{sec:existing_criteria}) has focused on functionally-grounded criteria, since these are dominant in the literature, but also since the higher level paradigms above are difficult to compare objectively.
+
+
+\subsubsection{Sanity Checks for Saliency Maps \cite{sanity}}
+
+
+
+\subsubsection{Towards Better Understanding of Gradient-based attribution methods \textbf{cite ancona}}
+Similar to SHAP in motivation, an attempt at providing a unified framework for the gradient-based class of attribution methods was provided by Ancona et al. (2018).
+
+\subsubsection{Model-Agnostic Interpretability of Machine Learning}
+Model-Agnostic Interpretability of Machine Learning
+
 
 % theoreticla contributions are scarce
 % https://arxiv.org/pdf/1705.05598.pdf
 
 Comparisons
 
-
-% unification 
-% https://openreview.net/pdf?id=Sy21R9JAW
-% TOWARDS BETTER UNDERSTANDING OF GRADIENT-BASED ATTRIBUTION METHODS FOR DEEP NEURAL NETWORKS
 
 %Evaluating neural network explanation methods using hybrid documents
 % https://arxiv.org/pdf/1801.06422.pdf
@@ -289,7 +309,12 @@ Comparisons
 % SHAP
 % "The thread of unity that SHAP weaves through the literature is an encouraging sign that common principles about model interpretation can inform the development of future methods."
 
-\subsection{Existing Criteria}
+\subsection{Existing Criteria} \label{sec:existing_criteria}
+
+% Table: Sensitivity-N, Implementation Invariance
+
+
+
 
 \subsubsection{Visual Explanation Quality}
 % gradcam paper "What makes a good visual explanation?"
@@ -328,6 +353,8 @@ Comparisons
 
 
 \subsection{Existing Explanation Frameworks}
+
+% DeepExplainer
 
 %TreeExplainer repo??
 
