@@ -5,7 +5,7 @@
 
 \begin{document}
 
-\chapter{Background Research}
+\chapter{Related Work}
 
 \section{Scope of Research} \label{sec:scoperesearch}
 
@@ -271,7 +271,7 @@ There have however been efforts to unify existing methods. SHAP's momentum in th
 \subsection{Existing Studies} \label{sec:existing_studies}
 \subsubsection{Towards a Rigorous Science of Interpretable Machine Learning \cite{paradigms}}
 
-Doshi-Velez \& Kim (2017) provided an influential set of guidelines or ``evaluation paradigms'' for evaluating interpretability techniques, arranged in three levels of increasing abstraction \cite{paradigms}. Their motivation was to provide a scientific basis for the different objectives in evaluation that method authors implicitly target (both qualitative and quantitative):
+Doshi-Velez \& Kim (2017) provided an influential set of guidelines or ``evaluation paradigms'' for evaluating interpretability techniques, arranged in three levels of increasing abstraction \cite{paradigms}. This motivation was to provide a scientific basis for the different objectives in evaluation that method authors implicitly target (both qualitative and quantitative):
 
 \begin{enumerate}
 \item \textbf{Functionally-grounded}: How well the attribution method performs on quantitative criteria: `proxy' metrics for explainability like weakly supervised object localisation (Section X).
@@ -285,7 +285,7 @@ Research on evaluation criteria below (Section \ref{sec:existing_criteria}) has 
 \subsubsection{Towards Better Understanding of Gradient-based Attribution Methods \cite{ancona}}
 Similar to SHAP in motivation, an independent attempt at providing a unified framework for the gradient-based class of attribution methods was provided by Ancona et al. (2017) \cite{ancona}. In their work they prove conditions of equivalence between Layerwise Relevance Propagation and Gradient * Input, and DeepLIFT and Integrated Gradients (Section \ref{sec:modelspec}). Another major contribution was to propose a generalisation for the ideal `additivity' property that SHAP's authors noted defined a class of methods (Section \ref{sec:othermodelag})\footnote{The authors actually reference the properties of \textit{Completeness} (proposed by the authors of Integrated Gradients \cite{integrated}) and \textit{Summation to Delta} (proposed by the authors of DeepLIFT \cite{deeplift}), two variants of a similar idea to additivity.}. This criteria was termed \textit{Sensitivity-n}: ``[...] when the sum of the attributions for any subset of features of cardinality \textit{n} is equal to the variation of the output $S_{C}$ caused by removing the features in the subset''.
 
-Some of their key insights were that existing methods like DeepLIFT and Integrated Gradients show very high correlation, that the former therefore acts as an approximation of the latter in practice, and that on complex model architectures like InceptionV3, all gradient-based methods produce noisy saliency maps and less appealing explanations.
+Some of their key insights were that existing methods like DeepLIFT and Integrated Gradients show very high correlation, that the former therefore acts as an approximation of the latter in practice, and that on complex model architectures like InceptionV3, all gradient-based methods produce noisier saliency maps and less appealing explanations.
 
 \subsubsection{Sanity Checks for Saliency Maps \cite{sanity}}
 
@@ -294,31 +294,28 @@ Some of their key insights were that existing methods like DeepLIFT and Integrat
 % https://arxiv.org/pdf/1705.05598.pdf
 
 
-This paper by Adebayo et al. (2018), along with Lundberg \& Lee (2017) (SHAP's authors) and Ancona et al. (2017) above, have  been the three main independent, theoretical contributions towards understanding and unifying the model-specific set of feature attribution methods described in earlier sections of this chapter. Their motivation was similar to others: find an actionable methodology to help a practitioner / researcher decide between competing attribution methods.
+This paper by Adebayo et al. (2018), along with Lundberg \& Lee (2017) (SHAP's authors) and Ancona et al. (2017) above, have been the three main independent contributions towards understanding and unifying the model-specific set of feature attribution methods described in earlier sections of this chapter. This motivation was similar though more practical than theoretical: find an actionable methodology to help a practitioner / researcher decide between competing attribution methods.
 
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.55]{adebayo_panel.png}
-\caption{(From \cite{sanity}) The panel of methods examined by Adebayo et al. (2018), all previously discussed in Section \ref{sec:modelspec}. Their use of this figure was to highlight that an edge detectors alone can produce a mask similar to the output of some methods.}
+\caption{(From \cite{sanity}) The panel of methods examined by Adebayo et al. (2018), all previously discussed in Section \ref{sec:modelspec}. They highlight that an edge detector alone can produce a mask similar to the output of some methods.}
 \label{adebayoimg}
 \end{figure}
 
 
-The methodology proposed was a set of two statistical randomisation tests (`sanity checks'), implementing the intuition that saliency maps should show robustness to variation:
+The methodology proposed was a set of two statistical randomisation tests (`sanity checks') to check for :
 
 \begin{enumerate}
-\item \textbf{Model Parameter Randomisation Test:} A misleading attribution method could be insensitive to model parameters, so a test on an untrained version of the same model with random weights should not produce a similar saliency map.
+\item \textbf{Model Parameter Randomisation Test:} A misleading attribution method could be insensitive to model parameters, so an untrained version of the same model with random weights should not produce a similar saliency map.
 \item \textbf{Data Randomisation Test:} A misleading method could be dependent on training labels: a test with randomly permuted labels should therefore show significantly different saliency maps.
 \end{enumerate}
 
-For comparisons between a normal attribution output and a modified one according to one of those two experiment conditions, the authors use similarity metrics including Spearman rank correlation and a structural similarity (SSIM) index. Note these metrics do not evaluate one method's similarity with another: only the similarity with its modified version. Some insights are prepared on these metrics, like that Integrated Gradients and Gradient * Input show unexpected insensitivity (perform badly on the sanity checks). 
+For comparisons between a normal attribution output and a modified one according to one of those two experiment conditions, the authors use similarity metrics including Spearman rank correlation and a structural similarity (SSIM) index. Note these metrics do not evaluate one method's similarity with another: only the similarity with its modified version. Some insights are prepared from these metrics, like that Guided Backpropagation and Gradient * Input show unexpected insensitivity (perform badly on the sanity checks). 
 
-One problematic conclusion they emphasise though is based alone on visual inspection of an input image multiplied with an edge detector's output: many saliency methods appear similar to the edge detector output (Figure \ref{adebayoimg}). Although the work valuably points out that observers can have confirmation bias when seeing highlighted edges in a saliency method, this qualitative conclusion is somewhat of a non-sequitur from the results of their otherwise unrelated similarity metric results. A more grounded conclusion would look at regions of connected spaces, pixel-wise similarity or 
+% based alone on visual inspection of an input image multiplied with an edge detector's output. The conclusion was 
 
-
- summarised insights from collating results on a panel of methods (Figure \ref{adebayoimg}) were the following:
-
-
+One problematic point they emphasise though is that non-performing saliency methods may only be visually salient because they act like an edge detector (Figure \ref{adebayoimg}). Although the work valuably points out that observers might have confirmation bias when viewing highlighted edges in a saliency map, this qualitative conclusion ignores the role of connected regions and pixel-wise attribution intensities, which some methods may have as a strength over others. These latter two criteria are arguably as important or more important for visual quality than edges alone, and the authors' similarity metric results also do not relate to the standalone observation about edges.
 
 %Evaluating neural network explanation methods using hybrid documents
 % https://arxiv.org/pdf/1801.06422.pdf
@@ -338,18 +335,34 @@ One problematic conclusion they emphasise though is based alone on visual inspec
 
 \subsubsection{Saliency Metrics (Quantitative Approach)}
 
-`Weakly supervised object localisation' is the interpretability field's term for the evaluation of saliency maps via bounding box annotations and natural image classification. It was pioneered by Saliency Maps
+Some method authors however have made an effort to account for regions in method evaluation. In particular, `weakly supervised object localisation' (WSOL) has been the technique used for evaluating saliency maps via bounding boxes derived from a segmentation algorithm (in natural image classification settings). It was first applied by Simonyan et al. (2014) while introducing the original saliency maps method (Section \ref{sec:gradient}) \cite{saliencyII} . Those authors used a colour segmentation algorithm on thresholded saliency maps, found bounding boxes on the segmented regions, and then submitted their annotations to an ILSVRC-2103 localisation challenge where they out-performed many fully supervised algorithms. 
 
-Other works that have evaluated saliency maps via bounding box localisation include [1] (Work X), [2]. [1] heavily focused on the development of a more formalised saliency metric in the spirit of weakly supervised localisation, and provided two baselines along with their novel metric:
+The paper that introduced CAM saliency maps (Section \ref{sec:gradient}, \cite{cam}) used a similar technique and has been considered the seminal work for use of WSOL \cite{choe}. They chose a 20\% quantile threshold for CAM values before finding the largest connected component in each map. Unlike Simonyan et al. who only evaluated via the competition, CAM's authors independently evaluate their derived bounding boxes using an intersection-over-union metric (thresholded at 0.5 to exclude instances where the method was significantly off). Their results on an ILSVRC validation set outperformed the benchmarks of localisation-trained models.
 
-Table 1.X provides a summary of other quantitative, `functionally-grounded' metrics that have been proposed in the literature:
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.4]{iou_litreview.png}
+\caption{(Adapted from \cite{cam}) CAM's predicted bounding box in green and the ground truth annotation in red  (left in each sub-pane), and the original CAM (right in each sub-pane). Their IOU metric is calculated over the annotations.}
+\label{adebayoimg}
+\end{figure}
+
+Notably this IOU metric does not account for the weight of the attribution in any one pixel, which is relevant to most methods. The methodology also unfairly penalises more perforated-looking saliency maps due to relying on segmentation algorithms to find connected components and therefore ignoring pixel-level detail. On the one hand, connected components are more observer-friendly explanations of single objects (with an implicit assumption that the underlying model also cares about connected regions), though on the other hand some methods may be noisier and so may be punished harshly for having small, disconnected sub-regions yet still maintaining saliency in the `bigger picture'.
+
+Dabkowski \& Gal (2017) compensate for the latter problem by proposing an augmented localisation metric that takes a bounding box of the \textit{entire} salient region, rather than just a thresholded and single-component subset of the saliency map \cite{dabowski}. A strong aspect of their work was to provide a ``Max box'' baseline in reporting localisation error: they report the ground truth box's overlap with the whole image. Where the localisation error is similar, this allows them to suggest the interpretability of their generated localisation boxes is similar to the ground truth boxes themselves.
+
+Independently of the explainability literature, pixel-wise mask-based metrics have been developed for generic WSOL applications by Choe et al. (2020)  \cite{choe}, though it seems these have not been applied in the context of evaluating explainability techniques.
 
 \subsubsection{Higher Level Criteria (Qualitative Approach)}
 
+Some authors sidestep the functionally-grounded approach to method evaluation and evaluate on higher level criteria. These proposed desiderata are summarised in Table 1.X, from lower to higher levels of abstraction:
+
 consistency between models
+input invariance
+transferability
+trust
+fair and ethical decision making
 
-
-Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for model flexibility as being a strong motivation for explanation technique usability \cite{case_for_model_ag}. When comparing a tree-based model with a deep learning model, for example, neither a practitioner nor a researcher can get a fair idea of interpretability if two explanations are different in representation on account of different attribution methods. The observation by Ancona et al. (2017) that more complex architectures are not explained as well by current model-specific techniques also supports this argument (Section \ref{sec:existing_studies}) \cite{ancona}.
+Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for model flexibility as a strong motivation for explanation technique usability \cite{case_for_model_ag}. When comparing a tree-based model with a deep learning model, for example, neither a practitioner nor a researcher can get a fair idea of interpretability if two explanations are different in representation on account of different attribution methods. The observation by Ancona et al. (2017) that more complex architectures are not explained as well by current model-specific techniques also supports this argument (Section \ref{sec:existing_studies}) \cite{ancona}.
 
 % gradcam paper "What makes a good visual explanation?"
 
@@ -388,9 +401,12 @@ Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for m
 
 \subsection{Existing Explanation Frameworks}
 
-Ancona et al. (2017) (\ref{sec:existing_studies}) developed a software package called \textit{DeepExplainer} to support their unified framework \cite{deepexplainerrepo}, which implements a suite of the methods they show relationships between: Saliency Maps, Gradient * Input, Integrated Gradients, DeepLIFT and Occlusion (all described in Section \ref{sec:modelspec}). 
+Ancona et al. (2017) developed a software package called \textit{DeepExplainer} to support their unified framework \cite{deepexplainerrepo}. It implements a suite of the methods they showed relationships between: Saliency Maps, Gradient * Input, Integrated Gradients, DeepLIFT and Occlusion (Section \ref{sec:modelspec}). It provides abstraction over these methods with some parameter specification allowed: .
 
-It provides an abstraction over these methods with support for target parameters like 
+Aimed at practitioners for auditing their models for bias, \textit{FairML} was developed by Adebayo (2017) \cite{fairml}. This package
+
+There are no explanation frameworks for collecting both model-agnostic and model-specific techniques for saliency maps. Additionally, no automated method evaluation frameworks for WSOL-based evaluation are known to be available.
+
 %TreeExplainer repo??
 
 %TensorFlow implementation for SmoothGrad, Grad-CAM, Guided backprop, Integrated Gradients and other saliency techniques  https://github.com/PAIR-code/saliency

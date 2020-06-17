@@ -41,11 +41,11 @@ def attribute_panel_wrapper(model_name: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    evaluator = Evaluator(metric=INTERSECT, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(1, 301)))
-
     evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(220, 301)))
+    evaluator.collect_panel_result_batch(list(range(1, 1001)))
+
+    #evaluator = Evaluator(metric=INTENSITY, model_name=model)
+    #evaluator.collect_panel_result_batch(list(range(220, 301)))
 
 
 def evaluator_wrapper(method: str, model: str):
