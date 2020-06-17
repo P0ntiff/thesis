@@ -304,21 +304,17 @@ This paper by Adebayo et al. (2018), along with Lundberg \& Lee (2017) (SHAP's a
 \end{figure}
 
 
-The proposed methodology was just two separate randomisation tests, following an intuition that saliency maps (explanations) should show robustness to variation:
+The methodology proposed was a set of two statistical randomisation tests (`sanity checks'), implementing the intuition that saliency maps should show robustness to variation:
 
 \begin{enumerate}
-\item \textbf{Model Parameter Randomisation Test:} A misleading saliency method would be insensitive to model parameters, and so would produce a similar saliency map for a trained model to that of an untrained version of the same model with random weights.
-\item \textbf{Data Randomisation Test:} A misleading saliency method could be dependent on training labels: randomly permuted labels should therefore show significantly different saliency map outputs.
+\item \textbf{Model Parameter Randomisation Test:} A misleading attribution method could be insensitive to model parameters, so a test on an untrained version of the same model with random weights should not produce a similar saliency map.
+\item \textbf{Data Randomisation Test:} A misleading method could be dependent on training labels: a test with randomly permuted labels should therefore show significantly different saliency maps.
 \end{enumerate}
 
-For comparisons between a normal attribution output and a modified one according to one of those two experiment conditions, the authors use similarity metrics including Spearman rank correlation, structural similarity index and histograms of gradients (HOGs). NB: these metrics do not evaluate one method's similarity to another: only the similarity with its modified version.
+For comparisons between a normal attribution output and a modified one according to one of those two experiment conditions, the authors use similarity metrics including Spearman rank correlation and a structural similarity (SSIM) index. Note these metrics do not evaluate one method's similarity with another: only the similarity with its modified version. Some insights are prepared on these metrics, like that Integrated Gradients and Gradient * Input show unexpected insensitivity (perform badly on the sanity checks). 
 
-Many quantitative insights are prepared on these metrics, but a problematic conclusion they make is to diminish the operation of many saliency methods to that of an edge detector, based on visual inspection alone (Figure \ref{adebayoimg}):
+One problematic conclusion they emphasise though is based alone on visual inspection of an input image multiplied with an edge detector's output: many saliency methods appear similar to the edge detector output (Figure \ref{adebayoimg}). Although the work valuably points out that observers can have confirmation bias when seeing highlighted edges in a saliency method, this qualitative conclusion is somewhat of a non-sequitur from the results of their otherwise unrelated similarity metric results. A more grounded conclusion would look at regions of connected spaces, pixel-wise similarity or 
 
-"we show a qualitative comparison of saliency maps of an input image with the same input image multiplied element-wise by the output of an edge
-detector. The result indeed looks strikingly similar, illustrating that saliency methods mostly use the edges of the image."
-
-The work valuably points out that observers can have confirmation bias when seeing highlighted edges in a saliency method to represent explanation quality, but this qualitative conclusion is somewhat of a non-sequitur from the results of their otherwise unrelated similarity metric results. A more grounded conclusion would look at regions of connected spaces, pixel-wise similarity or 
 
  summarised insights from collating results on a panel of methods (Figure \ref{adebayoimg}) were the following:
 
