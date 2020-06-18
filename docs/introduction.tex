@@ -11,7 +11,7 @@
 
 The requirement for explainability is not in order to replace human experts, but to understand contradictions between expert and algorithm. For example, a radiologist might disagree with a diagnosis made by a model trained to predict pneumonia from chest X-rays, and attributing the error to a factor that one or the other relied upon would be helpful. Was the model relying on some unrelated part of the scan (a spurious feature) or was the radiologist failing to pick up on a subtle pneumonia differential? The former was observed in practice after applying an explanation technique to a convolutional neural network (CNN) trained on such data \cite{xray}. 
 
-Extending this view, explanations for model predictions can be equally important as low rates of incorrect predictions. The counter-argument to the notion that a highly accurate model need not be interpretable to be effective, is that the premise of effectiveness requires a level of \textit{trust} that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between ``performance'' in the sense of test set accuracy and performance in the sense of accountability and reliability is not ideal.
+In the many domains that require trust, explanations for model predictions are as important as low rates of incorrect predictions. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective: the premise of effectiveness requires a level of \textit{trust} that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between ``performance'' in the sense of test set accuracy and performance in the sense of accountability ( lack of bias or spurious features) and reliability (sensical behaviour) is not ideal.
 
 Interpretability in a Facebook algorithm recommending product categories, for example, might not be seen as important as interpretability in a cancer diagnosis model, though the possibility of unethical model behaviour from reliance on biased data is as tangible in both domains. One study of 200 sentiment analysis classifiers found several to have significant race and gender bias \cite{bias}. The consequences of errors can certainly be higher in some domains however - a poor Netflix recommendation is not as disastrous as a naive algorithm used in government decision-making, such as the ``robo-debt'' scheme recently employed by the Australian Government \cite{nous}.
 
@@ -27,13 +27,13 @@ Importantly there are both global feature attribution methods, which calculate e
 
 \subsection*{Accuracy vs Interpretability}
 
-As deep learning and other state-of-the-art model families proliferate in their typical number of parameters, global behaviour has become even less explainable. Researchers maintain some intuitions about the impact of architectural design decisions, though not on predictive behaviour. For example, filters within a CNN model have been shown to act as `object detectors' of patterns, shapes and other connected regions \cite{objectdetect}, though these per-layer intuitions don't explain how a network of dozens of layers will determine a husky from a wolf (a recent approach in the literature, however, has looked at abstracting model behaviour into `concept' vector encodings to capture model information across  filters and layers (Net2Vec \cite{net2vec}, TCAV \cite{tcav})).
+As deep learning and other state-of-the-art model families proliferate in their typical number of parameters, global behaviour has become even less explainable. Researchers maintain some intuitions about the impact of architectural design decisions, though not on predictive behaviour. For example, filters within a CNN model have been shown to act as `object detectors' of patterns, shapes and other connected regions \cite{objectdetect}, though these per-layer intuitions don't explain how a network of dozens of layers will determine a husky from a wolf (a recent approach in the literature, however, has looked at abstracting model behaviour into `concept' vector encodings to capture model behaviour across  filters and layers (Net2Vec \cite{net2vec}, TCAV \cite{tcav})).
 
 Feature attribution methods can therefore re-introduce transparency into complex, non-linear models and highlight predictive biases in the context of individual predictions. They also can reveal unexpected features involved in a prediction, such as the spurious features mentioned in the previous X-ray data example, or bugs that could lead to exploitation of adversarial examples \cite{adversary}. Note these methods do not seek to add causal interpretability to the models they are applied to, only to isolate and highlight a piece of complexity in a way that might make sense to an expert reviewing the explanation. This does not make them shallow - the benefit of the `post-training' approach is that model designers have more flexibility in their choice of models, and fewer restrictive assumptions about model complexity are made\footnote{The counter-argument made by those who argue for the inherently interpretable model approach is that there is no guarantee these explanations are faithful to the model, and that they extend the authority of the black box instead of making it a ``glass box'' \cite{rudin}. This is revisited in the \textbf{Discussion}.}. More model-agnostic methods, with the least restrictive requirements, are not well understood in context with model-specific ones in terms of this accuracy and interpretability trade-off.
 
 \subsection*{Existing Literature}
 
-Some comparisons of feature attribution methods do exist, though typically either in a qualitative context, as a pairwise comparison, \textbf{cite} or within a single class of methods. They are not normally compared on speed/performance, \textit{adoptability} in terms of task or model compatibility, nor explanation \textit{quality} (a difficult criteria to design). One can reason this is because the literature for some model families (i.e. deep learning) is relatively new, but it is also because of differences in method formulation and their own hyper-parameters that make it difficult to compare different approaches fairly. 
+Some comparisons of feature attribution methods do exist, though typically either in a qualitative context, as a pairwise comparison, \textbf{cite} or within a single class of methods. They are not normally compared on speed/performance or adoptability in terms of task/model compatibility. They are however haphazardly compared on explanation quality, which is a difficult criteria to design. Lack of evaluation is partly due to differences in method formulation and therefore representation, but also this difficulty in finding objective proxy metrics for explanation quality.  
 
 % Finding desirable criteria for explanation techniques to have, as well as tool development for generating explanations, are two active research areas.
 
@@ -56,7 +56,7 @@ Some comparisons of feature attribution methods do exist, though typically eithe
 \section{Project Overview}
 This project has sought to evaluate a panel of feature attribution methods representative of different approaches to the interpretability problem. The aim was to highlight their relative strengths and weaknesses and thereby increase the understanding of the benefits of one method's approach over another.
 
-Two key contributions made over the course of the project have been a quantitative evaluation framework for explanation quality in the image classification context, and the development of a software package to collect image data explanations for multiple underlying methods at scale.
+Two other  key contributions made over the course of the project have been a quantitative evaluation framework for explanation quality in the image classification context, and the development of a software package to collect image data explanations for multiple underlying methods at scale.
 
 \subsection*{Goals}
 In summary, the project has aimed to:
@@ -70,20 +70,20 @@ In summary, the project has aimed to:
 
 \newpage
 
-\subsection*{Project Scope}
+\subsection*{Project Scope} \label{sec:intro_scope}
 
 Section \ref{sec:background} introduced a broad motivation for interpretability, though this project has focused specifically on image classification for two main reasons.
 
-Firstly, many interpretability techniques from the pre-deep learning era were studied in this domain, and many deep learning specific methods continue to be developed and tested in this domain on modern CNN architectures. The natural `visual' aspect of  image data explanations has also made computer vision a popular venue for interpretability research, with important applications such as medical imaging.
+Firstly, many interpretability techniques from before the deep learning era have been studied in this domain, and many deep learning specific methods continue to be developed and tested in this domain on modern CNN architectures. The natural `visual' aspect of  image data explanations has also made computer vision a dominant venue for interpretability research, with important applications such as medical imaging.
  
-Secondly, well-annotated datasets and pre-trained `off the shelf' models are more easily acquired in this domain. This availability allowed for both richer evaluation metrics and the removal of model training as a project requirement.
+Secondly, well-annotated datasets and pre-trained, `off the shelf' models are more easily acquired in this domain. This availability allowed for richer evaluation metrics and the removal of model training as a project requirement.
 
 A more detailed scope is provided at the beginning of the Methodology section, including a description of the specific datasets, models, and feature attribution methods used.
 
 
 \subsection*{Report Overview}
 
-Chapter 2 deals with a literature review of feature attributions methods, and existing evaluation metrics for comparing them. Chapter 3 breaks down the project's methodology in terms of particular milestones, software design and the evaluation metrics that were designed. Chapter 4 lists project results from both quantitative and qualitative standpoints. Chapter 5 provides a discussion on the project's contribution and the limitations encountered, and finally Chapter 6 provides conclusions and recommendations for future work. 
+Chapter 2 examines the available feature attribution methods and existing approaches to method evaluation. Chapter 3 breaks down the project's methodology in terms of particular milestones, including the software and evaluation metrics that were designed. Chapter 4 lists evaluation results from quantitative and qualitative standpoints. Chapter 5 provides a discussion on the project's contribution and the limitations encountered, and finally Chapter 6 provides conclusions and recommendations for future work. 
 
 
 

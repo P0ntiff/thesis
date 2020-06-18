@@ -7,8 +7,66 @@
 
 \chapter{Methodology}
 
-Procedure, design, etc. This may be one chapter or several.  Again, titles should be more
-informative than the above.
+\section{Overview}
+
+A panel of four local attribution methods were chosen for evaluation in this project, picked for representativeness of approach and their relative prominence in the literature. The panel was also a balanced selection from both `classes' of method approach: model-specific (Section \ref{sec:modelspec}) and model-agnostic (Section \ref{sec:modelag}):
+
+\begin{enumerate}
+
+\item \textbf{DeepLIFT:} Model-specific class, backpropagation-based approach
+\item \textbf{GradCAM:} Model-specific class, gradient-based approach
+\item \textbf{LIME:} Model-agnostic class, perturbation-based approach
+\item \textbf{SHAP:} Model-agnostic class (NB has to be implemented for each model family so is only partially model-agnostic), generic approach.
+
+\end{enumerate}
+
+Other methods could have been included in this panel, though as related work has shown in Section \ref{sec:existing_studies} (particularly by Ancona et al. (2017)) similarities in formulation should allow conclusions on one method to generalise well for close relatives (e.g. Integrated Gradients and DeepLIFT). Project constraints also meant that a decision on the panel breadth had to be made according to at least some criteria, and representativeness helps for comparing approaches (the main project goal).
+
+This chapter is presented in sequential order of project milestones, from initial data collection through to fine-tuning of the evaluation metrics designed. The evaluation methodology itself can be summarised in terms of the dataset used, `off the shelf' underlying models relied upon and the evaluation metric approach:
+\newpage
+
+\begin{enumerate}
+\item \textbf{Dataset:} ImageNet validation set, with ground truth bounding box annotations usually used for object localisation training. 
+\item \textbf{Models:} VGG16 as the primary model, InceptionV3 and ResNet50 for supportive analysis.
+\item \textbf{Metrics:} Pixel-wise and mask-based WSOL, extending related work in Section \ref{sec:existing_criteria}.
+\end{enumerate}
+
+These design decisions are explored in more detail in sections \ref{sec:data}, \ref{sec:model} and \ref{sec:metric} below respectively. Finally, to support the metric analysis, qualitative analysis was also performed, though this part of the project's contribution is left to the Results and Discussion chapters.
+
+
+\section{Data Collection \& Annotation} \label{sec:data}
+
+
+
+
+
+\newpage
+\section{Model Choice} \label{sec:model}
+
+\newpage
+\section{Method Implementation I}
+
+\newpage
+\section{Software Abstraction I}
+
+\newpage
+\section{Method Implementation II}
+
+\newpage
+\section{Evaluation Metric Design} \label{sec:metric}
+
+
+\newpage
+\section{Software Abstraction II}
+
+
+\newpage
+\section{Result Collection}
+
+
+\newpage
+\section{Support for Other Models}
+
 
 
 \end{document}

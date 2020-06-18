@@ -197,7 +197,7 @@ For completeness, some NN methods which do not attribute the contribution of inp
 
 
 
-\section{Model-Agnostic Methods}
+\section{Model-Agnostic Methods} \label{sec:modelag}
 
 In parallel to the literature aimed at explaining neural network model behaviour, a standalone approach in the interpretability literature is to find model-agnostic explanations. Similar to the motivation for perturbation-based methods (and with overlap), these are `black-box' methods that make no restrictive assumptions about model architecture or classification task at all, and therefore can theoretically be applied to any model or task. Stark differences in approach and computational complexity still exist however. The most prominent methods in this sub-field are listed below.
 
@@ -283,7 +283,7 @@ Doshi-Velez \& Kim (2017) provided an influential set of guidelines or ``evaluat
 Research on evaluation criteria below (Section \ref{sec:existing_criteria}) has focused on functionally-grounded criteria, since these are more common in the literature and since higher-level paradigms are difficult to compare objectively.
 
 \subsubsection{Towards Better Understanding of Gradient-based Attribution Methods \cite{ancona}}
-Similar to SHAP in motivation, an independent attempt at providing a unified framework for the gradient-based class of attribution methods was provided by Ancona et al. (2017) \cite{ancona}. In their work they prove conditions of equivalence between Layerwise Relevance Propagation and Gradient * Input, and DeepLIFT and Integrated Gradients (Section \ref{sec:modelspec}). Another major contribution was to propose a generalisation for the ideal `additivity' property that SHAP's authors noted defined a class of methods (Section \ref{sec:othermodelag})\footnote{The authors actually reference the properties of \textit{Completeness} (proposed by the authors of Integrated Gradients \cite{integrated}) and \textit{Summation to Delta} (proposed by the authors of DeepLIFT \cite{deeplift}), two variants of a similar idea to additivity.}. This criteria was termed \textit{Sensitivity-n}: ``[...] when the sum of the attributions for any subset of features of cardinality \textit{n} is equal to the variation of the output $S_{C}$ caused by removing the features in the subset''.
+Similar to SHAP in motivation, an independent attempt at providing a unified framework for the gradient-based class\footnote{The authors do not distinguish between backpropagation and gradient-based methods.} of attribution methods was provided by Ancona et al. (2017) \cite{ancona}. In their work they prove conditions of equivalence between Layerwise Relevance Propagation and Gradient * Input, and DeepLIFT and Integrated Gradients (Section \ref{sec:modelspec}). Another major contribution was to propose a generalisation for the ideal `additivity' property that SHAP's authors noted defined a class of methods (Section \ref{sec:othermodelag})\footnote{The authors actually reference the properties of \textit{Completeness} (proposed by the authors of Integrated Gradients \cite{integrated}) and \textit{Summation to Delta} (proposed by the authors of DeepLIFT \cite{deeplift}), two variants of a similar idea to additivity.}. This criteria was termed \textit{Sensitivity-n}: ``[...] when the sum of the attributions for any subset of features of cardinality \textit{n} is equal to the variation of the output $S_{C}$ caused by removing the features in the subset'' \cite{ancona}.
 
 Some of their key insights were that existing methods like DeepLIFT and Integrated Gradients show very high correlation, that the former therefore acts as an approximation of the latter in practice, and that on complex model architectures like InceptionV3, all gradient-based methods produce noisier saliency maps and less appealing explanations.
 
@@ -304,7 +304,7 @@ This paper by Adebayo et al. (2018), along with Lundberg \& Lee (2017) (SHAP's a
 \end{figure}
 
 
-The methodology proposed was a set of two statistical randomisation tests (`sanity checks') to check for :
+The methodology proposed was a set of two statistical randomisation tests (`sanity checks'):
 
 \begin{enumerate}
 \item \textbf{Model Parameter Randomisation Test:} A misleading attribution method could be insensitive to model parameters, so an untrained version of the same model with random weights should not produce a similar saliency map.
