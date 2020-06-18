@@ -25,9 +25,9 @@ For model-agnostic methods, perturbation-based and other miscellaneous approache
 First reviewed are traditional, visual approaches to interpretability to provide context to the task of feature attribution. After the exploration of feature attribution methods, a review of existing evaluation metrics and comparison studies is provided.
 
 \subsection*{Terminology}
-All methods are variously referred to as \textit{attribution} methods in this project for any projection on the input space that highlights relevant features. Adebayo et al. (2018) instead refer to the broad category of ``[...] visualisation and attribution methods aimed at interpreting trained models'' as \textit{saliency} methods, particularly in the context of image data \cite{sanity}. Including by those authors, a \textit{saliency map} is widely used as a catch-all term to refer to input space projections (individual explanations) in the context of interpreting deep neural networks for image data. Confusingly however they also refer to a specific gradient-based method (Section \ref{sec:gradient}). 
+All methods are variously referred to as \textit{attribution} methods in this project for any projection on the input space that highlights relevant features. Adebayo et al. (2018) instead refer to the broad category of ``[...] visualisation and attribution methods aimed at interpreting trained models'' as \textit{saliency} methods, particularly in the context of image data \cite{sanity}. Including by those authors, a \textit{saliency map} is widely used as a catch-all term to refer to input space projections (individual explanations) in the context of interpreting deep neural networks for image data. However they also refer to a specific gradient-based method (Section \ref{sec:gradient}). 
 
-There seems to be little consensus around terminology. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature (i.e. excluding higher level `patterns' which cause neuron activations, as in Zeiler \& Fergus (2013) (\cite{zeilerfergus2013}), (Section \textbf{X}) or the back-propagation class generally). 
+Consensus on terminology is relatively lacking. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature (i.e. excluding higher level `patterns' which cause neuron activations, as in Zeiler \& Fergus (2013) (\cite{zeilerfergus2013}), (Section \textbf{X}) or the back-propagation class generally). 
 
 In summary, attribution methods is used here as a general term, but can refer specifically to contribution `calculators', but saliency methods and saliency maps are also widely used in a general sense for image data.
 
@@ -140,7 +140,7 @@ Grad-CAM was proposed by Selvaraju et al. (2016) aimed at making CAMs applicable
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.6]{gradcam_I.png}
-\caption{(Adapted from \cite{gradcam}) \textit{Grad-CAM}, \textit{Guided Backprop}. and \textit{Guided Grad-CAM} on an image captioning example from the Neuraltalk2 model.}
+\caption{(Adapted from \cite{gradcam}) \textit{Guided Backpropagation}, \textit{Grad-CAM} and \textit{Guided Grad-CAM} on an image captioning example from the Neuraltalk2 model.}
 \label{gradimg}
 \end{figure}
 
@@ -202,7 +202,7 @@ For completeness, some NN methods which do not attribute the contribution of inp
 In parallel to the literature aimed at explaining neural network model behaviour, a standalone approach in the interpretability literature is to find model-agnostic explanations. Similar to the motivation for perturbation-based methods (and with overlap), these are `black-box' methods that make no restrictive assumptions about model architecture or classification task at all, and therefore can theoretically be applied to any model or task. Stark differences in approach and computational complexity still exist however. The most prominent methods in this sub-field are listed below.
 
 
-\subsection{Perturbation-Based}
+\subsection{Perturbation-Based} \label{sec:perturbag}
 Described in Section \ref{sec:otherms}, perturbing the input space (by toggling feature patches) is one way to isolate model behaviour. Changes in output score reveal importance in the occluded inputs. Several methods implement this intuition by training ``surrogate'', interpretable models around the isolated features that are locally relevant to a single prediction. These include Local Interpretable Model-Agnostic Explanations (LIME) \cite{lime}, Anchors \cite{anchors} and similar variants \cite{local}.
 
 \subsubsection{LIME}
@@ -348,7 +348,7 @@ The paper that introduced CAM saliency maps (Section \ref{sec:gradient}, \cite{c
 
 Notably this IOU metric does not account for the weight of the attribution in any one pixel, which is relevant to most methods. The methodology also unfairly penalises more perforated-looking saliency maps due to relying on segmentation algorithms to find connected components and therefore ignoring pixel-level detail. On the one hand, connected components are more observer-friendly explanations of single objects (with an implicit assumption that the underlying model also cares about connected regions), though on the other hand some methods may be noisier and so may be punished harshly for having small, disconnected sub-regions yet still maintaining saliency in the `bigger picture'.
 
-Dabkowski \& Gal (2017) compensate for the latter problem by proposing an augmented localisation metric that takes a bounding box of the \textit{entire} salient region, rather than just a thresholded and single-component subset of the saliency map \cite{dabowski}. A strong aspect of their work was to provide a ``Max box'' baseline in reporting localisation error: they report the ground truth box's overlap with the whole image. Where the localisation error is similar, this allows them to suggest the interpretability of their generated localisation boxes is similar to the ground truth boxes themselves.
+Dabkowski \& Gal (2017) compensate for the latter problem by proposing an augmented localisation metric that takes a bounding box of the \textit{entire} salient region, rather than just a thresholded and single-component subset of the saliency map \cite{dabowski}. A strong aspect of their work was to provide a ``Max box'' baseline in reporting localisation error: this reports the ground truth box's overlap with the whole image. Where the localisation error is similar, this allows them to suggest the interpretability of their generated localisation boxes is similar to the ground truth boxes themselves.
 
 Independently of the explainability literature, pixel-wise mask-based metrics have been developed for generic WSOL applications by Choe et al. (2020)  \cite{choe}, though it seems these have not been applied in the context of evaluating explainability techniques.
 
@@ -416,7 +416,7 @@ There are no explanation frameworks for collecting both model-agnostic and model
 
 %TorchRay https://github.com/facebookresearch/TorchRay
 
-
+% Innvestigate package, used for DeepLIFT (Section X)
 
 % https://openreview.net/forum?id=Sy21R9JAW
 % pytorch

@@ -41,8 +41,8 @@ def attribute_panel_wrapper(model_name: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(1, 1001)))
+    evaluator = Evaluator(metric=metric, model_name=model)
+    evaluator.collect_panel_result_batch(list(range(440, 601)))
 
     #evaluator = Evaluator(metric=INTENSITY, model_name=model)
     #evaluator.collect_panel_result_batch(list(range(220, 301)))
@@ -50,9 +50,9 @@ def evaluate_panel_wrapper(metric: str, model: str):
 
 def evaluator_wrapper(method: str, model: str):
     # hardcoded evaluation metric
-    metric = INTERSECT
+    metric = INTENSITY
     evaluator = Evaluator(metric=metric, model_name=model)
-    evaluator.collect_result_batch(method, range(2, 3))
+    evaluator.collect_result_batch(method, range(1, 600))
 
 
 def annotator_wrapper():

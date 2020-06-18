@@ -56,7 +56,6 @@ class Evaluator:
             ih, annotation_mask = self.get_image_handler_and_mask(img_no)
             for method in METHODS:
                 result = self.collect_result(ih, annotation_mask, method)
-                # TODO replace GOOD_EXAMPLES no's with actual img_nos later
                 if img_no <= len(self.results_df.index):
                     self.results_df.at[img_no, method] = result
                 else:
@@ -99,14 +98,14 @@ class Evaluator:
         elif self.metric == INTENSITY:
             return self.evaluate_intensity(ih, mask, method, sigma=INTENSITY_THRESHOLD)
 
-    def evaluate_intersection(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = True) -> float:
+    def evaluate_intersection(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = False) -> float:
         # calculate an attribution and use a provided bounding box mask to calculate the IOU metric
         # attribution has threshold applied, and abs value set (positive and negative evidence treated the same)
         attribution = self.att.attribute(ih=ih,
                                          method=method,
                                          layer_no=LAYER_TARGETS[method][self.model_name],
                                          take_threshold=True, sigma_multiple=sigma, take_absolute=True,
-                                         visualise=False, save=True)
+                                         visualise=False, save=False)
         # calculate the intersection of the attribution and the bounding box mask
         intersect_array = np.zeros(attribution.shape)
         intersect_array[(attribution > 0.0) * (mask > 0.0)] = 1
@@ -120,18 +119,18 @@ class Evaluator:
         union_area = union_array.sum()
         #mask_area = mask.sum()
         intersection_over_union = intersect_area / union_area
+        print('Evaluating `{}` on example `{}` ({})'.format(method, ih.img_no, 'intersection'))
         if print_debug:
-            print('Evaluating `{}` on example `{}` ({})'.format(method, ih.img_no, 'intersection'))
             #print('--Mask Area =\t {}'.format(mask_area))
             print('--Intersect Area =\t {}'.format(intersect_area))
             print('--Union Area =\t {}'.format(union_area))
             print('--Intersection / Union =\t{:.2f}%'.format(intersection_over_union * 100))
             print('')
 
-        show_intersect_union_subfigures(intersect_array, union_array, 'IOU', method, intersection_over_union)
+        #show_intersect_union_subfigures(intersect_array, union_array, 'IOU', method, intersection_over_union)
         return intersection_over_union
 
-    def evaluate_intensity(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = True) -> float:
+    def evaluate_intensity(self, ih: ImageHandler, mask, method: str, sigma: int, print_debug: bool = False) -> float:
         # # calculate an attribution and use a provided bounding box mask to calculate the IOU metric
         # # attribution has threshold applied, and abs value set (positive and negative evidence treated the same)
         attribution = self.att.attribute(ih=ih,
@@ -152,11 +151,11 @@ class Evaluator:
         intensity_area = intensity_array.sum()
         union_area = union_array.sum()
         intensity_over_union = intensity_area / union_area
+        print('Evaluating `{}` on example `{}` ({})'.format(method, ih.img_no, 'intensity'))
         if print_debug:
-            print('Evaluating `{}` on example `{}` ({})'.format(method, ih.img_no, 'intensity'))
             print('--Intersect Area =\t {}'.format(intensity_area))
             print('--Union Area =\t {}'.format(union_area))
             print('--Intensity / Union =\t{:.2f}%'.format(intensity_over_union * 100))
             print('')
-        show_intersect_union_subfigures(intensity_array, union_array, 'IOU*', method, intensity_over_union)
+        #show_intersect_union_subfigures(intensity_array, union_array, 'IOU*', method, intensity_over_union)
         return intensity_over_union

@@ -41,7 +41,7 @@ class Attributer:
         self.curr_model_name = model_name
         self.curr_model = self.load_model(model_name)
         #print(self.curr_model.summary())
-        #for i, layer in enumerate(self.curr_model.layers):
+        # for i, layer in enumerate(self.curr_model.layers):
         #    print(str(i) + ' ' + layer.name)
         # set up methods
         self.lime_method = None
@@ -72,6 +72,7 @@ class Attributer:
         elif method_name == LIME and self.lime_method is None:
             self.lime_method = Lime(self.curr_model, self.curr_model_name)
         elif method_name == SHAP and self.shap_method is None:
+            print(layer_no)
             self.shap_method = Shap(self.curr_model, self.curr_model_name, layer_no)
         elif method_name == GRAD and self.gradcam_method is None:
             self.gradcam_method = GradCam(self.curr_model, self.build_model, layer_no)
@@ -129,9 +130,10 @@ class Attributer:
                                                          visualise=visualise, save=save)
         return output_attributions
 
-    def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None):
+    def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None, print_debug: bool = False):
         """Top level wrapper for collecting attributions from each method. """
-        print('Collecting attribution for `{}`'.format(method))
+        if print_debug:
+            print('Collecting attribution for `{}`'.format(method))
         if method == LIFT:
             return self.deep_lift_method.attribute(ih)
         elif method == LIME:

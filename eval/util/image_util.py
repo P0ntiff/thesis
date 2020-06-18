@@ -134,7 +134,7 @@ def apply_threshold(attribution, sigma_multiple: int, take_absolute: bool):
         if thresh < -1 or thresh > 1:
             print('Invalid threshold calculated')
             return attribution
-        print('Applying threshold of {} to attribution'.format(thresh))
+        #print('Applying threshold of {} to attribution'.format(thresh))
         attribution[attribution < thresh] = 0
     return attribution
 
