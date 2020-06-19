@@ -50,9 +50,13 @@ def evaluate_panel_wrapper(metric: str, model: str):
 
 def evaluator_wrapper(method: str, model: str):
     # hardcoded evaluation metric
-    metric = INTENSITY
+    #metric = INTENSITY
+    #evaluator = Evaluator(metric=metric, model_name=model)
+    #evaluator.collect_result_batch(method, range(1, 1001))
+
+    metric = INTERSECT
     evaluator = Evaluator(metric=metric, model_name=model)
-    evaluator.collect_result_batch(method, range(1, 600))
+    evaluator.collect_result_batch(method, range(861, 1001))
 
 
 def annotator_wrapper():
