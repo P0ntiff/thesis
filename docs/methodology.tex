@@ -22,7 +22,7 @@ A panel of four local attribution methods were chosen for evaluation in this pro
 
 Other methods could have been included in this panel though as related work has shown in \ref{sec:existing_studies} (particularly by Ancona et al. (2017)), similarities in formulation should allow conclusions on one method to apply to close relatives. Project constraints also meant that a decision on the panel breadth had to be made according to at least some criteria, and representativeness helps for comparing approaches (the main project goal).
 
-This chapter is presented in sequential order of project milestones, from initial data collection through to fine-tuning of the evaluation metrics designed. The evaluation methodology itself can be summarised in terms of the dataset used, `off the shelf' underlying models relied upon and the evaluation metric approach:
+This chapter is presented in order of project milestones achieved, from initial data collection through to fine-tuning of the evaluation metrics designed. The evaluation methodology itself can be summarised in terms of the dataset used, `off the shelf' underlying models relied upon and the evaluation metric approach:
 \newpage
 
 \begin{enumerate}
@@ -31,7 +31,7 @@ This chapter is presented in sequential order of project milestones, from initia
 \item \textbf{Metrics:} Pixel-wise and mask-based WSOL, extending related work in Section \ref{sec:existing_criteria}.
 \end{enumerate}
 
-These design decisions are mentioned in more detail in Sections \ref{sec:data}, \ref{sec:model} and \ref{sec:metric} below respectively. Finally, to support the metric analysis, qualitative analysis was also performed, though this is left to the Results and Discussion chapters.
+These are described in more detail in Sections \ref{sec:data}, \ref{sec:model} and \ref{sec:metric} below respectively. Finally, to support the metric analysis, qualitative analysis was also performed, though this is left to the Results and Discussion chapters.
 
 
 \section{Data Collection \& Annotation} \label{sec:data}
@@ -40,7 +40,7 @@ The ImageNet Large Scale Visual Recognition Challenge (ILSVRC) uses a subset of 
 
 This dataset was chosen because of the convenience of the bounding boxes for method evaluation, and the availability of models pre-trained on ImageNet. Images and bounding box XML files for all 50,000 instances in the 2012 validation set were acquired from an academically hosted torrent.
 
-Each bounding box file contains one or several annotations (several if there are multiple instances of a single class, e.g Figure \ref{dataimg}), and each annotation contains the ImageNet class ID\footnote{These ImageNet `synsnet' IDs were converted to human-readable class labels using a script that connects to a standalone map of IDs to labels.} and \{\textit{x-min, x-max, y-min, y-max}\} fields for the box. 
+Each bounding box file contains one or several annotations (several if there are multiple instances of a single class, e.g. Figure \ref{dataimg}), and each annotation contains the ImageNet class ID\footnote{These ImageNet `synsnet' IDs were converted to human-readable class labels using a script that connects to a standalone map of IDs to labels.} and \{\textit{x-min, x-max, y-min, y-max}\} fields for the box. 
 
 A script to draw rectangular annotations on the images was created to sanity check the acquired data. Example outputs are shown in Figure \ref{dataimg}.
 
@@ -76,46 +76,99 @@ To check each model was working, a script was written to automate prediction col
 
 \section{Software Abstraction I}  \label{sec:sw1}
 
-Each model requires input resizing and preprocessing in some form. An \textit{ImageHandler} class was therefore designed to abstract from complexity related to different representations of a single image instance. All input/output file methods and getter methods for raw, expanded and preprocessed representations were stored in this class, which made enforcing model agnosticity and method adaption later  (Section \ref{sec:adaption}) much easier.
+Each model requires input resizing and preprocessing in some form. An \textit{ImageHandler} class was therefore designed to abstract from complexity related to different representations of a single image instance. All input/output file methods and getter methods for raw, expanded and preprocessed representations were stored in this class, which made enforcing model agnosticity and adapting methods (Section \ref{sec:adaption}) much easier.
 
 
 \newpage
 \section{Initial Method Investigation}  \label{sec:initial}
 
-Public GitHub implementations for each of the four methods were downloaded: GradCAM \cite{gradcamrepo}, SHAP \cite{shaprepo}, DeepLIFT \cite{deepliftrepo} and LIME \cite{limerepo}.
+Public GitHub implementations for each of the four methods were sourced: GradCAM \cite{gradcamrepo}, DeepLIFT \cite{deepliftwrapperrepo}, SHAP \cite{shaprepo} and LIME \cite{limerepo}.
 
-They were then run on the VGG16 model. These out-of-the-box attributions are shown in Figure X.
+They were then run on some high-confidence instances fed into the VGG16 model (correct predictions with p $>$ 0.75) and their `out of the box' saliency maps were then visually inspected. Examples are shown in Figure \ref{panelimg} over the page. Note  different method formulations result in different explanatory features being highlighted, even for the same example and model prediction. Some other initial observations on each method were made:
+
+\begin{itemize}
+\item \textbf{GradCAM:} The heatmap represents the localisation characterised in the target layer (final convolutional layer). The Guided GradCAM variant (Section \ref{sec:gradient}) was later used instead for a more discriminative version of the same saliency map.
+\item \textbf{DeepLIFT:} Attributions are relatively `noisy', emphasise edges, and are higher resolution due to being being captured in the original input shape.
+\item \textbf{SHAP:} Attributions are in the shape of the input to a target hidden layer, which accounts for its lower resolution. 
+\item \textbf{LIME:} The method represents connected component `super pixels' as the explanatory features, though in Figure \ref{panelimg} these appear patchy on the maze-like patterns on the coral, the texture of the hair on the monkey's face, and the wheat in the field.
+\end{itemize}
 
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.28]{method_box.png}
+\caption{Default attributions for methods applied to high-confidence VGG16 predictions (class label and softmax output at top). Original image is resized with annotation drawn for reference. }
+\label{panelimg}
+\end{figure}
 
-
-
-\newpage
 \section{Software Abstraction II}  \label{sec:sw2}
 
-Siloed and overlapping logic for each method's implementation was cut out from the separate scripts for each method, and the common functions were extracted out into an \textit{Attributer} class fitted over the methods. 
-
-Class Diagram
-
+Each method was wrapped in its own class with an \textit{attribute()} function to return the array that represented its explanation output. Repeated logic in each method's implementation was also extracted into an \textit{Attributer} class fitted over these methods. This was a helpful prerequisite to adapting the methods for comparison. The functions in this class visualise figures, save returned NumPy arrays to results files, apply a colour map to highlight positive / negative attribution weights and the intensity of those weights, and normalise attributions between -1 and 1. This class is included in Appendix A and referred to in the class diagram in Figure X.
 
 \newpage
 \section{Adapting Methods for Compatibility}  \label{sec:adaption}
 
-Some methods out-of-the-box were higher level implementations than others (SHAP and DeepLIFT). This made adaption more difficult, since they used their own representation form (e.g. heatmap) and internal methods that buried important functions like output normalisation.
+Some methods had higher level implementations than others (SHAP and DeepLIFT) in the code. For example, the output representation of SHAP was generated in internal methods that made it necessary to implement modified functions that overrode method internals. Others did not hide internal logic and were easier to adapt.
+
+Visual examples of the methods made compatible for evaluation is shown in Figure X over the page. Some brief comments are made here about work necessary for each method and the insights gained:
+
+\begin{itemize}
+\item \textbf{GradCAM:} Guided GradCAM required very little adaption, since the attributions were already in the shape of the input feature space. Support for specifying the final conv. layer (target for each model architecture) was added.
+\item \textbf{DeepLIFT:} Similar to GradCAM, the only changes made for DeepLIFT were to change the colour map function and extract logic into the \textit{Attributer} class.
+\item \textbf{SHAP:} These attributions had to be resized into the shape of the input feature space. Initially the smaller dimensions were dealt with by scaling them up and using an interpolation method from the OpenCV library. However, this led to biased results from the `blur' effect of the interpolation. To replace that workaround, the attribution was multiplied with a Guided Backpropagation output following the Guided GradCAM approach.
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.3]{shap_change.png}
+\caption{Blurred workaround for SHAP versus the improved approach.}
+\label{panelimg}
+\end{figure}
+
+
+\item \textbf{LIME:} To obtain per-pixel attributions from the super pixel regions, the linear model weights on each super pixel (output by an internal LIME method) were applied to a mask over the region bounded by each super pixel. This is a change in the interpretation of the authors' method, though it was necessary to obtain attribution weights.
+\end{itemize}
+
+Importantly, support for thresholding the attributions in terms of standard deviations was added at this point. An optional parameter was also implemented to have attributions returned with the absolute value taken, to take positive and negative evidence together as simply evidence.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.28]{method_box_adapted_1.png}
+\caption{Adapted attributions for methods applied to high-confidence VGG16 predictions (original image faintly imposed). Each is a 2D, input-space-sized Numpy array that is normalised between -1 and 1 for the pixel attribution weights / entries in the array. Positive evidence/weights are in red and negative evidence is in blue, and darker colours indicate larger weights / `stronger' evidence.}
+\label{panelimg}
+\end{figure}
+
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.2]{method_box_adapted_2.png}
+\caption{Adapted attributions with absolute value taken and a threshold of one standard deviation applied.}
+\label{panelimg}
+\end{figure}
+
 
 \newpage
+
+
 \section{Evaluation Metric Design} \label{sec:metric}
 
-The motivation to create a new variant of an intersection-over-union metric, rather than rely on existing bounding box based comparison metrics, was based on observations in Related Work that existing metrics do not account for pixel-level detail and punish perforated saliency maps based on their reliance on a single component to find the box.
+The motivation to create a new variant of an intersection-over-union metric, rather than rely on existing bounding box based comparison metrics, was based on observations in Related Work that existing metrics do not account for pixel-level weights, and punish perforated saliency maps because of their reliance on a single component to find the box.
+
+% formula ??
+
+Note the design of a proxy metric was only meant to provide some objective basis for evaluating methods in the image classification context. Other analysis (qualitative) was also performed for testing methods on higher level criteria than only saliency `quality'.
+
+A variant of the metric was also implemented to account for intensity of attribution (weights on each pixel). This was a crude measure that got mixed results, but 
+%Localisation performance was compared to a baseline?
 
 Performance wise, it is more taxing to account for pixel-wise attribution \textbf{cite?}.
 \newpage
 \section{Software Abstraction III}  \label{sec:sw2}
 
+This evaluator class can implement other saliency metrics. This is mentioned in Future Work
 
 \newpage
 \section{Result Collection}  \label{sec:result_collection}
-GTX-1080.
+GTX-1080. 
 
 \newpage
 \section{Support for Other Models}

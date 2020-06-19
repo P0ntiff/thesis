@@ -30,9 +30,9 @@ def attributer_wrapper(method: str, model: str):
 
 
 def attribute_panel_wrapper(model_name: str):
-    methods = [SHAP]
+    methods = [SHAP, GRAD]
     att = Attributer(model_name)
-    for i in [6, 11]:  # range(6, 7):
+    for i in [11]:  # range(6, 7):
         ih = ImageHandler(img_no=i, model_name=model_name)
         att.attribute_panel(ih=ih, methods=methods,
                             save=True, visualise=True,
@@ -41,11 +41,11 @@ def attribute_panel_wrapper(model_name: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    evaluator = Evaluator(metric=metric, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(440, 601)))
+    #evaluator = Evaluator(metric=INTERSECT, model_name=model)
+    #evaluator.collect_panel_result_batch(list(range(601, 1001)))
 
-    #evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    #evaluator.collect_panel_result_batch(list(range(220, 301)))
+    evaluator = Evaluator(metric=INTENSITY, model_name=model)
+    evaluator.collect_panel_result_batch(list(range(940, 1001)))
 
 
 def evaluator_wrapper(method: str, model: str):
@@ -76,7 +76,8 @@ def demo_attribute(img_nos: list = None, att: Attributer = None):
         model_name = VGG
         att = Attributer(model_name=model_name)
     if img_nos is None:
-        img_nos = [6, 97, 278]
+        img_nos = [11, 13, 15]
+        #img_nos = [6, 97, 278]
     for img_no in img_nos:
         # image handler for later (method attributions)
         ih = ImageHandler(img_no=img_no, model_name=VGG)
@@ -105,7 +106,7 @@ def demo_attribute(img_nos: list = None, att: Attributer = None):
 
         attributions = att.attribute_panel(ih=ih, methods=METHODS,
                                            save=False, visualise=False,
-                                           take_threshold=True, take_absolute=True,
+                                           take_threshold=False, take_absolute=False,
                                            sigma_multiple=1)
         # show attributions
         for i, a in enumerate(attributions.keys()):

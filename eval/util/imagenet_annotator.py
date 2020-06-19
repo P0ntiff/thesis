@@ -151,3 +151,4 @@ def get_masks_for_eval(img_no_array: list, target_size: tuple, visualise=False, 
     return output
 
 # draw_annotations([i for i in range(16, 300)])
+

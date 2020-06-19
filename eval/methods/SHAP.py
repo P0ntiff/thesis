@@ -43,6 +43,16 @@ class Shap:
         feed_dict = dict(zip([self.model.layers[0].input], [self.preprocess(img.copy())]))
         return K.get_session().run(self.model.layers[self.layer_no].input, feed_dict)
 
+    def guided_backprop(self, ih: ImageHandler):
+        """Guided Backpropagation method for visualizing input saliency."""
+        input_imgs = self.model.input
+        layer_output = self.model.layers[self.layer_no].output
+        grads = K.gradients(layer_output, input_imgs)[0]
+        backprop_fn = K.function([input_imgs, K.learning_phase()], [grads])
+        grads_val = backprop_fn([ih.get_processed_img(), 0])[0]
+
+        return grads_val
+
     def attribute(self, ih: ImageHandler):
         # get outputs for top prediction count "ranked_outputs"
         input_to_layer_n = self.map2layer(ih.get_expanded_img())
@@ -57,11 +67,16 @@ class Shap:
             shap_values = [shap_values]
 
         sh = shap_values[0]
-        # aggregate along third axis (the RGB axis) and normalise to (-1, 1)
+        # aggregate along third axis (the RGB axis), resize and normalise to (-1, 1)
         sv = sh[0].sum(-1)
+        # resize into input shape (~4x rescale for some models)
+        sv = cv2.resize(sv, ih.get_size(), cv2.INTER_LINEAR)
         sv /= np.max(np.abs(sv))
 
-        # resize into input shape (~4x rescale for some models)
-        output = cv2.resize(sv, ih.get_size(), cv2.INTER_CUBIC)
+        gb = self.guided_backprop(ih)
+        guided_shap = gb * sv[..., np.newaxis]
+        guided_shap = guided_shap.sum(axis=np.argmax(np.asarray(guided_shap.shape) == 3))
+        guided_shap /= np.max(np.abs(guided_shap))
 
-        return output
+
+        return guided_shap[0]
