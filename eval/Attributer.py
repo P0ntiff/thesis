@@ -99,6 +99,15 @@ class Attributer:
             print('')
         return max_pred, max_p
 
+    def get_good_examples(self, cap: int = 1001):
+        good_examples = []
+        for i in range(1, cap):
+            ih = ImageHandler(i, self.curr_model_name)
+            max_pred, p = self.predict_for_model(ih, top_n=1, print_to_stdout=False)
+            if p > 0.9:
+                good_examples.append(i)
+        return good_examples
+
     def attribute(self, ih: ImageHandler, method: str, layer_no: int = None,
                   take_absolute: bool = False, take_threshold: bool = False, sigma_multiple: int = 0,
                   visualise: bool = False, save: bool = True):

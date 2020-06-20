@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import matplotlib.pyplot as plt
 
@@ -20,17 +21,20 @@ def attributer_wrapper(method: str, model: str):
     # draw_annotations([i for i in range(16, 300)])
     # run some attributions
     att = Attributer(model)
-    for i in [11]:
+    start_time = time.time()
+
+    for i in range(1, 101):
         ih = ImageHandler(img_no=i, model_name=model)
         att.attribute(ih=ih,
                       method=method,
-                      save=True, visualise=True,
-                      take_threshold=True, take_absolute=True,
+                      save=False, visualise=False,
+                      take_threshold=False, take_absolute=False,
                       sigma_multiple=1)
+    print('{} total seconds for {}'.format(str(time.time() - start_time), method))
 
 
 def attribute_panel_wrapper(model_name: str):
-    methods = [SHAP, GRAD]
+    methods = [LIME, LIFT, GRAD]
     att = Attributer(model_name)
     for i in [11]:  # range(6, 7):
         ih = ImageHandler(img_no=i, model_name=model_name)
@@ -41,27 +45,46 @@ def attribute_panel_wrapper(model_name: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    #evaluator = Evaluator(metric=INTERSECT, model_name=model)
-    #evaluator.collect_panel_result_batch(list(range(601, 1001)))
+    evaluator = Evaluator(metric=INTERSECT, model_name=model)
+    evaluator.collect_panel_result_batch(list(range(1, 101)))
 
     evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(940, 1001)))
+    evaluator.collect_panel_result_batch(list(range(1, 101)))
 
 
 def evaluator_wrapper(method: str, model: str):
     # hardcoded evaluation metric
-    #metric = INTENSITY
-    #evaluator = Evaluator(metric=metric, model_name=model)
-    #evaluator.collect_result_batch(method, range(1, 1001))
+    # metric = INTENSITY
+    # evaluator = Evaluator(metric=metric, model_name=model)
+    # evaluator.collect_result_batch(method, range(1, 301))
 
     metric = INTERSECT
     evaluator = Evaluator(metric=metric, model_name=model)
-    evaluator.collect_result_batch(method, range(861, 1001))
+    evaluator.collect_result_batch(method, range(1, 101))
 
 
 def annotator_wrapper():
     img_nos = list(range(1, 301))
     draw_annotations(img_nos)
+
+
+def model_tester():
+    att = Attributer(INCEPT)
+    good_examples = att.get_good_examples()
+    print(good_examples)
+    print(len(good_examples))
+
+
+def overnighter():
+    # performance timing
+    for method in [LIFT, GRAD, LIME]:
+        for model in MODELS:
+            print('Performance test for {} and {}:'.format(method, model))
+            attributer_wrapper(method, model)
+    attributer_wrapper(SHAP, VGG)
+    # evaluation on other models
+    for model in [RESNET, INCEPT]:
+        evaluate_panel_wrapper('', model)
 
 
 def print_confident_predictions(att: Attributer, model_name: str, experiment_range: list):
@@ -136,8 +159,13 @@ def demo_evaluate(img_nos: list = None, att: Attributer = None, metric: str = No
 def analyser_wrapper(filter: str = ''):
     filter_high_confidence = False
     if filter == 'filter':
-        filter_high_confidence = True
-    analyser = Analyser(model_name=VGG, filter_high_confidence=filter_high_confidence)
+        filter_high_confidence = False
+    metrics = [INTENSITY]
+    methods = METHODS
+    analyser = Analyser(model_name=VGG,
+                        metrics=metrics,
+                        methods=methods,
+                        filter_high_confidence=filter_high_confidence)
     #analyser = Analyser(model_name=INCEPT, methods=[LIME, GRAD], metrics=[INTERSECT])
     analyser.view_panel_results()
 
@@ -173,6 +201,8 @@ def repl_wrapper():
 
 
 if __name__ == "__main__":
+    overnighter()
+    sys.exit()
     if sys.argv[1] == 'repl':
         repl_wrapper()
         sys.exit()

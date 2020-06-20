@@ -1,9 +1,0 @@
-%1000 images
-
-thresholds:
-
-INTERSECT_THRESHOLD = 0.5
-INTENSITY_THRESHOLD = 1
-
-
-take_absolute: yes
