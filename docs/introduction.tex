@@ -7,11 +7,11 @@
 
 \section{Background} \label{sec:background}
 
-``State of the art'' machine learning models now regularly achieve above expert-level performance in fields as diverse as medical imaging and language translation. However, lack of interpretability prevents their adoption in many of the fields that would benefit the most from them. These domains are often ones where the decisions made have a tangible impact on people's lives. Decision-makers in those domains are unlikely to use the predictions made by a highly accurate but opaque model, because of their requirement for trust and accountability. 
+``State of the art'' machine learning models now regularly achieve above expert-level performance in fields as diverse as medical imaging and language translation. However, lack of interpretability prevents their adoption in many of the fields that would benefit the most from them. These domains are often ones where the decisions made have a tangible impact on people's lives. Decision-makers in those domains are unlikely to use the predictions made by a highly accurate but opaque model because of their requirement for trust and accountability. 
 
 The requirement for explainability is not in order to replace human experts, but to understand contradictions between expert and algorithm. For example, a radiologist might disagree with a diagnosis made by a model trained to predict pneumonia from chest X-rays, and attributing the error to a factor that one or the other relied upon would be helpful. Was the model relying on some unrelated part of the scan (a spurious feature) or was the radiologist failing to pick up on a subtle pneumonia differential? The former was observed in practice after applying an explanation technique to a convolutional neural network (CNN) trained on such data \cite{xray}. 
 
-In the many domains that require trust, explanations for model predictions are as important as low rates of incorrect predictions. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective: the premise of effectiveness requires a level of \textit{trust} that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between performance in the sense of test set accuracy and performance in the sense of accountability (lack of bias or spurious features) and reliability (sensical behaviour) is not ideal.
+In the many domains that require trust, explanations for model predictions are as important as low rates of incorrect predictions. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective: the premise of effectiveness requires a level of trust that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between performance in the sense of test set accuracy and performance in the sense of accountability (lack of bias or spurious features) and reliability (sensical behaviour) is not ideal.
 
 Interpretability in a Facebook algorithm recommending product categories, for example, might not be seen as important as interpretability in a cancer diagnosis model, though the possibility of unethical model behaviour from reliance on biased data is as tangible in both domains. One study of 200 sentiment analysis classifiers found several to have significant race and gender bias \cite{bias}. The consequences of errors can certainly be higher in some domains however - a poor Netflix recommendation is not as disastrous as a naive algorithm used in government decision-making, such as the ``robo-debt'' scheme recently employed by the Australian Government \cite{nous}.
 
@@ -58,12 +58,11 @@ This project has sought to evaluate a panel of feature attribution methods repre
 
 Two other  key contributions made over the course of the project have been a quantitative evaluation framework for explanation quality in the image classification context, and the development of a software package to collect image data explanations for multiple underlying methods at scale.
 
-\subsection*{Goals}
-The aims of this project have been to:
+In summary the project aims have been to:
 \begin{enumerate}
-	\item \textbf{Examine and evaluate} a panel of feature attribution methods for their use cases and performance, using proxy metrics of explanation quality supported by analysis.
+	\item \textbf{Examine and evaluate} a panel of feature attribution methods using proxy metrics of explanation quality supported by analysis on performance, use cases and other qualitative criteria.
 
-	\item \textbf{Develop} an attribution software package for testing methods at scale with modular support for different models, making it easier for researchers to collect explanations and build more adoptable models.
+	\item \textbf{Develop} an attribution software package for testing methods at scale with modular support for different metrics, methods and models, to make it easier for researchers to collect explanations and build more adoptable models.
 	
 \end{enumerate}
 

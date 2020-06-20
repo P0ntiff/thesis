@@ -103,14 +103,14 @@ They were then run on some high-confidence instances fed into the VGG16 model (c
 
 \section{Software Abstraction II}  \label{sec:sw2}
 
-Each method was wrapped in its own class with an \textit{attribute()} function to return the array that represented its explanation output. Repeated logic in each method's implementation was also extracted into an \textit{Attributer} class fitted over these methods. This was a helpful prerequisite to adapting the methods for comparison. The functions in this class visualise figures, save returned NumPy arrays to results files, apply a colour map to highlight positive / negative attribution weights and the intensity of those weights, and normalise attributions between -1 and 1. This class is included in Appendix A and referred to in the class diagram in Figure X.
+Each method was wrapped in its own class with an \textit{attribute()} function to return the array that represented its explanation output. Repeated logic in each method's implementation was also extracted into an \textit{Attributer} class fitted over these methods. This was a helpful prerequisite to adapting the methods for comparison. The functions in this class visualise figures, save returned NumPy arrays to results files, apply a colour map to highlight positive / negative attribution weights and the intensity of those weights, and normalise attributions between -1 and 1. This class is included in Appendix A and referred to in the class diagram in Figure \ref{sec:sw2}.
 
 \newpage
 \section{Adapting Methods for Compatibility}  \label{sec:adaption}
 
 Some methods had higher level implementations than others (SHAP and DeepLIFT) in the code. For example, the output representation of SHAP was generated in internal methods that made it necessary to implement modified functions that overrode method internals. Others did not hide internal logic and were easier to adapt.
 
-Visual examples of the methods made compatible for evaluation are shown in Figure \ref{panel2img} and Figure \ref{panel3img}. Some brief comments  about work necessary for each method and the insights gained:
+Visual examples of the methods made compatible for evaluation are shown in Figures \ref{panel2img} and \ref{panel3img}. Some brief comments  about work necessary for each method and the insights gained:
 
 \begin{itemize}
 \item \textbf{GradCAM:} Guided GradCAM required very little adaption, since the attributions were already in the shape of the input feature space. Support for specifying the final conv. layer (target for each model architecture) was added.
@@ -151,17 +151,17 @@ Importantly, support for thresholding the attributions in terms of standard devi
 
 \section{Evaluation Metric Design} \label{sec:metric}
 
-Observed in Section \ref{sec:existing_criteria}, existing saliency metrics in the literature do not account for pixel-level saliency via feature weights, and the approach to generate bounding boxes via single-component segmentation can unfairly punish perforated-looking saliency maps. Figure \ref{panel2img} and \ref{panel3img} also show that the adapted method outputs are discriminatory and fine-grained, rather than localising and coarse-grained, which adds a further motivation for a more suitable metric than the connected-component approach for WSOL. The two metrics designed were both based on intersection-over-union though calculated over individual pixels rather than bounding boxes:
+Observed in Section \ref{sec:existing_criteria}, existing saliency metrics in the literature do not account for pixel-level saliency via feature weights, and the approach to generate bounding boxes via single-component segmentation can unfairly punish perforated-looking saliency maps. Figures \ref{panel2img} and \ref{panel3img} also show that the adapted method outputs are discriminatory and fine-grained, rather than localising and coarse-grained, which adds a further motivation for a more suitable metric than the connected-component approach for WSOL. The two metrics designed were both based on intersection-over-union though calculated over individual pixels rather than bounding boxes:
 
 \begin{enumerate}
-\item \textbf{IOU:} A mask of the instance's ground truth bounding box is compared with the 2D array of each method's saliency map (example in Figure \ref{iou_example_img}). Weights are ignored and pixels are counted as intersecting if they have a value in both arrays. The intersection array's area is divided by the union array's area to generate the result.
+\item \textbf{Pixel-wise IOU:} A mask of the instance's ground truth bounding box is compared with the 2D array of each method's saliency map (example in Figure \ref{iou_example_img}). Weights are ignored and pixels are counted as intersecting if they have a value in both arrays. The intersection array's area is divided by the union array's area to generate the result.
 %$\frac{Saliency Map \cap Annotation Mask}{Saliency Map\cup Annotation Mask}$
 
-\item \textbf{IOU*:} A variant of IOU to account for intensity of attribution / weights on each pixel. Instead of 1s in the intersection array the attribution weight is directly stored (with absolute value taken). The union array (denominator) is unchanged. This was a purely intuitive measure to crudely reward intensity of attribution and punish methods that provide uncertain or `non-commital' explanations with low attribution weights.
+\item \textbf{Pixel-wise IOU*:} A variant to account for intensity of attribution / weights on each pixel. Instead of 1s in the intersection array the attribution weight is directly stored (with absolute value taken). The union array (denominator) is unchanged. This was a purely intuitive measure to crudely reward intensity of attribution and punish methods that provide uncertain or `non-commital' explanations with low attribution weights.
 
 \end{enumerate}
 
-This approach to explanation quality is different from the localisation performance approach of others and results in much lower IOU (though this is not as concerning since there is consistency across the panel). Related work introducing \textit{individual} methods did care about this to be able to use ILSVRC object localisation competitors as benchmarks for evaluating their own method.
+This approach to explanation quality is different from the localisation performance approach of others and results in much lower IOU (though this is not as concerning since there is consistency across the panel). Related work introducing \textit{individual} methods did care about IOU magnitude to be able to use ILSVRC object localisation competitors as benchmarks for evaluating their own method.
 
 \begin{figure}[htbp]
 \centering
@@ -186,7 +186,7 @@ To collect IOU and IOU* evaluations over many instances an \textit{Evaluator} cl
 \item Perform the above for batches of instances and for the full method panel
 \end{enumerate}
 
-This \textit{Evaluator} class can potentially implement other saliency metrics, as IOU and IOU* are modularised functions. The class is included in Appendix B.
+The class can potentially implement other saliency metrics, as IOU and IOU* are modularised functions.
 
 \begin{figure}[htbp]
 \centering
@@ -195,26 +195,17 @@ This \textit{Evaluator} class can potentially implement other saliency metrics, 
 \label{csv_image}
 \end{figure}
 
-An \textit{Analyser} class was created to read the collected CSV data and calculate statistics (means and standard deviations). It also allows graphs be generated for any subset of methods or metrics (examples in Results chapter).
+Finally an \textit{Analyser} class was created to read the collected CSV data, calculate statistics (means and standard deviations), and generate graphs for any subset of methods or metrics. Example graphs in the Results chapter.
 
-The descriptions in Sections \ref{sec:sw1}, \ref{sec:sw2} and this section of the developed testing framework are summarised in Figure 1.X. The \textit{Attributer} and \textit{Evaluator} classes are included in \textbf{Appendices A and B} respectively.
+The descriptions in Sections \ref{sec:sw1}, \ref{sec:sw2} and this section of the developed testing framework are summarised in Figure \ref{flow_image}. The \textit{Attributer} and \textit{Evaluator} classes are included in \textbf{Appendices A and B} respectively.
 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[scale=0.35]{csv_output.png}
-\caption{High-level class diagram of evaluation software developed.}
-\label{csv_image}
+\includegraphics[scale=0.6]{program_flow.png}
+\caption{High-level flow diagram of testing software.}
+\label{flow_image}
 \end{figure}
-
-
-\newpage
-\section{Result Collection}  \label{sec:result_collection}
-GTX-1080. 
-
-
-\section{Support for Other Models}
-
 
 
 \end{document}

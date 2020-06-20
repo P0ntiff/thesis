@@ -5,7 +5,20 @@
 \begin{document}
 
 
+The original project aims have been largely met:
+\begin{enumerate}
+	\item \textbf{Examine and evaluate} a panel of feature attribution methods using proxy metrics of explanation quality supported by analysis on performance, use cases and other qualitative criteria.
 
+	\item \textbf{Develop} an attribution software package for testing methods at scale with modular support for different metrics, methods and models, to make it easier for researchers to collect explanations and build more adoptable models.
+
+Modular support for models was unfortunately not fully achieved due to obstacles described in the Discussion. However, this was only for two of four methods, and the difficulty of adapting methods for models (even using high-level public implementations) in a sense highlights a strength of the model-agnostic approach.
+
+This project was not a theoretical contribution to unifying methods available in any one class, but provided novel insights from comparing the diversity in approach to saliency:
+
+\begin{itemize}
+\item model-specific methods are not necessarily more discriminative, though may be much more performant.
+\item Methods developed for neural network architectures can perform as well as CNN-specific methods; and with easier therefore easier adaption;
+\end{itemize}
 %"Invariances in explanation methods give a concrete way to rule out the adequacy of the method for certain tasks. We primarily focused on invariance under model randomization, and label randomization. Many other transformations are worth investigating and can shed light on various methods we did and did not evaluate. Along these lines, we hope that our paper is a stepping stone towards a more rigorous evaluation of new explanation methods, rather than a verdict on existing methods.
 
 

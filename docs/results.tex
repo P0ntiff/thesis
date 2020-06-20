@@ -6,9 +6,35 @@
 \begin{document}
 
 
-\chapter{Results}
+\chapter{Evaluation Results}
 
 
+\section{Overview}
+This chapter includes the saliency metric results and qualitative insights gained from testing the method panel on ImageNet data.
 
+\subsection{Data Collection}  \label{sec:data_collection}
+A set of 300 attributions for the full method panel took around 10 hours to evaluate using a Nvidia GTX-1080 GPU. LIME was the key bottleneck due to its slow performance, which is discussed in later chapters. After several hundred attributions the process became slow and would have to be restarted from that point (possibly due to a GPU memory leak in method internal functions). The results below include a set of 1000 instances evaluated for IOU and IOU* at different thresholds. 
+
+\subsection{Software Availability}
+
+Code for the project is available on GitHub and it is intended to be made public after improving the existing model agnosticity for practitioners (i.e. support for specifying necessary hyperparameters like layer targets), as well as cleaning up dependencies and file structures. The framework has modular support for attribution methods provided they are compatible with image data and return an input-space representation of their explanation, and modular support for other saliency metrics as mentioned in Section \ref{sec:sw3}.
+
+
+\subsection{Support for Other Models}
+
+Some limitations were encountered on SHAP and DeepLIFT for ResNet50 and InceptionV3 architectures. This meant results could not be generalised fully as was originally hoped. The impact of this obstacle and the reasons for it are described further in the Discussion chapter.
+
+\section{Saliency Metrics}
+\subsection{300 examples, IOU threshold = 1, IOU* threshold = 2}
+
+
+\section{Qualitative Results}
+\subsection{Performance}
+
+tables, tables, tables
+
+\subsection{Localisation vs Pattern Discrimination}
+
+\section{Performance}
 
 \end{document}
