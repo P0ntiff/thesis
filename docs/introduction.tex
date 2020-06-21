@@ -11,7 +11,7 @@
 
 The requirement for explainability is not in order to replace human experts, but to understand contradictions between expert and algorithm. For example, a radiologist might disagree with a diagnosis made by a model trained to predict pneumonia from chest X-rays, and attributing the error to a factor that one or the other relied upon would be helpful. Was the model relying on some unrelated part of the scan (a spurious feature) or was the radiologist failing to pick up on a subtle pneumonia differential? The former was observed in practice after applying an explanation technique to a convolutional neural network (CNN) trained on such data \cite{xray}. 
 
-In the many domains that require trust, explanations for model predictions are as important as low rates of incorrect predictions. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective: the premise of effectiveness requires a level of trust that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between performance in the sense of test set accuracy and performance in the sense of accountability (lack of bias or spurious features) and reliability (sensical behaviour) is not ideal.
+In the domains that require trust, explanations for model predictions are as important as low rates of incorrect predictions. This is the counter-argument to the notion that a highly accurate model need not be interpretable to be effective: the premise of effectiveness requires a level of trust that a model relies on unbiased data and non-spurious features, two guarantees that are not at all provided by an objective function that seeks only to minimise prediction error. With poor visibility into the factors that a model relies upon, machine learning researchers tend to use model performance metrics as the basis for arguing a new model architecture is superior. This disconnect between performance in the sense of test set accuracy and performance in the sense of accountability (lack of bias or spurious features) and reliability (sensical behaviour) is not ideal.
 
 Interpretability in a Facebook algorithm recommending product categories, for example, might not be seen as important as interpretability in a cancer diagnosis model, though the possibility of unethical model behaviour from reliance on biased data is as tangible in both domains. One study of 200 sentiment analysis classifiers found several to have significant race and gender bias \cite{bias}. The consequences of errors can certainly be higher in some domains however - a poor Netflix recommendation is not as disastrous as a naive algorithm used in government decision-making, such as the ``robo-debt'' scheme recently employed by the Australian Government \cite{nous}.
 
@@ -33,7 +33,7 @@ Feature attribution methods can therefore re-introduce transparency into complex
 
 \subsection*{Existing Literature}
 
-Some comparisons of feature attribution methods do exist, though typically either in a qualitative context, as a pairwise comparison, \textbf{cite} or within a single class of methods. They are not normally compared on speed/performance or adoptability in terms of task/model compatibility. They are however haphazardly compared on explanation quality, which is a difficult criteria to design. Lack of evaluation is partly due to differences in method formulation and therefore representation, but also this difficulty in finding objective proxy metrics for explanation quality.  
+Some comparisons of feature attribution methods do exist, though typically either in a qualitative context, as a pairwise comparison, or within a single class of methods. They are not normally compared on speed/performance or adoptability in terms of task/model compatibility. They are however haphazardly compared on explanation quality, which is a difficult criteria to design. Lack of evaluation is partly due to differences in method formulation and therefore representation, but also this difficulty in finding objective proxy metrics for explanation quality.  
 
 % Finding desirable criteria for explanation techniques to have, as well as tool development for generating explanations, are two active research areas.
 
@@ -73,7 +73,7 @@ In summary the project aims have been to:
 
 Section \ref{sec:background} introduced a broad motivation for interpretability, though this project has focused specifically on image classification for two main reasons.
 
-Firstly, many interpretability techniques from before the deep learning era have been studied in this domain, and many deep learning specific methods continue to be developed and tested in this domain on modern CNN architectures. The natural `visual' aspect of  image data explanations has also made computer vision a dominant venue for interpretability research, with important applications such as medical imaging.
+Firstly, many interpretability techniques from before the deep learning era have been studied in this domain, and many deep learning specific methods continue to be developed and tested in this domain on modern CNN architectures. The natural visual aspect of image data explanations has also made computer vision a dominant venue for interpretability research, with important applications such as medical imaging.
  
 Secondly, well-annotated datasets and pre-trained, `off the shelf' models are more easily acquired in this domain. This availability allowed for richer evaluation metrics and the removal of model training as a project requirement.
 
@@ -82,7 +82,7 @@ A more detailed scope is provided at the beginning of the Methodology section, i
 
 \subsection*{Report Overview}
 
-Chapter 2 examines the available feature attribution methods and existing approaches to method evaluation. Chapter 3 breaks down the project's methodology in terms of particular milestones, including the software and evaluation metrics that were designed. Chapter 4 lists evaluation results from quantitative and qualitative standpoints. Chapter 5 provides a discussion on the project's contribution and the limitations encountered, and finally Chapter 6 provides conclusions and recommendations for future work. 
+Chapter 2 examines the available feature attribution methods and existing approaches to method evaluation. Chapter 3 breaks down the project's methodology in terms of particular milestones, including the software and evaluation metrics that were designed. Chapter 4 lists evaluation results from quantitative and qualitative standpoints. Chapter 5 provides a discussion on the project's methodology and the limitations encountered, and finally Chapter 6 provides conclusions and recommendations for future work. 
 
 
 

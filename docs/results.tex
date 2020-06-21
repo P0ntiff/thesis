@@ -9,12 +9,12 @@
 \chapter{Results \& Insights}
 
 
-This chapter includes saliency metric and qualitative results from testing the method panel on ImageNet data and pre-trained CNN models. Insights on each method are compared with existing insights in the literature and summarised at the end of the chapter.
+This chapter includes saliency metric and qualitative results from testing the method panel on ImageNet data and pre-trained CNN models. Insights are compared with existing insights in the literature and summarised at the end of the chapter.
 
 \section{Experiment Notes}
 
 \subsection{Sample Sizes}  \label{sec:data_collection}
-A set of 300 attributions for the full method panel took around 10 hours to collect and evaluate using a Nvidia GTX-1080 GPU. LIME was thought to be a key bottleneck due to its perturbation-based approach, but analysis in Section \ref{sec:perform} showed GradCAM was also slow in attribution. After several hundred attributions the process also became very slow and would have to be restarted from that point (possibly due to a GPU memory leak in method internals). These performance considerations meant only 1000 instances out of 50,000 available in the validation set were used for evaluation. This was at least the same 1000 instances for all methods, and different dimensions were added to generate insights regardless: different attribution thresholds, and subsetting the results for high confidence (p $>0.9$) vs low confidence model predictions.
+A set of 300 attributions for the full method panel took around 10 hours to collect and evaluate using a Nvidia GTX-1080 GPU. LIME was thought to be a key bottleneck due to its perturbation-based approach, but analysis in Section \ref{sec:perform} showed GradCAM was also slow in attribution. After several hundred attributions the process also became very slow and would have to be restarted from that point (possibly due to a GPU memory leak in method internals). These performance considerations meant only 1000 instances out of 50,000 available in the validation set were ever used for evaluation. This was at least the same 1000 instances for all methods, and different dimensions were added to generate insights regardless: different attribution thresholds, and subsetting the results for high confidence (p $>0.9$) vs low confidence model predictions.
 
 \subsection{Software Availability}
 
@@ -46,7 +46,7 @@ Some observations on Figure \ref{vggAfig} (other discussion in Section \ref{sec:
 \begin{figure}[h]\centering
 \vfill
 \includegraphics[scale=0.32]{vgg_0_5_and_1.png}
-\caption{IOU, IOU* statistics for a 1000-instance attribution sample of VGG-16. }
+\caption{Results for a 1000-instance attribution sample of VGG-16. }
 \label{vggAfig}
 \vfill
 \end{figure}
@@ -56,17 +56,33 @@ In Appendix C, Figure X shows comparatively identical results for a smaller samp
 \newpage
 
 
-
 \subsection{InceptionV3}
 
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.35]{inception.png}
+\caption{Results for a 100-instance attribution sample of InceptionV3. }
+\label{inceptionFig}
+\end{figure}
 
+Model results on this page are only considered auxiliary, since SHAP is excluded from the panel (Section \ref{sec:shap_note}). The lower sample size was a compromise on experiment length due to the longer evaluation time on these models (Section \ref{sec:perform}).
 
+The most interesting observation here is that GradCAM under-performs on low confidence predictions compared to LIME. Given the high variance and low sample size these results are tentative however. DeepLIFT's non-performance is also analysed in the next section.
 
 \subsection{ResNet50}
 
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.35]{resnet.png}
+\caption{Results for a 100-instance attribution sample of ResNet50. }
+\label{resnetFig}
+\end{figure}
+
+These results are more like the VGG16 results in Figure \ref{vggAfig}. Here, no noticeable difference between high and low confidence sub-samples is observed, and GradCAM out-performs LIME on IOU but not IOU*, as in the VGG16 results.
+
 
 \newpage
-\subsection{Insights from Saliency Metrics} \label{sec:saliency_insights}
+\subsection{Insights from IOU/IOU*} \label{sec:saliency_insights}
 
 \subsubsection{VGG16}
 
@@ -79,10 +95,12 @@ LIME outperformed others on IOU*, but since super pixel regions are broadly brus
 
 What is it about the attribution weights that made IOU* high for DeepLIFT?? Why is GradCAM's variance higher??
 
+The IOU* metric results unfortunately did not derive many insights. However, they did highlight that.
+
 
 \subsubsection{ResNet50 \& Inception V3}
 
-DeepLIFT performed strongly on VGG16 but poorly on more complex architectures. The reason may be due to the implementation: DeepLIFT requires an architecture modification that has to be done for each layer type. The modification is to implement the custom backward function incorporating reference activations. For this project, the implementation relied upon may not have been able to handle ResNet's residual layers or Inception's layer modules. Full neural network compatibility may be a theoretically true claim by the authors but these implementation caveats are a genuine obstacle for practitioners and researchers.
+DeepLIFT performed strongly on VGG16 but appeared to fail completely on more complex architectures. The reason may be due to the implementation: DeepLIFT requires an architectural modification that has to be done for each layer type, which is to implement the custom backpropagation function that incorporates reference activations (i.e. transform discrete gradients into attributions that represent difference from those reference activations). For this project, the implementation relied upon may not have been able to handle ResNet's residual layers or Inception's layer modules. Full neural network compatibility may be a theoretically true claim by the authors but these implementation caveats are a genuine obstacle for practitioners and researchers.
 
 
 
@@ -108,7 +126,7 @@ A surprising insight is that GradCAM performed much worse than LIME for a 100-in
 
 \newpage
 \subsection{Consistency}\label{sec:consistency}
-Some analysis is provided below on consistency across attributions. Table \ref{consistencytable} lists standard deviations for the method panel from the 1000-instance experiment (error bars in Figure \ref{vggAfig}):
+Some analysis is provided below on consistency across attributions. Table \ref{consistencytable} lists standard deviations for the method panel from the 1000-instance experiment run on VGG16 (error bars in Figure \ref{vggAfig}):
 
 \begin{table}[htbp]
 \centering
@@ -127,12 +145,11 @@ Some analysis is provided below on consistency across attributions. Table \ref{c
 
 \end{table}
 
-LIME suffers noticeably the highest variance and therefore worse consistency over the experiment sample, which corroborates insights by Alvarez-Melis \& Jaakkola (2018) (Section \ref{sec:existing_criteria}) that LIME and model-agnostic, perturbation-based techniques generally are more prone to instability than gradient-based techniques. 
+LIME suffers the worst consistency over the experiment sample, which corroborates findings by Alvarez-Melis \& Jaakkola (2018) (Section \ref{sec:existing_criteria}) that LIME and model-agnostic, perturbation-based techniques generally are more prone to instability than gradient-based techniques. 
 
-For other methods
+For other methods, results were consistent across high and low confidence predictions, which was an unexpected finding. This may have been because of a certain baseline level of  noise that each method outputs, meaning underlying model confusion did not translate into lower IOU or IOU* on average.
 
-
-For consistency across models, it was noted in Section \ref{sec:saliency_insights} that DeepLIFT performed strongly on VGG16 and very poorly on more complex architectures. This was therefore a strength of SHAP and GradCAM that performed slightly worse on IOU but better on more complicated architectures. LIME's attributions were also less consistent
+For consistency across models, it was noted in Section \ref{sec:saliency_insights} that DeepLIFT performed strongly on VGG16 and very poorly on more complex architectures. This was therefore a strength of LIME and GradCAM that performed slightly worse on IOU in the VGG16 experiment but better on more complicated architectures. In terms of consistency though, LIME's attributions increased in variance on the saliency metrics for the more complicated architectures (Figures \ref{inceptionFig} and \ref{resnetFig}). This is a further blight on its reputation for instability.
 
 \newpage
 \subsection{Visual Observations}
@@ -169,7 +186,6 @@ Other insights about GradCAM's use cases:
 \item GradCAM's explanations were consistently visually salient, and also more consistent in the saliency metrics. This could be because it is inherently designed for CNN architectures: the target of the final convolutional layer where the features are intuitively represented in the most abstract sense seems to lead to the most visually appealing explanations for model behaviour.
 \end{itemize}
 
-\newpage
 \subsubsection{DeepLIFT}
 
 DeepLIFT's performance on architectures with fewer convolutional layers was not noticeably worse, which possibly indicates it is suited for `network in network' architectures like InceptionV3. For solely convolutional architectures, it is arguably not the best in the panel (based on visual saliency and the saliency metrics). SHAP 
@@ -182,8 +198,6 @@ DeepLIFT's performance on architectures with fewer convolutional layers was not 
 % mention low performance on oterh model archtiectures from Lit Review (ancona)
 
 
-
-\newpage
 \section{Summary of Insights}
 \subsection{Quantitative}
 

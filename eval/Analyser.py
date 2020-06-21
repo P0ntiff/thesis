@@ -32,6 +32,8 @@ class Analyser:
         else:
             df = df[df['img_no'].isin(GOOD_EXAMPLES[self.model_name]) == False]
         print(df)
+        print(df.shape)
+        print(len(df))
         metric_data_map = {'img_nos': df['img_no'].to_numpy()}
         for method in self.methods:
             metric_data_map[method] = df[method].to_numpy()
