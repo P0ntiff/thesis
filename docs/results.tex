@@ -82,27 +82,28 @@ These results are more like the VGG16 results in Figure \ref{vggAfig}. Here, no 
 
 
 \newpage
-\subsection{Insights from IOU/IOU*} \label{sec:saliency_insights}
+\subsection{Insights from Saliency Metrics} \label{sec:saliency_insights}
 
-\subsubsection{VGG16}
+\subsubsection{What did pixel-wise attribution (IOU) highlight?}
+SHAP and DeepLIFT were the best performers on VGG16 with variance in LIME noticeably high and GradCAM performing not \textit{quite} as well in terms of mean IOU. However, both SHAP and DeepLIFT failed on other models (Section \ref{sec:compatibility}).
 
+Empirically the DeepLIFT saliency results contradict a visual inspection of its attribution outputs. Its attributions were visually much noisier than others, and this may have inflated its IOU comparatively to others if enough of the noise was in the ground truth region. 
 
-Some results from the saliency metrics contradict visual observations from each method, however. This is explored in  For example, DeepLIFT's attributions were visually much noisier than others. Even with thresholds applied, it performed well on IOU possibly because of this noise across the input space.
+On the balance of these aspects, including cross-model generalisation of IOU results (where GradCAM succeeds) and visual saliency (where SHAP and GradCAM succeed), SHAP and GradCAM can be considered superior for saliency in terms of pixel-level detail. 
+ 
+The impact of thresholding also appeared to make no difference to the ordinal differences between methods (Appendix C). It seems that a higher threshold led to only smaller IOU magnitude rather than a change in one method's performance relative to another. 
 
+%The theory of noise in DeepLIFT is not supported by the higher threshold results in Appendix C, since intuitively its performance would drop with the bias removed.
 
-LIME outperformed others on IOU*, but since super pixel regions are broadly brushed with the same attribution score, 
+\subsubsection{What did strength of attribution (IOU*) highlight?}
 
+The IOU* metric results unfortunately did not derive much further insight. However, a couple of observations were still made:
+\begin{itemize}
+\item LIME outperformed all other methods on IOU*, but since super pixel regions are broadly brushed with the same attribution score, this can be ascribed to some bias.
+\item DeepLIFT outperformed SHAP and GradCAM on the VGG16 results, though this is possibly due to higher noise across the input space.
+\end{itemize}
 
-What is it about the attribution weights that made IOU* high for DeepLIFT?? Why is GradCAM's variance higher??
-
-The IOU* metric results unfortunately did not derive many insights. However, they did highlight that.
-
-
-\subsubsection{ResNet50 \& Inception V3}
-
-DeepLIFT performed strongly on VGG16 but appeared to fail completely on more complex architectures. The reason may be due to the implementation: DeepLIFT requires an architectural modification that has to be done for each layer type, which is to implement the custom backpropagation function that incorporates reference activations (i.e. transform discrete gradients into attributions that represent difference from those reference activations). For this project, the implementation relied upon may not have been able to handle ResNet's residual layers or Inception's layer modules. Full neural network compatibility may be a theoretically true claim by the authors but these implementation caveats are a genuine obstacle for practitioners and researchers.
-
-
+\noindent How strongly individual pixels are weighted may need to be rewarded more generously: attributions are only bounded between 0 and 1 (with absolute value taken), and so small regions of intensity are probably averaged out by the denominator union array. A suggestion for future work on weighted saliency metrics is to use exponential weighting and/or an alternative to IOU.
 
 \newpage
 \section{Other Criteria}
@@ -117,7 +118,7 @@ DeepLIFT performed strongly on VGG16 but appeared to fail completely on more com
 \vfill
 \end{figure}
 
-Some insights from performance measurements in Figure \ref{performFig} are described here. Note SHAP's incomplete results due to the note in Section \ref{sec:shap_note}.
+\noindent Some insights from performance measurements in Figure \ref{performFig} are described here. Note SHAP's incomplete results due to the note in Section \ref{sec:shap_note}.
 
 These results are correlated with the time the underlying model takes to calculate a prediction, which is itself a function of the number of model layers and parameters. This is controlled across the panel at least, so the relative performance of each method can still be highlighted (and to some extent performance correlation with model complexity). For example, DeepLIFT's claims of fast performance due to requiring only a single backwards pass are supported by these results. It was also extremely fast for InceptionV3 and much slower on ResNet50, which cannot be explained easily, though two possible reasons are the denser convolutional layers in ResNet50 or a method internal bug.
 
@@ -130,14 +131,14 @@ Some analysis is provided below on consistency across attributions. Table \ref{c
 
 \begin{table}[htbp]
 \centering
-\begin{tabular}{|l|l|l|l|l|}
-\hline
-                  & \multicolumn{2}{c|}{\textbf{IOU}} & \multicolumn{2}{c|}{\textbf{IOU*}} \\ \hline
+\begin{tabular}{l|l|l|l|l|}
+\cline{2-5}
+                  & \multicolumn{2}{c|}{\textbf{IOU}} & \multicolumn{2}{c|}{\textbf{IOU*}} \\ \cline{2-5} 
                   & \textbf{High p}           & \textbf{Low p}          & \textbf{High p}           & \textbf{Low p}           \\ \hline
-\textbf{LIME}     & 0.145            & 0.122          & 0.052            & 0.055           \\ \hline
-\textbf{SHAP}     & 0.089            & 0.085          & 0.010            & 0.008           \\ \hline
-\textbf{DeepLIFT} & 0.112            & 0.118          & 0.012            & 0.011           \\ \hline
-\textbf{GradCAM}  & 0.109            & 0.105          & 0.012            & 0.012           \\ \hline
+\multicolumn{1}{|l|}{LIME}     & 0.145            & 0.122          & 0.052            & 0.055           \\ \hline
+\multicolumn{1}{|l|}{SHAP}      & 0.089            & 0.085          & 0.010            & 0.008           \\ \hline
+\multicolumn{1}{|l|}{DeepLIFT}  & 0.112            & 0.118          & 0.012            & 0.011           \\ \hline
+\multicolumn{1}{|l|}{GradCAM}   & 0.109            & 0.105          & 0.012            & 0.012           \\ \hline
 \end{tabular}
 
 \caption{Standard deviations on 1000-instance saliency metrics.}
@@ -145,90 +146,71 @@ Some analysis is provided below on consistency across attributions. Table \ref{c
 
 \end{table}
 
-LIME suffers the worst consistency over the experiment sample, which corroborates findings by Alvarez-Melis \& Jaakkola (2018) (Section \ref{sec:existing_criteria}) that LIME and model-agnostic, perturbation-based techniques generally are more prone to instability than gradient-based techniques. 
+\noindent LIME suffers the worst consistency over the experiment sample, which corroborates findings by Alvarez-Melis \& Jaakkola (2018) (Section \ref{sec:existing_criteria}) that LIME and model-agnostic, perturbation-based techniques generally are more prone to instability than gradient-based techniques and others. 
 
 For other methods, results were consistent across high and low confidence predictions, which was an unexpected finding. This may have been because of a certain baseline level of  noise that each method outputs, meaning underlying model confusion did not translate into lower IOU or IOU* on average.
 
-For consistency across models, it was noted in Section \ref{sec:saliency_insights} that DeepLIFT performed strongly on VGG16 and very poorly on more complex architectures. This was therefore a strength of LIME and GradCAM that performed slightly worse on IOU in the VGG16 experiment but better on more complicated architectures. In terms of consistency though, LIME's attributions increased in variance on the saliency metrics for the more complicated architectures (Figures \ref{inceptionFig} and \ref{resnetFig}). This is a further blight on its reputation for instability.
+For consistency across models, it was noted in Section \ref{sec:saliency_insights} that DeepLIFT performed strongly on VGG16 and very poorly on more complex architectures. This was therefore a strength of LIME and GradCAM: they performed slightly worse on IOU in the VGG16 experiment but better on more complicated architectures. In terms of consistency though, LIME's attributions increased in variance on the saliency metrics for the more complicated architectures (Figures \ref{inceptionFig} and \ref{resnetFig}). This is a further blight on its reputation for instability.
+
 
 \newpage
-\subsection{Visual Observations}
-
-\subsubsection{Localisation vs Pattern Discrimination}
-
-% knowing how strongly a model weights particular features is important. is it?
-
-
-\subsubsection{Impact of Thresholding}
-Following Simonyan et al. and 
-
-\newpage
-\subsection{Model Compatibility \& Ease of Adaption} \label{sec:compatibility}
-Some insights from comparing each method's formulation approach are described in this section: i.e. gradient, perturbation and backpropagation. Reference is made to their hyperparameter complexity and model compatibility which together can be summarised as ease of adaption.
-\subsubsection{SHAP}
-The difficulty of applying SHAP to other model architectures than simpler convolutional ones like VGG16 indicates that other practitioners may have similar difficulties. Two reasons can account for the problems encountered:
-
-\begin{itemize}
-\item SHAP is a higher level `specification' of an explanation method (\label{sec:othermodelag}) more than a particular formulation, which makes it difficult to evaluate independently of its model-specific approximations (i.e. Integrated Gradients). 
-\item Hot take 2
-\end{itemize}
-
-In these results, the Integrated Gradients approximation which underpins the SHAP implementation observed almost identical results to DeepLIFT (i.e saliency in \ref{sec:vggExp} and consistency in ). With SHAP's lower performance for VGG16 than DeepLIFT, this supports the observation in related work that DeepLIFT is a more practical version of Integrated Gradients (Section \ref{sec:existing_studies}).
-
-Choosing background sample to estimate the `expectation' of model output is a key pre-requisite for the SHAP method.
-
-
-Though it couldn't be practically evaluated on other architectures, its visual saliency on VGG16 was appealing and notably different features were highlighted than other methods for the same prediction (e.g. Figure \ref{panel2img}).
-
+\subsection{Ease of Adaption} \label{sec:compatibility}
+Observations on each method's implementation considerations are made in this section. Reference is made to their hyperparameter complexity and model compatibility, which together can be summarised as ease of adaption. In the following chapter, a higher level comparison of each method's approach (and related implementation considerations) is also provided.
 
 \subsubsection{GradCAM}
-A note on GradCAM made in \ref{sec:perform} was that its performance significantly deteriorates for replacing its localisation `heatmap' formulation with the discriminative upgrade proposed by the authors (i.e. multiplied with Guided Backpropagation). This is a compromise that a practitioners can be aware of: for individual explanations, it may be more desirable to see a higher resolution explanation since scale is not a concern. For explaining many model predictions, or where localisation is more important to the use case than individual patterns or edges, the variant without Guided Backpropagation would be preferred.
+A note on GradCAM made in Section \ref{sec:perform} was that its performance significantly deteriorates when replacing its localisation `heatmap' formulation with the discriminative upgrade proposed by the authors (i.e. multiplied with Guided Backpropagation). This is a compromise that practitioners can be aware of: for individual explanations, it may be desirable to use Guided GradCAM to see a higher resolution explanation, since at-scale evaluation is not a concern. For explaining many model predictions, or where localisation is more important to the use case than individual patterns or edges, the variant without Guided Backpropagation should be preferred.
 
-Other insights about GradCAM's use cases:
+\noindent Other insights about GradCAM's use cases:
 \begin{itemize}
-\item GradCAM's explanations were consistently visually salient, and also more consistent in the saliency metrics. This could be because it is inherently designed for CNN architectures: the target of the final convolutional layer where the features are intuitively represented in the most abstract sense seems to lead to the most visually appealing explanations for model behaviour.
+\item GradCAM's explanations were consistently visually salient, and also consistent in the saliency metric results. This could be because it is inherently designed for CNN architectures: the target of the final convolutional layer where the features are intuitively represented in the most abstract sense seems to lead to more visually appealing explanations for model behaviour.
+\item GradCAM is suited as an `off the shelf' option for CNN architectures. It requires no modification to internal gradient or backpropagation operations: a strength over backpropagation methods like DeepLIFT.
 \end{itemize}
+
 
 \subsubsection{DeepLIFT}
 
-DeepLIFT's performance on architectures with fewer convolutional layers was not noticeably worse, which possibly indicates it is suited for `network in network' architectures like InceptionV3. For solely convolutional architectures, it is arguably not the best in the panel (based on visual saliency and the saliency metrics). SHAP 
+DeepLIFT performed strongly on VGG16 but appeared to fail completely on more complex architectures. The reason may be due to the implementation: DeepLIFT requires an architectural modification that has to be done for each layer type, which is to implement the custom backpropagation function that incorporates reference activations (i.e. transform gradients into attributions that represent differences from those reference activations). For this project, the implementation relied upon may not have been able to handle ResNet's residual layers or Inception's layer modules. Full neural network compatibility may be a theoretically true claim by the authors but these caveats (and determining reference activations) are a major drawback.
+
+%DeepLIFT's speed on architectures with fewer convolutional layers was not noticeably worse, which possibly indicates it is suited for `network in network' architectures like InceptionV3. For solely convolutional architectures, it is arguably not the best in the panel (based on visual saliency and the saliency metrics). SHAP 
 
 %"Methods like LRP and DeepLift replace gradients with discrete gradients and still use a modified form of backpropagation to compose discrete gradients into attributions" IG
 
+\subsubsection{SHAP}
+The difficulty observed in applying SHAP to more complicated model architectures indicates that other practitioners may have similar difficulties with their own models. SHAP is also a higher level `specification' of an explanation method (Section \ref{sec:othermodelag}) more than a particular formulation, which makes it difficult to evaluate independently of its model-specific approximations.
+
+One of those model-specific approximations was based on Integrated Gradients and was the one relied upon in this project. This SHAP implementation saw almost identical results to DeepLIFT, in terms of saliency in Figure \ref{sec:vggExp} and consistency in Table \ref{consistencytable}). This supports the suggestion in Related Work that DeepLIFT is a more practical approximation of Integrated Gradients with a similar level of accuracy (Ancona et al. (2017), Section \ref{sec:existing_studies}).
+
+SHAP's key implementation requirements are the background sample of predictions needed to estimate the expectation of model output, and the choice of a layer target to explain. Neither of these were difficult to specify, though the choice of layer is somewhat arbitrary compared to GradCAM's specification of the final layer.
+
+Though it couldn't be practically evaluated on other architectures, its visual saliency on VGG16 was appealing and notably different features were highlighted than other methods for the same prediction (e.g. Figure \ref{panel2img}). SHAP's software package also provides approximations for a number of model families, which was part of the motivation for its initial description as a model-agnostic method. It is adoptable for both both tree-based and neural network architectures.
+
+
 \subsubsection{LIME}
+Although it is fully model-agnostic and therefore had few implementation difficulties, LIME has a couple of key hyperparameters that have not been mentioned so far in discussion. This is the number of training samples of locally perturbed input features (super pixels) taken, as well as the number of features for each sample. Both were taken near the authors' defaults, as a suggested compromise between performance and accuracy \cite{limerepo}.
+
+The super pixels output by LIME are better suited for \textit{localisation} performance measures (not targeted by this project). In a sense LIME was slightly misrepresented by how it was adapted for pixel-wise attribution, with super pixel weights brushed over all pixels in each bounded region. However, this adaption step was a necessary one for evaluation.
 %"While we have made a case for model agnosticism, this approach is not without its challenges. For example, getting a global understanding of the model may be hard if the model is very complex, due to the trade-off between flexibility and interpretability. To make matters worse, local explanations may be inconsistent with one another, since a flexible model may use a certain feature in different ways depending on the other features. In Ribeiro et al. (2016) we explained text models by selecting a small number of representative and non-redundant individual prediction explanations obtained via submodular optimization, similar in spirit to showing prototypes (Kim et al., 2014). However, it is unclear on how to extend this approach to domains such as images or tabular data, where the data itself is not sparse. In some domains, exact explanations may be required (e.g. for legal or ethical reasons), and using a black-box may be unacceptable (or even illegal). Interpretable models may also be more desirable when interpretability is much more important than accuracy, or when interpretable models trained on a small number of carefully engineered features are as accurate as black-box models."  Model-Agnostic Interpretability of Machine Learning
 
 % mention low performance on oterh model archtiectures from Lit Review (ancona)
 
-
+\newpage
 \section{Summary of Insights}
 \subsection{Quantitative}
 
-\begin{table}[htbp]
-\begin{tabular}{|l|l|l|l|}
-\hline
-                  & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Saliency\\ (IOU)\end{tabular}}} & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Consistency\\ (Variance)\end{tabular}}} & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Performance\\ (Seconds)\end{tabular}}} \\ \hline
-                  
-\textbf{LIME}     & \begin{tabular}[c]{@{}l@{}}saliency text LIME\\ more text\\ more text\end{tabular}     
-& \begin{tabular}[c]{@{}l@{}}consistency text LIME\\ more text\\ more text\end{tabular}         
- & \begin{tabular}[c]{@{}l@{}}performance text LIME\\ more text\\ more text\end{tabular}         \\ \hline
-\textbf{SHAP}     &                                                                                        &                                                                                                &                                                                                               \\ \hline
-\textbf{DeepLIFT} &                                                                                        &                                                                                                &                                                                                               \\ \hline
-\textbf{GradCAM}  &                                                                                        &                                                                                                &                                                                                               \\ \hline
+\begin{table}[h]
+\begin{tabular}{l|l|l|l|}
+\cline{2-4}
+                                        & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Saliency (IOU, IOU*)\\    (Section \ref{sec:saliency_insights})\end{tabular}}} & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Consistency\\ (Section \ref{sec:consistency})\end{tabular}}} & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Performance\\ (Section \ref{sec:perform})\end{tabular}}} \\ \hline
+\multicolumn{1}{|l|}{\textbf{LIME}}     & \begin{tabular}[c]{@{}l@{}}Low IOU; High IOU* \\ explained by super pixel \\ weighting\end{tabular}                    & \begin{tabular}[c]{@{}l@{}}Poor over the \\ sample; Unstable\end{tabular}                           & \begin{tabular}[c]{@{}l@{}}Very slow for all \\ three models\end{tabular}                       \\ \hline
+\multicolumn{1}{|l|}{\textbf{SHAP}}     & \begin{tabular}[c]{@{}l@{}}High IOU; Failed on \\ other models; \\ Visually salient\end{tabular}                       & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Moderate speed; \\ incomplete results\end{tabular}                   \\ \hline
+\multicolumn{1}{|l|}{\textbf{DeepLIFT}} & \begin{tabular}[c]{@{}l@{}}High IOU and IOU*;\\ Failed on other models; \\ Noisy\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Fast; results also \\ incomplete\end{tabular}                        \\ \hline
+\multicolumn{1}{|l|}{\textbf{GradCAM}}  & \begin{tabular}[c]{@{}l@{}}Average IOU and \\ IOU*; Visually salient\end{tabular}                                      & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence \\ and across models\end{tabular}     & \begin{tabular}[c]{@{}l@{}}Guided-GradCAM\\  = very slow; \\ Grad-CAM = fast\end{tabular}       \\ \hline
 \end{tabular}
+\caption{Summary of quantitative evaluation results.}
+
 \end{table}
 
 \subsection{Qualitative}
-
-
-% LIME performance heavy num_samples parameter
-
-
-
-
-
-
-Discuss developed software novelty
 
 
 
