@@ -14,7 +14,7 @@ This chapter includes the saliency metric and qualitative results from testing t
 \section{Results Overview}
 
 \subsection{Sample Sizes}  \label{sec:data_collection}
-A set of 300 attributions for the full method panel took around 10 hours to collect and evaluate using a Nvidia GTX-1080 GPU. LIME was thought to be a key bottleneck due to its perturbation-based approach, but analysis in Section \ref{sec:perform}. After several hundred attributions the process also became very slow and would have to be restarted from that point (possibly due to a GPU memory leak in method internals). These performance considerations meant only 1000 instances out of 50,000 available in the validation set were used for evaluation. This was at least the same 1000 instances for all methods, and different dimensions were added to generate insights regardless: different attribution thresholds, and subsetting the results for high confidence (p $>0.9$) vs low confidence model predictions.
+A set of 300 attributions for the full method panel took around 10 hours to collect and evaluate using a Nvidia GTX-1080 GPU. LIME was thought to be a key bottleneck due to its perturbation-based approach, but analysis in Section \ref{sec:perform} showed GradCAM was also slow in attribution. After several hundred attributions the process also became very slow and would have to be restarted from that point (possibly due to a GPU memory leak in method internals). These performance considerations meant only 1000 instances out of 50,000 available in the validation set were used for evaluation. This was at least the same 1000 instances for all methods, and different dimensions were added to generate insights regardless: different attribution thresholds, and subsetting the results for high confidence (p $>0.9$) vs low confidence model predictions.
 
 \subsection{Software Availability}
 
@@ -99,7 +99,7 @@ A surprising insight is that GradCAM performed much worse than LIME for a 100-in
 
 \newpage
 \subsection{Consistency}
-Some analysis is provided below on consistency across attributions. Table \ref{consistencytable} lists standard deviations for the method panel from the 1000-instance experiment (error bars in \ref{vggAfig}):
+Some analysis is provided below on consistency across attributions. Table \ref{consistencytable} lists standard deviations for the method panel from the 1000-instance experiment (error bars in Figure \ref{vggAfig}):
 
 \begin{table}[htbp]
 \centering

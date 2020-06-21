@@ -9,16 +9,23 @@
 
 \chapter{Discussion}
 
-\section{Strengths \& Limitations of Saliency Metrics}
+\section{Strengths \& Limitations of Metric-based Evaluation}
 
-There are a plethora of considerations around the design of proxy metrics for explanation quality. Some of these considerations are obvious, and have been mentioned by others:
+There are a plethora of considerations around the design of proxy metrics for explanation quality. Some of these observations, ranging from obvious to more subtle, have been made in the prior art and were empirically confirmed:
 \begin{itemize}
 \item Human perception of explanation quality is difficult to quantify and is an active area of research (\ref{adebay}).
-\item 
+\item Errors of the method are not easy to distinguish from errors of the model \textbf{(cite)}.
+
 \end{itemize}
 
 
-Other considerations are novel and were realised over the course of this project:
+Other novel conclusions were made however:
+
+Method evaluation should account for localisation vs discriminative abilities of the method - a single localisation metric and a single pixel-wise metric are not . A more refined saliency metric may be able to account for connected components, edges and pixel-wise attribution intensity.
+
+A set of higher level criteria, including Adebayo's randomisation-based sanity checks, implementation invariance as well as lower level, functionally-grounded saliency metrics, would be the fairest way to compensate for the subjectivity  of a single measure of explanation quality.
+
+In a context where the underlying model predictions are constant for a panel of methods, as in this project, this can be somewhat controlled for.
 
 % Rethinking the inception architecture for computer vision
 
