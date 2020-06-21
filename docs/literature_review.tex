@@ -341,11 +341,6 @@ One problematic point they emphasise though is that non-performing saliency meth
 
 \subsection{Existing Criteria} \label{sec:existing_criteria}
 
-% Table: Sensitivity-N, Implementation Invariance
-
-
-% sundarajan et al. (2017)
-
 \subsubsection{Saliency Metrics (Quantitative Approach)}
 
 Some method authors however have made an effort to account for regions in method evaluation. In particular, `weakly supervised object localisation' (WSOL) has been the technique used for evaluating saliency maps via bounding boxes derived from a segmentation algorithm (in natural image classification settings). It was first applied by Simonyan et al. (2014) while introducing the original saliency maps method (Section \ref{sec:gradient}) \cite{saliencyII} . Those authors used a colour segmentation algorithm on thresholded saliency maps, found bounding boxes on the segmented regions, and then submitted their annotations to an ILSVRC-2103 localisation challenge where they out-performed many fully supervised algorithms. 
@@ -367,13 +362,23 @@ Independently of the explainability literature, pixel-wise mask-based metrics ha
 
 \subsubsection{Higher Level Criteria (Qualitative Approach)}
 
-Some authors sidestep the functionally-grounded approach to method evaluation to suggest ``axioms'' that fall more under the human-grounded paradigm. These criteria are summarised in Table 1.X from lower to higher level criteria:
+Some authors sidestep the functionally-grounded approach to method evaluation to suggest ``axioms'' that are more theoretical in motivation. Table \ref{criteria_table} summarises prominent criteria in the literature, which are all related to \textit{invariance} properties that an ideal method should have to be internally consistent:
 
-consistency between models
-input invariance
+\begin{table}[h]
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Criteria}                                                             & \textbf{Authors}                                                                                  & \textbf{Description \& Insights}                                                                                                                                                                                                                                                                                                         \\ \hline
+\textbf{Robustness}                                                           & \begin{tabular}[c]{@{}l@{}}Alvarez-Melis \& \\ Jaakola (2018), \\ \cite{robustness}\end{tabular} & \begin{tabular}[c]{@{}l@{}}Methods should be invariant to small \\ changes in the input. Model-agnostic, \\ perturbation-based methods are shown to \\ be more prone to instability in input than \\ gradient-based ones.\end{tabular}                                                                                                   \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}Input \\ Invariance\end{tabular}}          & \begin{tabular}[c]{@{}l@{}}Kindermans et \\al. (2017), \cite{kindermans}\end{tabular}           & \begin{tabular}[c]{@{}l@{}}Methods should be invariant to small \\ shifts/transformations in the input, \\ where the model’s prediction and output \\ weights are unchanged. Common methods\\  like LRP and Integrated Gradients \\ (Sections \ref{sec:backprop}, \ref{sec:gradient}) are shown to fail \\ the criteria.\end{tabular} \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}Implementation \\ Invariance\end{tabular}} & \begin{tabular}[c]{@{}l@{}}Sundarajan et \\ al. (2017), \cite{integrated}\end{tabular}            & \begin{tabular}[c]{@{}l@{}}(Creators of Integrated Gradients)\\ Attributions should be identical for two \\ ``functionally equivalent’’ models: where \\ the inputs and outputs are all equal \\ (though where internal implementations \\ may differ). They show that DeepLIFT \\ and LRP fail the criteria.\end{tabular}               \\ \hline
+\end{tabular}
 
+\caption{Three invariance properties developed for attribution methods.}
+\label{criteria_table}
 
-Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for model flexibility as a strong criteria for explanation technique usability \cite{case_for_model_ag}. When comparing a tree-based model with a deep learning model, for example, neither a practitioner nor a researcher can get a fair idea of interpretability if two explanations are different in representation on account of different attribution methods. The observation by Ancona et al. (2017) that more complex architectures are not explained as well by current model-specific techniques also supports this argument (Section \ref{sec:existing_studies}) \cite{ancona}.
+\end{table}
+
+Across in the model-agnostic literature, Ribeiro et al. (2016) have made the case for model flexibility as a strong criteria for explanation technique usability \cite{case_for_model_ag}. When comparing a tree-based model with a deep learning model, for example, neither a practitioner nor a researcher can get a fair idea of interpretability if two explanations are different in representation on account of different attribution methods. The observation by Ancona et al. (2017) that more complex architectures are not explained as well by current model-specific techniques also supports this argument (Section \ref{sec:existing_studies}) \cite{ancona}.
 
 % gradcam paper "What makes a good visual explanation?"
 
@@ -412,12 +417,12 @@ Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for m
 
 \subsection{Existing Software Packages}
 
-There are existing frameworks on researcher GitHubs that offer practitioners and researchers a panel of attribution methods to choose from. 
-Ancona et al. (2017) developed a software package called \textit{DeepExplainer} to support their unified framework \cite{deepexplainerrepo}. It implements a suite of the methods they showed relationships between: Saliency Maps, Gradient * Input, Integrated Gradients, DeepLIFT and Occlusion (Section \ref{sec:modelspec}). It provides abstraction over these methods with some parameter specification allowed: .
+There are existing frameworks on researcher GitHubs that offer practitioners and researchers a panel of attribution methods in one place. 
+Ancona (2019) maintains a software package called \textit{DeepExplain} \cite{deepexplainerrepo} to support the framework described in Section \ref{sec:existing_studies}. It implements a suite of the methods they showed relationships between: Saliency Maps, Gradient * Input, Integrated Gradients, DeepLIFT and Occlusion (Section \ref{sec:modelspec}). It also provides abstraction over these methods with some optional parameter specification to override defaults.
 
-Aimed at practitioners for auditing their models for bias, \textit{FairML} was developed by Adebayo (2017) \cite{fairml}. This package
+For model-agnostic techniques, \textit{Skater} is a popular framework that combines fully black-box explanation techniques \cite{skater}. For perturbation-based techniques, Fong \& Vedaldi (2019) publicly released \textit{TorchRay} to initially support the mask generation technique described in Section \ref{sec:otherms}, though it has since become a research-oriented reproducibility contribution that implements methods from other papers \cite{torchray}.
 
-There are no explanation frameworks for collecting both model-agnostic and model-specific techniques for saliency maps. These software packages are also typically combining only a few methods from one approach, particularly the gradient-based methods and their derivatives. Additionally, no software evaluation framework for WSOL-based saliency metric evaluation is known to be available.
+There are no known software frameworks that specifically aim to collect both model-agnostic and model-specific saliency maps. Including those just listed, existing software packages typically combine only a few methods from one approach. The gradient-based methods and their derivatives are implemented in many packages on account of their popularity, for example, but no known packages include gradient-based, model-agnostic and perturbation-based techniques. Additionally, no software evaluation framework for WSOL-based saliency metric evaluation is known to be available.
 
 %TreeExplainer repo??
 
