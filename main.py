@@ -45,11 +45,8 @@ def attribute_panel_wrapper(model_name: str):
 
 
 def evaluate_panel_wrapper(metric: str, model: str):
-    evaluator = Evaluator(metric=INTERSECT, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(1, 101)))
-
-    evaluator = Evaluator(metric=INTENSITY, model_name=model)
-    evaluator.collect_panel_result_batch(list(range(1, 101)))
+    evaluator = Evaluator(metric=metric, model_name=model)
+    evaluator.collect_panel_result_batch(list(range(71, 101)))
 
 
 def evaluator_wrapper(method: str, model: str):
@@ -60,7 +57,7 @@ def evaluator_wrapper(method: str, model: str):
 
     metric = INTERSECT
     evaluator = Evaluator(metric=metric, model_name=model)
-    evaluator.collect_result_batch(method, range(1, 101))
+    evaluator.collect_result_batch(method, range(81, 101))
 
 
 def annotator_wrapper():
@@ -75,16 +72,23 @@ def model_tester():
     print(len(good_examples))
 
 
-def overnighter():
+def performance_timer():
     # performance timing
-    for method in [LIFT, GRAD, LIME]:
-        for model in MODELS:
+    for model in [INCEPT]:
+        att = Attributer(model)
+        for method in [GRAD]:
             print('Performance test for {} and {}:'.format(method, model))
-            attributer_wrapper(method, model)
-    attributer_wrapper(SHAP, VGG)
+            start_time = time.time()
+            for i in range(1, 101):
+                ih = ImageHandler(img_no=i, model_name=model)
+                att.attribute(ih=ih,
+                              method=method,
+                              save=False, visualise=False,
+                              take_threshold=False, take_absolute=False,
+                              sigma_multiple=1)
+            print('{} total seconds for {}'.format(str(time.time() - start_time), method))
+
     # evaluation on other models
-    for model in [RESNET, INCEPT]:
-        evaluate_panel_wrapper('', model)
 
 
 def print_confident_predictions(att: Attributer, model_name: str, experiment_range: list):
@@ -156,18 +160,19 @@ def demo_evaluate(img_nos: list = None, att: Attributer = None, metric: str = No
     evaluator.collect_panel_result_batch(img_nos)
 
 
-def analyser_wrapper(filter: str = ''):
-    filter_high_confidence = False
+def analyser_wrapper(model: str, filter: str = ''):
+    filter_high_confidence = True
     if filter == 'filter':
         filter_high_confidence = False
-    metrics = [INTENSITY]
-    methods = METHODS
-    analyser = Analyser(model_name=VGG,
+    metrics = [INTERSECT, INTENSITY]
+    methods = [LIFT, GRAD, LIME]
+    analyser = Analyser(model_name=model,
                         metrics=metrics,
                         methods=methods,
                         filter_high_confidence=filter_high_confidence)
     #analyser = Analyser(model_name=INCEPT, methods=[LIME, GRAD], metrics=[INTERSECT])
     analyser.view_panel_results()
+    #analyser.view_panel_performance_results()
 
 
 def repl_wrapper():
@@ -201,13 +206,10 @@ def repl_wrapper():
 
 
 if __name__ == "__main__":
-    overnighter()
-    sys.exit()
+    #performance_timer()
+    #sys.exit()
     if sys.argv[1] == 'repl':
         repl_wrapper()
-        sys.exit()
-    if sys.argv[1] == 'analyse':
-        analyser_wrapper()
         sys.exit()
     if sys.argv[1] == 'demo_attribute':
         demo_attribute()
@@ -216,6 +218,11 @@ if __name__ == "__main__":
         annotator_wrapper()
         sys.exit()
     # 'evaluate_panel' command line option
+    if sys.argv[1] == 'analyse':
+        if sys.argv[2] not in MODELS:
+            print('Unrecognised model: {}'.format(sys.argv[3]))
+        analyser_wrapper(sys.argv[2])
+        sys.exit()
     if sys.argv[1] == 'evaluate_panel':
         if len(sys.argv) != 4:
             print('Usage: main evaluate_panel <metric>[intersect|intensity] <model>[vgg16|inception]')

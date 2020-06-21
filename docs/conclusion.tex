@@ -20,18 +20,23 @@ This project was not a theoretical contribution to unifying methods available in
 \item model-specific methods are not necessarily more discriminative, though may be much more performant.
 \item Methods developed for neural network architectures can perform as well as CNN-specific methods; and with easier therefore easier adaption;
 \end{itemize}
-%"Invariances in explanation methods give a concrete way to rule out the adequacy of the method for certain tasks. We primarily focused on invariance under model randomization, and label randomization. Many other transformations are worth investigating and can shed light on various methods we did and did not evaluate. Along these lines, we hope that our paper is a stepping stone towards a more rigorous evaluation of new explanation methods, rather than a verdict on existing methods.
+%%"Invariances in explanation methods give a concrete way to rule out the adequacy of the method for certain tasks. We primarily focused on invariance under model randomization, and label randomization. Many other transformations are worth investigating and can shed light on various methods we did and did not evaluate. Along these lines, we hope that our paper is a stepping stone towards a more rigorous evaluation of new explanation methods, rather than a verdict on existing methods.
 
 
 \chapter{Conclusions}
 
 \section{Contribution}
-Project aims
+There are broad motivations for interpretability in modern machine learning, and overlapping views in the literature for not only what a `quality' explanation should like but also what an explanation should target (i.e. activations, gradients or occluded inputs). As well as the various motivations, even for a single model's prediction, the range of human understandable and visually salient explanations possible  explains the difficulty of finding practical criteria for interpretability.
 
-\section{Limitations}
+Importantly this thesis did \textit{not} seek to address this almost philosophical problem. As well as this, the intention was not to provide a verdict on methods themselves. The project's aims were to independently provide an evaluation of diverse feature attribution methods in the image classification context, using a \textit{common} set of criteria. Along with the developed testing framework, this was to improve \textit{task-suited} adoption of interpretability techniques, via better understanding of their practical considerations, rather than improving any theoretical understanding.
+
+Researchers and practitioners who wish to understand pieces of their model's complexity will gain a more thorough understanding of each piece with methods from different approaches. The multi-angle contribution therefore helps achieve higher confidence in model explanation techniques generally, and helps support their adoption in important applications like prediction debugging in medicine and medical imaging.
 
 \section{Future work}
 
+increasing the breadth of supported methods, adding higher level support for adding new saliency metrics, 
+
+New datasets, 
 
 
 \end{document}

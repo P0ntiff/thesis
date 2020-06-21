@@ -39,14 +39,25 @@ In a context where the underlying model predictions are constant for a panel of 
 
 %Explanation consistency, performance, 
 
-\section{Obstacles}
 
-There was some disappointment around the bugs in SHAP's implementation that meant it couldn't be applied as easily to more complicated model architectures like . Other practitioners and researchers have noted similar difficulties in the GitHub issue list for the software package \cite{shaprepo}.
+\section{Comparing Approaches}
+Backpropagation techniques require custom backward functions that override activation functions and gradient operators. This gives them implementation complexities for models with many \textit{types} of layer: this was previously mentioned as an explanation for DeepLIFT's poor performance on InceptionV3 and ResNet50 (Section \ref{saliency_insights}).
 
+For GradCAM on the other hand, targeting only the final convolutional layer gives it a strength over others: it does not depend on complexity in earlier layers. Its limitation is that it can only be implemented for convolutional neural networks, therefore solely dominant in image-based tasks or other applications of that architecture. Other less implementation-dependent methods in the gradient class include Gradient * Input and SmoothGrad.
+
+Perturbation techniques, including LIME but also those proposed by Fong \& Vedaldi \cite{perturb_fong} (`mask generation') and Zeiler \& Fergus (2014) \cite{zeilerfergus2013} ('Occlusion') have a very clear interpretation in what they iteratively reveal. However, the requirement to test a large number of small, progressively increasing occlusion patches was shown to suffer bad performance even on ``simpler'' architectures like VGG16. For modern, more complex architectures, perhaps those trained on higher resolution images or taking longer to compute a single prediction, the performance may make the method completely unviable, unless a very small number of explanations are required. The strength of LIME and the perturbation approach generally is its `off the shelf' ease of adoption, which is true for practitioners and researchers working on \textit{any} classification task.
+
+\section{Obstacles \& Methodology Limitations}
+
+There was some disappointment around the bugs in SHAP's implementation that meant it couldn't be applied to more complicated model architectures than VGG16. Other practitioners and researchers have noted similar difficulties in its GitHub issue list \cite{shaprepo}.
+
+There was also some regret around saliency metrics being limited to the intuition based on pixel-wise attribution. The implicit procedure in the project's methodology was to ``massage'' attribution method outputs into a discriminative common form. This may have compromised or misrepresented the methods where a divergence from the authors' intent occurred (i.e. super-pixels for LIME, heatmaps for GradCAM). It would have been fairer analysis to critique them on their own criteria (i.e. localisation of bounding boxes for GradCAM) \textit{as well as} the saliency metrics and qualitative criteria used in this project. This would also have formed a positive contribution towards reproducibility.
 
 \section{Software Framework}
 
+Existing software packages combine only gradient-based methods, or single methods. This extra explanation firepower can be largely redundant when some method outputs are so strikingly similar (e.g. Figure \ref{adebayoimg} in Related Work). A strong contribution of this project was to combine different approaches and offer a more diverse set of explanations for image data, to overall offer a better explanation for any one instance. For example, Figures \ref{panelimg} and \ref{panel2img} in the Methodology highlight very different input space features for even a single model's prediction.
 
+Modular support for attribution methods and evaluation metrics was achieved through the object-oriented approach to the testing framework (Figure \ref{flow_image} in the Methodology).
 % pluggable support for attribution methods
 
 

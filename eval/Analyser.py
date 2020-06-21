@@ -54,16 +54,19 @@ class Analyser:
             metrics = ['IOU']
         else:
             metrics = ['IOU', 'IOU*']
-        width = 0.5
+        width = 0.4
         ind = np.arange(len(self.methods)) + width
         plt.figure(figsize=(6, 5))
+        print(self.method_std_deviations)
+        print(self.method_means)
         for i, metric in enumerate(self.metrics):
             method_means = tuple(mean for method, mean in self.method_means[metric].items())
             method_vars = tuple(var for method, var in self.method_std_deviations[metric].items())
+            print(method_vars)
             #plt.bar(ind + width * (i - 1), method_means, width, label=metric)
             plt.bar(x=ind + width * (i - 1),
                     height=method_means, width=width,
-                    yerr=method_vars, label=metrics[i], align='center', color='orange')
+                    yerr=method_vars, label=metrics[i], align='center')
         plt.ylabel('Mean IOU')
         title = ', '.join(metrics) + ' results for ' + ', '.join(self.methods)
         plt.title(title)
@@ -73,15 +76,23 @@ class Analyser:
 
     def view_panel_performance_results(self):
         # quick function for report figure
-        width = 0.5
+        width = 0.2
         ind = np.arange(len(self.methods)) + width
-        # timed from wrapper function
-        performances = [1.5, 2.1, 3.2, 4.1, 5.1]
-        plt.figure(figsize=(12, 10))
-        plt.bar(x=ind,
-                height=performances, width=width,
-                align='center')
+        # timed from performance_timer() wrapper function in main.py
+        performances = {VGG: {LIFT: 10.511, GRAD: 134.022, LIME: 1953.65, SHAP: 509.12},
+                        INCEPT: {LIFT: 78.33, GRAD: 6172.73, LIME: 3530.83, SHAP: 0},
+                        RESNET: {LIFT: 408.77, GRAD: 2143.93, LIME: 1779.88, SHAP: 0}
+                        }
+        plt.figure(figsize=(6, 5))
+        for i, model in enumerate(MODELS):
+            times = tuple(t for method, t in performances[model].items())
+            #plt.bar(ind + width * (i - 1), method_means, width, label=metric)
+            plt.bar(x=ind + width * (i - 1),
+                    height=times, width=width,
+                    label=model)
         plt.ylabel('Seconds')
-        plt.title('Performance on 100 attributions')
+        plt.title('Performance on 100 attributions for VGG16, InceptionV3 and ResNet50')
         plt.xticks(ticks=ind - width, labels=tuple(self.methods))
+        plt.legend(loc='best')
+
         plt.show()

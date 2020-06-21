@@ -139,7 +139,7 @@ class Attributer:
                                                          visualise=visualise, save=save)
         return output_attributions
 
-    def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None, print_debug: bool = False):
+    def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None, print_debug: bool = True):
         """Top level wrapper for collecting attributions from each method. """
         if print_debug:
             print('Collecting attribution for `{}`'.format(method))

@@ -20,16 +20,16 @@ A major difficulty of this project was distilling the broad literature on these 
 
 This categorisation is based on two recent papers that make similar categorisations of explanation approaches  \cite{deeplift} \cite{patternnet}. In this chapter a broad selection of methods based on traction over time, current popularity and representativeness of approach are described, though the reader should note there are more methods under each of those three than have been described here.
 
-For model-agnostic methods, perturbation-based and other miscellaneous approaches are considered. Again the selection was based on traction and literature popularity.
+For model-agnostic methods, perturbation-based and other miscellaneous approaches are considered. The selection was again based on traction.
 
-First reviewed are traditional, visual approaches to interpretability to provide context to the task of feature attribution. After the exploration of feature attribution methods, a review of existing evaluation metrics and comparison studies is provided.
+First reviewed are traditional, visual approaches to interpretability to provide context to the task of feature attribution. After exploring feature attribution methods, an extensive review of existing comparison studies, evaluation metrics and software frameworks is provided.
 
 \subsection*{Terminology}
 All methods are variously referred to as \textit{attribution} methods in this project for any projection on the input space that highlights relevant features. Adebayo et al. (2018) instead refer to the broad category of ``[...] visualisation and attribution methods aimed at interpreting trained models'' as \textit{saliency} methods, particularly in the context of image data \cite{sanity}. Including by those authors, a \textit{saliency map} is widely used as a catch-all term to refer to input space projections (individual explanations) in the context of interpreting deep neural networks for image data. However they also refer to a specific gradient-based method (Section \ref{sec:gradient}). 
 
-Consensus on terminology is relatively lacking. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature (i.e. excluding higher level `patterns' which cause neuron activations, as in Zeiler \& Fergus (2013) (\cite{zeilerfergus2013}), (Section \textbf{X}) or the back-propagation class generally). 
+Consensus on terminology is relatively lacking. Some researchers (\cite{patternnet}) describe attribution methods as a subclass of explanation techniques where contribution scores are specifically calculated for each input feature (i.e. excluding higher level `patterns' which cause neuron activations, as in Zeiler \& Fergus (2013) \cite{zeilerfergus2013} or the back-propagation class generally). 
 
-In summary, attribution methods is used in this report as a general term for explanation methods. Saliency maps, explanations and attributions are all interchangeably used for any attribution method's output.
+In summary, attribution method is used in this report as a general term. Saliency maps, explanations and attributions are all interchangeably used for any attribution method's output.
 
 % also sensitivity map or pixel attribution map as by SmoothGrad
 
@@ -203,7 +203,7 @@ In parallel to the literature aimed at explaining neural network model behaviour
 
 
 \subsection{Perturbation-Based} \label{sec:perturbag}
-Described in Section \ref{sec:otherms}, perturbing the input space (by toggling feature patches) is one way to isolate model behaviour. Changes in output score reveal importance in the occluded inputs. Several methods implement this intuition by training ``surrogate'', interpretable models around the isolated features that are locally relevant to a single prediction. These include Local Interpretable Model-Agnostic Explanations (LIME) \cite{lime}, Anchors \cite{anchors} and similar variants \cite{local}.
+AS described in Section \ref{sec:otherms} perturbing the input space by toggling feature patches is one way to isolate model behaviour. Changes in output score reveal importance in the occluded inputs. Several methods implement this intuition by training ``surrogate'', interpretable models around the isolated features that are locally relevant to a single prediction. These include Local Interpretable Model-Agnostic Explanations (LIME) \cite{lime}, Anchors \cite{anchors} and similar variants \cite{local}.
 
 \subsubsection{LIME}
 LIME's authors propose that non-linear, complex decision boundaries can be approximated locally around a single prediction via a simpler model that only relies only on the ``neighbourhood'' of the relevant input space \cite{lime}. 
@@ -233,7 +233,7 @@ Though these anchor rules are highly interpretable, code available from the auth
 
 \subsubsection{SHAP Framework} 
 
-Many methods have been listed so far and a reader may be fatigued of the variety. The SHAP framework (SHapley Additive exPlanations) by Lundberg \& Lee (2017) was a push-back on this issue of method proliferation, showing links between many existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability due to its attractive formal properties and `outsider' formulation, as well as its implementation approximations for many model families and a well-maintained GitHub repository to host those implementations\footnote{The SHAP paper has over 1000 citations and its GitHub has over 9000 `stars' at the time of writing \cite{shaprepo}, despite only being published in late 2017.}.
+Many methods have been listed so far. The SHAP framework (SHapley Additive exPlanations) by Lundberg \& Lee (2017) was a push-back on this issue of method proliferation, showing links between many existing methods with a theoretical approach from game theory \cite{shap}. It has become extremely popular among researchers from all sub-fields in interpretability due to its attractive formal properties and `outsider' formulation, as well as its implementation approximations for many model families and a well-maintained GitHub repository to host those implementations\footnote{The SHAP paper has over 1000 citations and its GitHub has over 9000 `stars' at the time of writing \cite{shaprepo}, despite only being published in late 2017.}.
  
 The game theoretic concept of Shapley values are a unique solution to the problem of calculating fair, marginal per-player rewards for the reward earned collectively in a cooperative game \cite{shapley}. Since each player's contribution may produce interaction effects with others, they are calculated by averaging contributions in all possible sub-coalitions of players. In the context of machine learning, if features are taken as players, the method can be applied to a prediction (the ``payoff'') and it retains its per-player theoretical properties. These qualities include \textit{efficiency}, which is that the sum of \textit{p} constituent input feature contributions (Shapley value $\phi_{j}$ for a feature \textit{j}) must equal the difference between a prediction of an input \textit{x} ($\widehat{f}_{x})$ and an average for all inputs (an `expectation' of model output $E_X(\widehat{f}(X))$):
 \begin{align}
@@ -254,21 +254,35 @@ SHAP values are an implementable version of Shapley values. They connect Shapley
 
 \section{Evaluation of Attribution Methods}
 
-Creators of feature attribution methods tend to provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that qualitative evaluation is often left to the reader, who is encouraged to infer the author's saliency maps are either equal in standing or more aesthetically pleasing than another method's.
+Creators of feature attribution methods tend to provide visual comparisons with existing methods, as for example in Figure \ref{comparisonimg}. An issue is that qualitative evaluation is implicitly left to the reader, who is encouraged to infer the author's saliency maps are either equal in standing or more aesthetically pleasing than another method's.
 
-Lack of evaluation \textit{independent} of method creators is another issue. Introduced methods do often suggest their own interpretability criteria, though with little reference to criteria in the prior art, and so the interpretability field's agreement on desirable standards for interpretability is low. To some extent, the proliferation in attribution methods (mostly variants) can be attributed to these unfortunately subjective and still actively researched desiderata.
+Method creators \textit{do} often suggest their own interpretability criteria, though this is done with little reference to criteria in the prior art. The interpretability field's agreement on implementable standards for interpretability is therefore low. To some extent, the proliferation in attribution methods and variants can be attributed to these unfortunately subjective and still actively researched standards. In summary, two unresolved problems in interpretability research can be thought of as agreement on desiderata for interpretability, and lack of evaluation on any criteria \textit{independent} of method creators. This thesis does not seek to tackle the first issue though makes a contribution in the form of saliency metrics. The main contribution is towards increasing independent understanding on common criteria.
 
-There have however been efforts to unify existing methods. SHAP's momentum in the literature can somewhat be explained by its ability to show how existing methods are related and that it demonstrates where one can be preferable. This research section therefore aims to:
+Existing efforts to independently compare and unify methods are listed here. The SHAP framework can be thought of as one example as it shows how existing methods are related and that it demonstrates where one can be preferable. This research section therefore aims to:
 
 \begin{enumerate}
 
-\item Overview attempts like SHAP that have independently evaluated methods and performed `unification' or comparison studies;
-\item Examine existing evaluation criteria that method authors have independently proposed, and;
+\item Overview attempts like SHAP that have independently evaluated methods, performed `unification' or comparison studies, or independently proposed desiderata for interpretability. This includes theoretical and practical standpoints.
+\item Examine criteria that method authors have themselves proposed.
 \item Describe existing software for generating explanations, that package several methods for visual comparison for use by researchers and practitioners.
 
 \end{enumerate}
 
 \subsection{Existing Studies} \label{sec:existing_studies}
+
+\subsubsection{The Mythos of Model Interpretability \cite{lipton}}
+An early, widely-cited contribution towards common interpretability criteria was made by Lipton (2016) to ``define the discourse on interpretability'' \cite{lipton}. The proposed criteria were high level, coming from the view that different motivations for interpretability are what cause the many different interpretations of the word:
+
+\begin{enumerate}
+\item \textbf{Trust:} We should care about not just ``how often a model is right, but also for which examples it is right''.
+\item \textbf{Causality:} Does the model show cause-and-effect reasoning?
+\item \textbf{Transferability:} Does the model generalise well?
+\item \textbf{Informativeness:} What contribution does the model make towards increasing understanding of the application domain?
+\item \textbf{Fair \& Ethical Decision Making:} Can we show the model's decisions conform to ethical standards?
+\end{enumerate}
+
+Though it did help shape discourse by defining motivations for interpretability, the criteria are too high level to be useful for comparing one feature attribution method's output to another's.
+
 \subsubsection{Towards a Rigorous Science of Interpretable Machine Learning \cite{paradigms}}
 
 Doshi-Velez \& Kim (2017) provided an influential set of guidelines or ``evaluation paradigms'' for evaluating interpretability techniques, arranged in three levels of increasing abstraction \cite{paradigms}. This motivation was to provide a scientific basis for the different objectives in evaluation that method authors implicitly target (both qualitative and quantitative):
@@ -298,13 +312,14 @@ This paper by Adebayo et al. (2018), along with Lundberg \& Lee (2017) (SHAP's a
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.55]{adebayo_panel.png}
+\includegraphics[scale=0.6]{adebayo_panel.png}
 \caption{(From \cite{sanity}) The panel of methods examined by Adebayo et al. (2018), all previously discussed in Section \ref{sec:modelspec}. They highlight that an edge detector alone can produce a mask similar to the output of some methods.}
 \label{adebayoimg}
 \end{figure}
 
 
 The methodology proposed was a set of two statistical randomisation tests (`sanity checks'):
+\newpage
 
 \begin{enumerate}
 \item \textbf{Model Parameter Randomisation Test:} A misleading attribution method could be insensitive to model parameters, so an untrained version of the same model with random weights should not produce a similar saliency map.
@@ -320,8 +335,6 @@ One problematic point they emphasise though is that non-performing saliency meth
 %Evaluating neural network explanation methods using hybrid documents
 % https://arxiv.org/pdf/1801.06422.pdf
 
-% robustness
-% https://arxiv.org/abs/1806.08049
 
 % SHAP
 % "The thread of unity that SHAP weaves through the literature is an encouraging sign that common principles about model interpretation can inform the development of future methods."
@@ -331,7 +344,7 @@ One problematic point they emphasise though is that non-performing saliency meth
 % Table: Sensitivity-N, Implementation Invariance
 
 
-% sundarajan et al. (2017
+% sundarajan et al. (2017)
 
 \subsubsection{Saliency Metrics (Quantitative Approach)}
 
@@ -354,15 +367,13 @@ Independently of the explainability literature, pixel-wise mask-based metrics ha
 
 \subsubsection{Higher Level Criteria (Qualitative Approach)}
 
-Some authors sidestep the functionally-grounded approach to method evaluation and evaluate on higher level criteria. These proposed desiderata are summarised in Table 1.X, from lower to higher levels of abstraction:
+Some authors sidestep the functionally-grounded approach to method evaluation to suggest ``axioms'' that fall more under the human-grounded paradigm. These criteria are summarised in Table 1.X from lower to higher level criteria:
 
 consistency between models
 input invariance
-transferability
-trust
-fair and ethical decision making
 
-Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for model flexibility as a strong motivation for explanation technique usability \cite{case_for_model_ag}. When comparing a tree-based model with a deep learning model, for example, neither a practitioner nor a researcher can get a fair idea of interpretability if two explanations are different in representation on account of different attribution methods. The observation by Ancona et al. (2017) that more complex architectures are not explained as well by current model-specific techniques also supports this argument (Section \ref{sec:existing_studies}) \cite{ancona}.
+
+Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for model flexibility as a strong criteria for explanation technique usability \cite{case_for_model_ag}. When comparing a tree-based model with a deep learning model, for example, neither a practitioner nor a researcher can get a fair idea of interpretability if two explanations are different in representation on account of different attribution methods. The observation by Ancona et al. (2017) that more complex architectures are not explained as well by current model-specific techniques also supports this argument (Section \ref{sec:existing_studies}) \cite{ancona}.
 
 % gradcam paper "What makes a good visual explanation?"
 
@@ -399,13 +410,14 @@ Across in the model-agnostic camp Ribeiro et al. (2016) have made the case for m
 % https://arxiv.org/pdf/1611.05817.pdf
 
 
-\subsection{Existing Explanation Frameworks}
+\subsection{Existing Software Packages}
 
+There are existing frameworks on researcher GitHubs that offer practitioners and researchers a panel of attribution methods to choose from. 
 Ancona et al. (2017) developed a software package called \textit{DeepExplainer} to support their unified framework \cite{deepexplainerrepo}. It implements a suite of the methods they showed relationships between: Saliency Maps, Gradient * Input, Integrated Gradients, DeepLIFT and Occlusion (Section \ref{sec:modelspec}). It provides abstraction over these methods with some parameter specification allowed: .
 
 Aimed at practitioners for auditing their models for bias, \textit{FairML} was developed by Adebayo (2017) \cite{fairml}. This package
 
-There are no explanation frameworks for collecting both model-agnostic and model-specific techniques for saliency maps. Additionally, no automated method evaluation frameworks for WSOL-based evaluation are known to be available.
+There are no explanation frameworks for collecting both model-agnostic and model-specific techniques for saliency maps. These software packages are also typically combining only a few methods from one approach, particularly the gradient-based methods and their derivatives. Additionally, no software evaluation framework for WSOL-based saliency metric evaluation is known to be available.
 
 %TreeExplainer repo??
 

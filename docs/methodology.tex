@@ -31,7 +31,7 @@ This chapter is presented in order of project milestones achieved, from initial 
 \item \textbf{Metrics:} Pixel-wise and mask-based WSOL, extending related work in Section \ref{sec:existing_criteria}.
 \end{enumerate}
 
-These are described in more detail in Sections \ref{sec:data}, \ref{sec:model} and \ref{sec:metric} below respectively. Finally, to support the metric analysis, qualitative analysis was also performed, though this is left to the Results and Discussion chapters.
+These are described in more detail in Sections \ref{sec:data}, \ref{sec:model} and \ref{sec:metric} below respectively. Finally, to support the metric analysis, qualitative analysis was also performed, though these results are left to the following chapter.
 
 
 \section{Data Collection \& Annotation} \label{sec:data}
@@ -40,7 +40,7 @@ The ImageNet Large Scale Visual Recognition Challenge (ILSVRC) uses a subset of 
 
 This dataset was chosen because of the convenience of the bounding boxes for method evaluation, and the availability of models pre-trained on ImageNet. Images and bounding box XML files for all 50,000 instances in the 2012 validation set were acquired from an academically hosted torrent.
 
-Each bounding box file contains one or several annotations (several if there are multiple instances of a single class, e.g. Figure \ref{dataimg}), and each annotation contains the ImageNet class ID\footnote{These ImageNet `synsnet' IDs were converted to human-readable class labels using a script that connects to a standalone map of IDs to labels.} and \{\textit{x-min, x-max, y-min, y-max}\} fields for the box. 
+Each bounding box file contains one or several annotations (several if there are multiple instances of a single class, e.g. Figure \ref{dataimg}), and each annotation contains the ImageNet class ID and \{\textit{x-min, x-max, y-min, y-max}\} fields for the box\footnote{These ImageNet `synsnet' IDs were converted to human-readable class labels using a script that connects to a standalone map of IDs to labels.}.
 
 A script to draw rectangular annotations on the images was created to sanity check the acquired data. Example outputs are shown in Figure \ref{dataimg}.
 
@@ -151,7 +151,7 @@ Importantly, support for thresholding the attributions in terms of standard devi
 
 \section{Evaluation Metric Design} \label{sec:metric}
 
-Observed in Section \ref{sec:existing_criteria}, existing saliency metrics in the literature do not account for pixel-level saliency via feature weights, and the approach to generate bounding boxes via single-component segmentation can unfairly punish perforated-looking saliency maps. Figures \ref{panel2img} and \ref{panel3img} also show that the adapted method outputs are discriminatory and fine-grained, rather than localising and coarse-grained, which adds a further motivation for a more suitable metric than the connected-component approach for WSOL. The two metrics designed were both based on intersection-over-union though calculated over individual pixels rather than bounding boxes:
+In Section \ref{sec:existing_criteria} it was argued that existing saliency metrics in the literature do not account for pixel-level saliency via feature weights, and the approach to generate bounding boxes via single-component segmentation can unfairly punish perforated-looking saliency maps. Figures \ref{panel2img} and \ref{panel3img} also show that the adapted method outputs are discriminatory and fine-grained, rather than localising and coarse-grained, which adds a further motivation for a more suitable metric than the connected-component approach for WSOL. The two metrics designed were both based on intersection-over-union though calculated over individual pixels rather than boxes:
 
 \begin{enumerate}
 \item \textbf{Pixel-wise IOU:} A mask of the instance's ground truth bounding box is compared with the 2D array of each method's saliency map (example in Figure \ref{iou_example_img}). Weights are ignored and pixels are counted as intersecting if they have a value in both arrays. The intersection array's area is divided by the union array's area to generate the result.
@@ -203,7 +203,7 @@ The descriptions in Sections \ref{sec:sw1}, \ref{sec:sw2} and this section of th
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.6]{program_flow.png}
-\caption{High-level flow diagram of testing software.}
+\caption{High-level flow diagram of testing framework.}
 \label{flow_image}
 \end{figure}
 

@@ -9,29 +9,29 @@
 \chapter{Results \& Insights}
 
 
-This chapter includes the saliency metric and qualitative results from testing the method panel on ImageNet data and pre-trained CNN models. Insights on each method are compared with existing insights in the literature and summarised at the end of the chapter.
+This chapter includes saliency metric and qualitative results from testing the method panel on ImageNet data and pre-trained CNN models. Insights on each method are compared with existing insights in the literature and summarised at the end of the chapter.
 
-\section{Results Overview}
+\section{Experiment Notes}
 
 \subsection{Sample Sizes}  \label{sec:data_collection}
 A set of 300 attributions for the full method panel took around 10 hours to collect and evaluate using a Nvidia GTX-1080 GPU. LIME was thought to be a key bottleneck due to its perturbation-based approach, but analysis in Section \ref{sec:perform} showed GradCAM was also slow in attribution. After several hundred attributions the process also became very slow and would have to be restarted from that point (possibly due to a GPU memory leak in method internals). These performance considerations meant only 1000 instances out of 50,000 available in the validation set were used for evaluation. This was at least the same 1000 instances for all methods, and different dimensions were added to generate insights regardless: different attribution thresholds, and subsetting the results for high confidence (p $>0.9$) vs low confidence model predictions.
 
 \subsection{Software Availability}
 
-Code for the project is available on GitHub and is intended to be made public after improving the existing model agnosticity for practitioners as well as cleaning up dependencies and file structures. The framework has modular support for attribution methods provided they are compatible with image data and return an input-space representation of their explanation, and modular support for other saliency metrics as mentioned in Section \ref{sec:sw3}.
+Code for the testing framework is available on GitHub and is intended to be made public after improving the existing model agnosticity for practitioners and cleaning up dependencies and file structures. The framework has modular support for attribution methods provided they are compatible with image data and return an input-space representation of their explanation, and modular support for other saliency metrics.
 
 
-\subsection{Other Model Testing} \label{sec:shap_note}
+\subsection{Testing on Multiple Architectures} \label{sec:shap_note}
 
-Some limitations were encountered on SHAP for ResNet50 and InceptionV3 architectures. Other methods were successfully tested on other models with results below, though the bug in SHAP was not resolved in time for project completion. The impact of this obstacle is discussed.
+Some limitations were encountered on SHAP for ResNet50 and InceptionV3 architectures. Other methods were successfully tested on other models with results below, though the bug in SHAP was not ultimately resolved. The impact of this obstacle is discussed in Section \ref{sec:compatibility}.
 
 \section{Saliency Metric Results}
 \subsection{VGG-16} \label{sec:vggExp}
 
-Figure \ref{vggAfig} shows IOU and IOU* statistics for a 1000-instance sample explaining VGG-16 model predictions. The 1000 instances are broken up into high confidence (top row) and low confidence predictions (bottom row), where high confidence refers to a model output of $p>0.9$. Error bars indicate one standard deviation from the mean result displayed by bar height, and can be used a proxy of method consistency. For this setup a threshold of 0.5 standard deviations was applied to the attribution output for IOU and 1 standard deviation for IOU*.\\
+Figure \ref{vggAfig} shows IOU and IOU* statistics for a 1000-instance sample explaining VGG-16 model predictions. The 1000 instances are broken up into high confidence (top row) and low confidence predictions (bottom row), where high confidence refers to a model output of $p>0.9$. Error bars indicate one standard deviation from the mean result displayed by bar height, and can be used a proxy of method consistency (Section \ref{sec:consistency}). For this experiment setup, a threshold of 0.5 standard deviations was applied to the attribution output for IOU and 1 standard deviation for IOU*.\\
 
 \vspace{0.2in}
-Some observations on Figure \ref{vggAfig} (other insights in Section \ref{sec:saliency_insights}):
+Some observations on Figure \ref{vggAfig} (other discussion in Section \ref{sec:saliency_insights}):
 \begin{itemize}
 \item Results are similar for high vs low confidence predictions, with LIME's variance being one noticeable difference.
 \item SHAP and DeepLift perform similarly on IOU but not IOU*
@@ -68,14 +68,23 @@ In Appendix C, Figure X shows comparatively identical results for a smaller samp
 \newpage
 \subsection{Insights from Saliency Metrics} \label{sec:saliency_insights}
 
+\subsubsection{VGG16}
 
-DeepLIFT performed strongly on VGG16 but poorly on more complex architectures.
 
 Some results from the saliency metrics contradict visual observations from each method, however. This is explored in  For example, DeepLIFT's attributions were visually much noisier than others. Even with thresholds applied, it performed well on IOU possibly because of this noise across the input space.
 
 
+LIME outperformed others on IOU*, but since super pixel regions are broadly brushed with the same attribution score, 
+
 
 What is it about the attribution weights that made IOU* high for DeepLIFT?? Why is GradCAM's variance higher??
+
+
+\subsubsection{ResNet50 \& Inception V3}
+
+DeepLIFT performed strongly on VGG16 but poorly on more complex architectures. The reason may be due to the implementation: DeepLIFT requires an architecture modification that has to be done for each layer type. The modification is to implement the custom backward function incorporating reference activations. For this project, the implementation relied upon may not have been able to handle ResNet's residual layers or Inception's layer modules. Full neural network compatibility may be a theoretically true claim by the authors but these implementation caveats are a genuine obstacle for practitioners and researchers.
+
+
 
 \newpage
 \section{Other Criteria}
@@ -98,7 +107,7 @@ A surprising insight is that GradCAM performed much worse than LIME for a 100-in
 
 
 \newpage
-\subsection{Consistency}
+\subsection{Consistency}\label{sec:consistency}
 Some analysis is provided below on consistency across attributions. Table \ref{consistencytable} lists standard deviations for the method panel from the 1000-instance experiment (error bars in Figure \ref{vggAfig}):
 
 \begin{table}[htbp]
@@ -106,7 +115,7 @@ Some analysis is provided below on consistency across attributions. Table \ref{c
 \begin{tabular}{|l|l|l|l|l|}
 \hline
                   & \multicolumn{2}{c|}{\textbf{IOU}} & \multicolumn{2}{c|}{\textbf{IOU*}} \\ \hline
-                  & High p           & Low p          & High p           & Low p           \\ \hline
+                  & \textbf{High p}           & \textbf{Low p}          & \textbf{High p}           & \textbf{Low p}           \\ \hline
 \textbf{LIME}     & 0.145            & 0.122          & 0.052            & 0.055           \\ \hline
 \textbf{SHAP}     & 0.089            & 0.085          & 0.010            & 0.008           \\ \hline
 \textbf{DeepLIFT} & 0.112            & 0.118          & 0.012            & 0.011           \\ \hline
@@ -118,7 +127,9 @@ Some analysis is provided below on consistency across attributions. Table \ref{c
 
 \end{table}
 
-ANALYSIS
+LIME suffers noticeably the highest variance and therefore worse consistency over the experiment sample, which corroborates insights by Alvarez-Melis \& Jaakkola (2018) (Section \ref{sec:existing_criteria}) that LIME and model-agnostic, perturbation-based techniques generally are more prone to instability than gradient-based techniques. 
+
+For other methods
 
 
 For consistency across models, it was noted in Section \ref{sec:saliency_insights} that DeepLIFT performed strongly on VGG16 and very poorly on more complex architectures. This was therefore a strength of SHAP and GradCAM that performed slightly worse on IOU but better on more complicated architectures. LIME's attributions were also less consistent
@@ -129,18 +140,23 @@ For consistency across models, it was noted in Section \ref{sec:saliency_insight
 \subsubsection{Localisation vs Pattern Discrimination}
 
 \subsubsection{Impact of Thresholding}
-
+Following Simonyan et al. and 
 
 \newpage
-\subsection{Compatibility \& Ideal Use Cases}
-This section discusses the insights gained on each method's formulation approach: i.e. gradient, perturbation and backpropagation.
+\subsection{Model Compatibility \& Ease of Adaption} \label{sec:compatibility}
+Some insights from comparing each method's formulation approach are described in this section: i.e. gradient, perturbation and backpropagation. Reference is made to their hyperparameter complexity and model compatibility which together can be summarised as ease of adaption.
 \subsubsection{SHAP}
-The difficulty of applying SHAP to other model architectures than simpler convolutional ones like VGG16 indicates that other practitioners may have similar difficulties. Two reasons can be thought of for the problems encountered:
-\begin{itemize}
-\item SHAP is more a higher level `specification' of an explanation method  (\label{sec:othermodelag}) than a particular formulation, which makes it somewhat difficult to evaluate independent of its model-specific approximations of other modified methods like Integrated Gradients. 
+The difficulty of applying SHAP to other model architectures than simpler convolutional ones like VGG16 indicates that other practitioners may have similar difficulties. Two reasons can account for the problems encountered:
 
+\begin{itemize}
+\item SHAP is a higher level `specification' of an explanation method (\label{sec:othermodelag}) more than a particular formulation, which makes it difficult to evaluate independently of its model-specific approximations (i.e. Integrated Gradients). 
+\item Hot take 2
 \end{itemize}
+
 In these results, the Integrated Gradients approximation which underpins the SHAP implementation observed almost identical results to DeepLIFT (i.e saliency in \ref{sec:vggExp} and consistency in ). With SHAP's lower performance for VGG16 than DeepLIFT, this supports the observation in related work that DeepLIFT is a more practical version of Integrated Gradients (Section \ref{sec:existing_studies}).
+
+Choosing background sample to estimate the `expectation' of model output is a key pre-requisite for the SHAP method.
+
 
 Though it couldn't be practically evaluated on other architectures, its visual saliency on VGG16 was appealing and notably different features were highlighted than other methods for the same prediction (e.g. Figure \ref{panel2img}).
 
@@ -187,6 +203,7 @@ DeepLIFT's performance on architectures with fewer convolutional layers was not 
 
 
 % LIME performance heavy num_samples parameter
+
 
 
 
