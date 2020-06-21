@@ -11,6 +11,14 @@
 
 \section{Strengths \& Limitations of Saliency Metrics}
 
+There are a plethora of considerations around the design of proxy metrics for explanation quality. Some of these considerations are obvious, and have been mentioned by others:
+\begin{itemize}
+\item Human perception of explanation quality is difficult to quantify and is an active area of research (\ref{adebay}).
+\item 
+\end{itemize}
+
+
+Other considerations are novel and were realised over the course of this project:
 
 % Rethinking the inception architecture for computer vision
 
@@ -26,10 +34,16 @@
 
 \section{Obstacles}
 
+There was some disappointment around the bugs in SHAP's implementation that meant it couldn't be applied as easily to more complicated model architectures like . Other practitioners and researchers have noted similar difficulties in the GitHub issue list for the software package \cite{shaprepo}.
 
 
-\section{Software Framework Discussion}
+\section{Software Framework}
 
+
+% pluggable support for attribution methods
+
+
+% evaluation framework
 
 
 \end{document}
