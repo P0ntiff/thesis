@@ -9,23 +9,29 @@
 
 \chapter{Discussion}
 
-\section{Strengths \& Limitations of Metric-based Evaluation}
+The main insights from method evaluation were summarised at the end of the previous chapter. To conclude, some discussion on project methodology, attribution method approaches, obstacles encountered and the software framework developed is provided.
 
-There are a plethora of considerations around the design of proxy metrics for explanation quality. Some of these observations, ranging from obvious to more subtle, have been made in the prior art and were empirically confirmed:
-\begin{itemize}
-\item Human perception of explanation quality is difficult to quantify and is an active area of research (\ref{adebay}).
-\item Errors of the method are not easy to distinguish from errors of the model \textbf{(cite)}.
+\section{Evaluation via Saliency Metrics} \label{sec:eval_via_metrics}
 
-\end{itemize}
+There are a number of considerations around proxy metric design for explanation quality, and strengths and limitations of the saliency metric approach itself are worth noting. Some have been mentioned in prior art but were empirically confirmed in this project:
+\begin{enumerate}
+\item Edges do form an important component of visual saliency \cite{adebayo}, though localising an explanation coarsely is more in line with some researcher needs than knowing how discriminative the model is in terms of edges and patterns.
+\item Human perception of explanation quality cannot feasibly be distilled into a single metric, though methods can still be \textit{compared} on proxies of visual quality.
+\item A method's errors are not easy to distinguish from underlying model confusion (i.e. model errors), at least in \textit{individual} method evaluation contexts.
+
+\end{enumerate}
+
+\noindent For each of these points, some associated insights were gained over the project:
+
+\begin{enumerate}
+\item Method evaluation should account for both localisation and discriminative \textit{abilities} of the method - a single localisation metric and a single pixel-wise metric are not mutually exclusive. A more sophisticated saliency metric may be able to optionally account for connected components, edges and pixel-wise attribution intensity simultaneously. Nevertheless, at-scale metric evaluation provides different insights to simple visual inspection, and the former cannot replace the latter.
+\item A set of higher level criteria, including Adebayo's randomisation-based sanity checks and the invariance checks, as well as lower level, functionally-grounded saliency metrics, would be the fairest way to compensate for the subjectivity of a single measure of explanation quality for theoretical comparison. In this project, the practical criteria of method performance and model compatibility were used for higher level evaluation, though finding exact conclusions on the basis of all criteria simultaneously was difficult.
+\item In a context where the underlying model and model predictions are consistent across a panel of methods, as in this project, this can be somewhat controlled for.
 
 
-Other novel conclusions were made however:
+\end{enumerate}
 
-Method evaluation should account for localisation vs discriminative abilities of the method - a single localisation metric and a single pixel-wise metric are not . A more refined saliency metric may be able to account for connected components, edges and pixel-wise attribution intensity.
 
-A set of higher level criteria, including Adebayo's randomisation-based sanity checks, implementation invariance as well as lower level, functionally-grounded saliency metrics, would be the fairest way to compensate for the subjectivity  of a single measure of explanation quality.
-
-In a context where the underlying model predictions are constant for a panel of methods, as in this project, this can be somewhat controlled for.
 
 % Rethinking the inception architecture for computer vision
 
@@ -41,27 +47,27 @@ In a context where the underlying model predictions are constant for a panel of 
 
 
 \section{Comparing Approaches}
-Backpropagation techniques require custom backward functions that override activation functions and gradient operators. This gives them implementation complexities for models with many \textit{types} of layer: this was previously mentioned as an explanation for DeepLIFT's poor performance on InceptionV3 and ResNet50 (Section \ref{saliency_insights}).
+Backpropagation-based methods like DeepLIFT require custom backward functions that override activation functions and gradient operators. This gives them implementation complexities for models with many \textit{types} of layer: this was previously mentioned as an explanation for DeepLIFT's poor performance on InceptionV3 and ResNet50 (Section \ref{saliency_insights}).
 
-For GradCAM on the other hand, targeting only the final convolutional layer gives it a strength over others: it does not depend on complexity in earlier layers. Its limitation is that it can only be implemented for convolutional neural networks, therefore solely dominant in image-based tasks or other applications of that architecture. Other less implementation-dependent methods in the gradient class include Gradient * Input and SmoothGrad.
+For GradCAM on the other hand, targeting only the final convolutional layer gives it a strength over others: it does not depend on complexity in earlier layers. Its limitation is that it can only be implemented for convolutional neural networks, therefore is dominant only in image-based tasks or other applications of that architecture. Less architecture-dependent methods in the gradient class include Gradient * Input and SmoothGrad.
 
-Perturbation techniques, including LIME but also those proposed by Fong \& Vedaldi \cite{perturb_fong} (`mask generation') and Zeiler \& Fergus (2014) \cite{zeilerfergus2013} ('Occlusion') have a very clear interpretation in what they iteratively reveal. However, the requirement to test a large number of small, progressively increasing occlusion patches was shown to suffer bad performance even on ``simpler'' architectures like VGG16. For modern, more complex architectures, perhaps those trained on higher resolution images or taking longer to compute a single prediction, the performance may make the method completely unviable, unless a very small number of explanations are required. The strength of LIME and the perturbation approach generally is its `off the shelf' ease of adoption, which is true for practitioners and researchers working on \textit{any} classification task.
+Perturbation techniques, including LIME but also those proposed by Fong \& Vedaldi \cite{perturb_fong} (`mask generation') and Zeiler \& Fergus (2014) \cite{zeilerfergus2013} ('Occlusion') have a very clear interpretation in what they iteratively reveal. However, the requirement to test a large number of small, progressively increasing occlusion patches was shown to suffer bad performance even on ``simpler'' architectures like VGG16. For modern, more complex architectures, perhaps those trained on higher resolution images or taking longer to compute a single prediction, the performance may make the method completely unviable, unless a  small number of explanations are required. The strength of LIME and the perturbation approach generally is its `off the shelf' ease of adoption, which is true for practitioners and researchers working on \textit{any} classification task beyond image data.
 
-\section{Obstacles \& Methodology Limitations}
+\section{Obstacles \& Methodology Improvements}
 
-There was some disappointment around the bugs in SHAP's implementation that meant it couldn't be applied to more complicated model architectures than VGG16. Other practitioners and researchers have noted similar difficulties in its GitHub issue list \cite{shaprepo}.
+There was some disappointment around the bugs in the SHAP implementation that meant it couldn't be applied to more complicated model architectures than VGG16. Other practitioners and researchers have noted similar difficulties in its GitHub issue list \cite{shaprepo}. However, results were still able to be somewhat generalised on InceptionV3 and ResNet50.
 
-There was also some regret around saliency metrics being limited to the intuition based on pixel-wise attribution. The implicit procedure in the project's methodology was to ``massage'' attribution method outputs into a discriminative common form. This may have compromised or misrepresented the methods where a divergence from the authors' intent occurred (i.e. super-pixels for LIME, heatmaps for GradCAM). It would have been fairer analysis to critique them on their own criteria (i.e. localisation of bounding boxes for GradCAM) \textit{as well as} the saliency metrics and qualitative criteria used in this project. This would also have formed a positive contribution towards reproducibility.
+There was also some regret around saliency metrics being limited to the formulation based on pixel-wise attribution. The implicit procedure in the project's methodology was to ``massage'' attribution method outputs into a discriminative common form. This may have compromised or misrepresented the methods where a divergence from the authors' intent occurred (i.e. super-pixels for LIME, heatmaps for GradCAM). It may have been fairer analysis to critique them on their own criteria (i.e. localisation of bounding boxes for GradCAM) \textit{as well as} the saliency metrics and qualitative criteria used in this project. This would have also been a positive contribution towards reproducibility.
+
+Finally, ImageNet is a widely-used dataset for research in image classification, though the practical insights from the project may have been better highlighted with a domain-specific dataset instead. Real-world image data with bounding box annotations like ImageNet is difficult to come by however. Model training would also be necessary with such a dataset. For datasets without ground truth bounding box annotations, one possible evaluation metric could be based on noisy data: generated `junk' examples could be fed into the model, and then checked if a drop in method attribution weight across the input space was correlated with the drop in model prediction confidence. This `confusion invariance' idea is similar to (and can be combined with) other invariance criteria explored in the Related Work in Table \ref{criteria_table}.
+
+
 
 \section{Software Framework}
 
-Existing software packages combine only gradient-based methods, or single methods. This extra explanation firepower can be largely redundant when some method outputs are so strikingly similar (e.g. Figure \ref{adebayoimg} in Related Work). A strong contribution of this project was to combine different approaches and offer a more diverse set of explanations for image data, to overall offer a better explanation for any one instance. For example, Figures \ref{panelimg} and \ref{panel2img} in the Methodology highlight very different input space features for even a single model's prediction.
+Existing software packages combine only gradient-based methods, or single methods. This extra explanation `firepower' can be redundant when some method outputs are observed as being so strikingly similar (e.g. Figure \ref{adebayoimg} in Related Work). A contribution of this project was to combine different approaches to explanations for image data, to offer \textit{different} explanations for any one instance. For example, Figures \ref{panelimg} and \ref{panel2img} in the Methodology highlight very different input space features for even a single model's prediction.
 
-Modular support for attribution methods and evaluation metrics was achieved through the object-oriented approach to the testing framework (Figure \ref{flow_image} in the Methodology).
-% pluggable support for attribution methods
-
-
-% evaluation framework
+Modular support for attribution methods and evaluation metrics was achieved through the object-oriented approach to the testing framework (Figure \ref{flow_image} in the Methodology). However, an extra function to present attribution representations differently (i.e. localisation `heatmap' vs discriminatory pixel-map), or denormalise attributions could enable the type of fairer evaluation that was discussed earlier in Section \ref{sec:eval_via_metrics}.
 
 
 \end{document}

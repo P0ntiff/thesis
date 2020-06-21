@@ -26,12 +26,12 @@ Code for the testing framework is available on GitHub and is intended to be made
 Some limitations were encountered on SHAP for ResNet50 and InceptionV3 architectures. Other methods were successfully tested on other models with results below, though the bug in SHAP was not ultimately resolved. The impact of this obstacle is discussed in Section \ref{sec:compatibility}.
 
 \section{Saliency Metric Results}
-\subsection{VGG-16} \label{sec:vggExp}
+\subsection{VGG16} \label{sec:vggExp}
 
-Figure \ref{vggAfig} shows IOU and IOU* statistics for a 1000-instance sample explaining VGG-16 model predictions. The 1000 instances are broken up into high confidence (top row) and low confidence predictions (bottom row), where high confidence refers to a model output of $p>0.9$. Error bars indicate one standard deviation from the mean result displayed by bar height, and can be used a proxy of method consistency (Section \ref{sec:consistency}). For this experiment setup, a threshold of 0.5 standard deviations was applied to the attribution output for IOU and 1 standard deviation for IOU*.\\
+Figure \ref{vggAfig} shows IOU and IOU* statistics for a 1000-instance sample explaining VGG16 model predictions. The 1000 instances are broken up into high confidence (top row) and low confidence predictions (bottom row), where high confidence refers to a model output of $p>0.9$. Error bars indicate one standard deviation from the mean result displayed by bar height, and can be used a proxy of method consistency (Section \ref{sec:consistency}). For this experiment setup, a threshold of 0.5 standard deviations was applied to the attribution output for IOU and 1 standard deviation for IOU*.\\
 
-\vspace{0.2in}
-Some observations on Figure \ref{vggAfig} (other discussion in Section \ref{sec:saliency_insights}):
+\vspace{0.1in}
+\noindent Some observations from Figure \ref{vggAfig} (others discussed in Section \ref{sec:saliency_insights}):
 \begin{itemize}
 \item Results are similar for high vs low confidence predictions, with LIME's variance being one noticeable difference.
 \item SHAP and DeepLift perform similarly on IOU but not IOU*
@@ -46,7 +46,7 @@ Some observations on Figure \ref{vggAfig} (other discussion in Section \ref{sec:
 \begin{figure}[h]\centering
 \vfill
 \includegraphics[scale=0.32]{vgg_0_5_and_1.png}
-\caption{Results for a 1000-instance attribution sample of VGG-16. }
+\caption{Results for a 1000-instance attribution sample of VGG16. }
 \label{vggAfig}
 \vfill
 \end{figure}
@@ -112,7 +112,7 @@ DeepLIFT performed strongly on VGG16 but appeared to fail completely on more com
 \begin{figure}[h]\centering
 \vfill
 \includegraphics[scale=0.6]{performance.png}
-\caption{Performance/speed in seconds for VGG-16, InceptionV3, and ResNet50. }
+\caption{Performance/speed in seconds for VGG16, InceptionV3, and ResNet50. }
 \label{performFig}
 \vfill
 \end{figure}
@@ -155,6 +155,9 @@ For consistency across models, it was noted in Section \ref{sec:saliency_insight
 \subsection{Visual Observations}
 
 \subsubsection{Localisation vs Pattern Discrimination}
+
+% knowing how strongly a model weights particular features is important. is it?
+
 
 \subsubsection{Impact of Thresholding}
 Following Simonyan et al. and 

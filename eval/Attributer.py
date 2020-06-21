@@ -40,9 +40,6 @@ class Attributer:
         }
         self.curr_model_name = model_name
         self.curr_model = self.load_model(model_name)
-        #print(self.curr_model.summary())
-        # for i, layer in enumerate(self.curr_model.layers):
-        #    print(str(i) + ' ' + layer.name)
         # set up methods
         self.lime_method = None
         self.deep_lift_method = None
@@ -73,13 +70,16 @@ class Attributer:
             self.lime_method = Lime(self.curr_model, self.curr_model_name)
         elif method_name == SHAP and self.shap_method is None:
             print(layer_no)
-            self.shap_method = Shap(self.curr_model, self.curr_model_name, layer_no)
+            self.shap_method = Shap(self.curr_model, self.curr_model_name,
+                                    layer_no)
         elif method_name == GRAD and self.gradcam_method is None:
-            self.gradcam_method = GradCam(self.curr_model, self.build_model, layer_no)
+            self.gradcam_method = GradCam(self.curr_model, self.build_model,
+                                          layer_no)
 
-    def predict_for_model(self, ih: ImageHandler, top_n: int = 5, print_to_stdout: bool = True) -> (str, float):
-        # returns a tuple with the top prediction, and the probability of the top prediction (i.e confidence)
-        # classify
+    def predict_for_model(self, ih: ImageHandler, top_n: int = 5,
+                          print_to_stdout: bool = True) -> (str, float):
+        # returns a tuple with the top prediction, and the probability of the
+        # top prediction (i.e confidence)
         logging.info('Classifying...')
         predictions = self.curr_model.predict(ih.get_processed_img())
         decoded_predictions = decode_predictions(predictions, top=top_n)
@@ -91,7 +91,8 @@ class Attributer:
         max_pred = ''
         for (i, (img_net_ID, label, p)) in enumerate(decoded_predictions[0]):
             if print_to_stdout:
-                print('{}: {}, Probability={:.2f}, ImageNet ID={}'.format(i + 1, label, p, img_net_ID))
+                print('{}: {}, Probability={:.2f}, ImageNet ID={}'.format(
+                    i + 1, label, p, img_net_ID))
             if p > max_p:
                 max_p = p
                 max_pred = label
@@ -103,13 +104,15 @@ class Attributer:
         good_examples = []
         for i in range(1, cap):
             ih = ImageHandler(i, self.curr_model_name)
-            max_pred, p = self.predict_for_model(ih, top_n=1, print_to_stdout=False)
+            max_pred, p = self.predict_for_model(ih, top_n=1,
+                                                 print_to_stdout=False)
             if p > 0.9:
                 good_examples.append(i)
         return good_examples
 
     def attribute(self, ih: ImageHandler, method: str, layer_no: int = None,
-                  take_absolute: bool = False, take_threshold: bool = False, sigma_multiple: int = 0,
+                  take_absolute: bool = False, take_threshold: bool = False,
+                  sigma_multiple: int = 0,
                   visualise: bool = False, save: bool = True):
         if layer_no is None:
             layer_no = LAYER_TARGETS[method][self.curr_model_name]
@@ -118,7 +121,8 @@ class Attributer:
         attribution = self.collect_attribution(ih, method=method, layer_no=layer_no)
         # check if applying any thresholds / adjustments based on +ve / -ve evidence
         if take_threshold or take_absolute:
-            attribution = apply_threshold(attribution, sigma_multiple, take_absolute)
+            attribution = apply_threshold(attribution, sigma_multiple,
+                                          take_absolute)
         if check_invalid_attribution(attribution, ih):
             return
         if save:
@@ -128,18 +132,22 @@ class Attributer:
         return attribution
 
     def attribute_panel(self, ih: ImageHandler, methods: list = METHODS,
-                        take_threshold: bool = False, sigma_multiple: int = 0, take_absolute: bool = False,
+                        take_threshold: bool = False, sigma_multiple: int = 0,
+                        take_absolute: bool = False,
                         visualise: bool = False, save: bool = True):
         output_attributions = {}
         for method in methods:
             layer_no = LAYER_TARGETS[method][self.curr_model_name]
-            output_attributions[method] = self.attribute(ih=ih, method=method, layer_no=layer_no,
-                                                         take_absolute=take_absolute, take_threshold=take_threshold,
+            output_attributions[method] = self.attribute(ih=ih, method=method,
+                                                         layer_no=layer_no,
+                                                         take_absolute=take_absolute,
+                                                         take_threshold=take_threshold,
                                                          sigma_multiple=sigma_multiple,
                                                          visualise=visualise, save=save)
         return output_attributions
 
-    def collect_attribution(self, ih: ImageHandler, method: str, layer_no: int = None, print_debug: bool = True):
+    def collect_attribution(self, ih: ImageHandler, method: str,
+                            layer_no: int = None, print_debug: bool = True):
         """Top level wrapper for collecting attributions from each method. """
         if print_debug:
             print('Collecting attribution for `{}`'.format(method))
