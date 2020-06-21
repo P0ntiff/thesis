@@ -202,16 +202,26 @@ The super pixels output by LIME are better suited for \textit{localisation} perf
 \cline{2-4}
                                         & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Saliency (IOU, IOU*)\\    (Section \ref{sec:saliency_insights})\end{tabular}}} & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Consistency\\ (Section \ref{sec:consistency})\end{tabular}}} & \multicolumn{1}{c|}{\textbf{\begin{tabular}[c]{@{}c@{}}Performance\\ (Section \ref{sec:perform})\end{tabular}}} \\ \hline
 \multicolumn{1}{|l|}{\textbf{LIME}}     & \begin{tabular}[c]{@{}l@{}}Low IOU; High IOU* \\ explained by super pixel \\ weighting\end{tabular}                    & \begin{tabular}[c]{@{}l@{}}Poor over the \\ sample; Unstable\end{tabular}                           & \begin{tabular}[c]{@{}l@{}}Very slow for all \\ three models\end{tabular}                       \\ \hline
-\multicolumn{1}{|l|}{\textbf{SHAP}}     & \begin{tabular}[c]{@{}l@{}}High IOU; Failed on \\ other models; \\ Visually salient\end{tabular}                       & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Moderate speed; \\ incomplete results\end{tabular}                   \\ \hline
-\multicolumn{1}{|l|}{\textbf{DeepLIFT}} & \begin{tabular}[c]{@{}l@{}}High IOU and IOU*;\\ Failed on other models; \\ Noisy\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Fast; results also \\ incomplete\end{tabular}                        \\ \hline
-\multicolumn{1}{|l|}{\textbf{GradCAM}}  & \begin{tabular}[c]{@{}l@{}}Average IOU and \\ IOU*; Visually salient\end{tabular}                                      & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence \\ and across models\end{tabular}     & \begin{tabular}[c]{@{}l@{}}Guided-GradCAM\\  = very slow; \\ Grad-CAM = fast\end{tabular}       \\ \hline
+\multicolumn{1}{|l|}{\textbf{SHAP}}     & \begin{tabular}[c]{@{}l@{}}High IOU; failed on \\ other models; \\ visually salient\end{tabular}                       & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Moderate speed; \\ incomplete results\end{tabular}                   \\ \hline
+\multicolumn{1}{|l|}{\textbf{DeepLIFT}} & \begin{tabular}[c]{@{}l@{}}High IOU and IOU*;\\ failed on other models; \\ noisy explanations\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Fast; results also \\ incomplete\end{tabular}                        \\ \hline
+\multicolumn{1}{|l|}{\textbf{GradCAM}}  & \begin{tabular}[c]{@{}l@{}}Average IOU and \\ IOU*; visually salient\end{tabular}                                      & \begin{tabular}[c]{@{}l@{}}Consistent for \\ model confidence \\ and across models\end{tabular}     & \begin{tabular}[c]{@{}l@{}}Guided-GradCAM\\  = very slow; \\ Grad-CAM = fast\end{tabular}       \\ \hline
 \end{tabular}
 \caption{Summary of quantitative evaluation results.}
-
 \end{table}
 
 \subsection{Qualitative}
 
+\begin{table}[htbp]
+\begin{tabular}{l|l|l|}
+\cline{2-3}
+                                        & \multicolumn{1}{c|}{\textbf{Relative Strengths}}                                                                                          & \multicolumn{1}{c|}{\textbf{Relative Weaknesses}}                                                                           \\ \hline
+\multicolumn{1}{|l|}{\textbf{LIME}}     & \begin{tabular}[c]{@{}l@{}}Full model compatibility;\\ ease of adaption\end{tabular}                                                      & \begin{tabular}[c]{@{}l@{}}Explanation instability;\\ accuracy hyperparameter\end{tabular}                                  \\ \hline
+\multicolumn{1}{|l|}{\textbf{SHAP}}     & \begin{tabular}[c]{@{}l@{}}Model and task compatibility;\\ theoretic basis\end{tabular}                                                   & \begin{tabular}[c]{@{}l@{}}Uncertain hyperparameter choice;\\ competing approximations (+ bugs)\end{tabular}                \\ \hline
+\multicolumn{1}{|l|}{\textbf{DeepLIFT}} & \begin{tabular}[c]{@{}l@{}}Neural network compatibility;\\ task compatibility\end{tabular}                                                & \begin{tabular}[c]{@{}l@{}}Implementation complexity\\ (increasing in model complexity)\end{tabular}                        \\ \hline
+\multicolumn{1}{|l|}{\textbf{GradCAM}}  & \begin{tabular}[c]{@{}l@{}}Low hyperparameter complexity;\\ flexibility in heatmap localisation \\ vs pattern discrimination\end{tabular} & \begin{tabular}[c]{@{}l@{}}Model inflexibility: designed for CNNs;\\ task inflexibility: suited for image data\end{tabular} \\ \hline
+\end{tabular}
+\caption{Summary of qualitative insights.}
+\end{table}
 
 
 \end{document}

@@ -4,39 +4,41 @@
 
 \begin{document}
 
+\chapter{Conclusion}
 
-The original project aims have been successfully met:
-\begin{enumerate}
-	\item \textbf{Examine and evaluate} a panel of feature attribution methods using proxy metrics of explanation quality supported by analysis on performance, use cases and other qualitative criteria.
 
-	\item \textbf{Develop} an attribution software package for testing methods at scale with modular support for different metrics, methods and models, to make it easier for researchers to collect explanations and build more adoptable models.
+%The original project aims have been successfully met:
+%\begin{enumerate}
+%	\item \textbf{Examine and evaluate} a panel of feature attribution methods using proxy metrics of explanation quality supported by analysis on performance, use cases and other qualitative criteria.
 
-\end{enumerate}
+%	\item \textbf{Develop} an attribution software package for testing methods at scale with modular support for different metrics, methods and models, to make it easier for researchers to collect explanations and build more adoptable models.
 
-This project was not a theoretical contribution to unifying methods available in any one class, but provided novel insights from comparing the diversity in approach to saliency:
+%\end{enumerate}
 
-\begin{itemize}
-\item model-specific methods are not necessarily more discriminative, though may be much more performant.
-\item Methods developed for neural network architectures can perform as well as CNN-specific methods; and with easier therefore easier adaption;
-\end{itemize}
+%This project was not a theoretical contribution to unifying methods available in any one class, but provided novel insights from comparing the diversity in approach to saliency:
+
+%\begin{itemize}
+%\item model-specific methods are not necessarily more discriminative, though may be much more performant.
+%\item Methods developed for neural network architectures can perform as well as CNN-specific methods; and with easier therefore easier adaption;
+%\end{itemize}
 %%"Invariances in explanation methods give a concrete way to rule out the adequacy of the method for certain tasks. We primarily focused on invariance under model randomization, and label randomization. Many other transformations are worth investigating and can shed light on various methods we did and did not evaluate. Along these lines, we hope that our paper is a stepping stone towards a more rigorous evaluation of new explanation methods, rather than a verdict on existing methods.
 
-
-\chapter{Conclusion}
 
 \section{Contribution}
 There are broad motivations for explainability in machine learning, and overlapping views in the literature for not only what a `quality' explanation should look like but also what an explanation should target (i.e. activations, gradients or occluded inputs). As well as the various motivations, even for a single model's prediction, the range of possible visually salient explanations makes finding practical criteria for interpretability that much harder.
 
-Importantly this thesis did \textit{not} seek to address this problem. As well as this, the intention was not to provide a verdict on a superior method in the panel. The project's aims were to independently provide an evaluation of diverse feature attribution methods in the image classification context, using a \textit{common} set of criteria. Along with the developed testing framework, this was to improve task-suited adoption of interpretability techniques, via better understanding of their practical considerations.
+This thesis did not aim to address the issue of what defines intepretability. As well as this, the intention was not to provide a verdict on a single superior method in the panel. Instead, the project's aims were to independently provide an evaluation of \textit{diverse} feature attribution methods in the image classification context though using a \textit{common} set of criteria. Using  the developed testing framework, this was to measure their strengths on a level playing field, and thereby improve task-suited adoption of interpretability techniques via better understanding of their practical merits and considerations.
 
-These aims were successfully achieved via the evaluation study's insights on use cases and criteria for representative methods from the literature, and the developed software framework which provides modular support for underlying models, methods and evaluation metrics. 
+These aims were successfully achieved via the evaluation study carried out, and insights on the panel of methods picked for representativeness of approach were derived from quantitative and qualitative standpoints. The developed testing framework includes modular support for underlying models, methods and evaluation metrics, to help future researchers evaluate methods and thereby build more adoptable models.
 
-Researchers and practitioners who wish to understand pieces of their model's complexity can hopefully gain a more thorough understanding of predictions using methods from different approaches, and with the software developed by this project. The multi-angle evaluation of feature attribution methods may help achieve higher confidence in model explanation techniques generally, and therefore support their adoption in important applications like prediction debugging in medical imaging.
+Researchers and practitioners who wish to understand pieces of their model's complexity can hopefully gain a more thorough understanding of predictions using methods from different approaches. This contribution of a multi-approach evaluation of feature attribution methods will hopefully help achieve higher confidence in model explanation techniques generally, and support their adoption in important applications like prediction debugging in medical imaging.
 
 \section{Future work}
 
+Some directions for future work with regards to the evaluation methodology were identified in the Discussion. These aspects and other suggestions are summarised in Table X to conclude.
 
-increasing the breadth of supported methods, adding higher level support for adding new saliency metrics, 
+
+lthe breadth of supported methods, adding higher level support for adding new saliency metrics, 
 
 implementing methods directly, rather than relying on GitHub implementations by researchers and third party attempts to implement formulations described in a paper. The motivation for more reproducibility in machine learning is another reason to hand-implement these methods, to independently corroborate method author claims and find low level bugs (like SHAP's) more easily.
 
