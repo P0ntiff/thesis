@@ -59,28 +59,30 @@
 
 \chapter{Acknowledgments}
 
-I wish to acknowledge the direction and support provided by my supervisor Dr Alina Bialkowski over the course of this project. Feedback after each milestone was invaluable and tips on different approaches helped provide guidance at key junctions. This ranged from helping narrow the scope at the start of the project, suggestions after each deliverable to help improve the next one, and regular appraisal of the direction I was heading throughout the project. It would also be remiss of me not to offer congratulations on baby Emilie's birth! To my family, I'd like to thank my parents and my siblings Joe, Nick and Susannah for their endless care and support.
+I wish to acknowledge the direction and support provided by my supervisor Dr Alina Bialkowski over the course of this project. Feedback after each milestone was invaluable and tips on different approaches helped provide guidance at many key junctions. I would also like to offer my congratulations on baby Emilia's birth! To my family, I'd like to thank my parents for their care and support through all my years at school and university, and my siblings Joe, Nick and Susannah for their support as well.
+
 \cleardoublepage
 
 \chapter{Abstract}
 
-These aims were successfully achieved via the evaluation study carried out, and many insights on the panel of methods (picked for representativeness of approach) were derived from both quantitative and qualitative data. The developed testing framework includes modular support for underlying models, methods and evaluation metrics, which can help future researchers evaluate and apply methods to build more adoptable models.
+Interpretability in machine learning is an essential requirement for adoption in domains that require trust. Feature attribution methods are a popular approach in the interpretability literature to explain model predictions in terms of important input features. Existing studies have evaluated these methods on a range of still actively-researched desiderata, though within this evolving space, independent study on the practical merits of one method's approach over another is lacking.
+
+\vspace{0.15in}
+
+\noindent A panel of four representative and contrastive attribution methods (LIME, SHAP, Grad-CAM and DeepLIFT) were evaluated in the image classification context on ImageNet-trained models and under a common set of proxy saliency metrics and qualitative criteria. Metrics included pixel-wise intersection-over-union compared with ImageNet ground truths, and other criteria were aimed at finding implementable insights on performance, model compatibility and ease of adaption for generic use cases.
+
+\vspace{0.15in}
+
+\noindent As part of the evaluation study, a software framework with modular support for underlying models and metrics was developed. This framework is extendable for other methods, and provides a novel contribution in the form of both a diverse image data explanation framework and one that supports saliency metric evaluation.
+
+\vspace{0.15in}
+
+\noindent Practical and implementable insights are derived for each method. Future work needed to improve method evaluation is explored within the context of the criteria and framework developed.
 
 
 
-This document is a skeleton thesis for 4th-year students.  The
-printable versions show the structure of a typical thesis with some notes on the content
-and purpose of each part.  The notes are meant to be informative but
-not necessarily illustrative; for example, this paragraph is not
-really an abstract, because it contains information not found
-elsewhere in the document.  The \LaTeXe\ source file
-(\texttt{skel.tex}) contains some non-printing comments giving
-additional information for students who wish to typeset their theses
-in \LaTeX.  You can download the source, edit out the unwanted
-material, insert your own frontmatter and bibliographic entries, and
-in-line or \verb+\include{}+ your own chapter files.  Of course the
-content of a particular thesis will influence the form to a large
-extent.  Hence this document should not be seen as an attempt to force every thesis into the same mold.  If in doubt about the structure of your thesis, seek advice from your supervisor.
+%These aims were successfully achieved via the evaluation study carried out, and many insights on the panel of methods (picked for representativeness of approach) were derived from both quantitative and qualitative data. The developed testing framework includes modular support for underlying models, methods and evaluation metrics, which can help future researchers evaluate and apply methods to build more adoptable models.
+
 
 % nice abstract from TreeExplainer Tree-based machine learning models such as random forests, decision trees and gradient boosted trees are popular nonlinear predictive models, yet comparatively little attention has been paid to explaining their predictions. Here we improve the interpretability of tree-based models through three main contributions. (1) A polynomial time algorithm to compute optimal explanations based on game theory. (2) A new type of explanation that directly measures local feature interaction effects. (3) A new set of tools for understanding global model structure based on combining many local explanations of each prediction. We apply these tools to three medical machine learning problems and show how combining many high-quality local explanations allows us to represent global structure while retaining local faithfulness to the original model. These tools enable us to (1) identify high-magnitude but low-frequency nonlinear mortality risk factors in the US population, (2) highlight distinct population subgroups with shared risk characteristics, (3) identify nonlinear interaction effects among risk factors for chronic kidney disease and (4) monitor a machine learning model deployed in a hospital by identifying which features are degrading the model’s performance over time. Given the popularity of tree-based machine learning models, these improvements to their interpretability have implications across a broad set of domains.
 

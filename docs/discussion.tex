@@ -37,7 +37,7 @@ Backpropagation-based methods like DeepLIFT require custom backward functions th
 
 For GradCAM on the other hand, targeting only the final convolutional layer gives it a strength over others: it does not depend on complexity in earlier layers. Its limitation is that it can only be implemented for convolutional neural networks, therefore is dominant only in image-based tasks or other applications of that architecture. Less architecture-dependent methods in the gradient class include Gradient * Input and SmoothGrad.
 
-Perturbation techniques, including LIME but also those proposed by Fong \& Vedaldi \cite{perturb_fong} (`mask generation') and Zeiler \& Fergus (2014) \cite{zeilerfergus2013} (`Occlusion') have a clear interpretation in what they iteratively reveal. However, the requirement to test a large number of small, progressively increasing occlusion patches was shown to suffer bad performance even on simpler architectures like VGG16. For modern, more complex architectures, perhaps those trained on higher resolution images or taking longer to compute a single prediction, the performance may make the method unviable, unless a small number of explanations are required. The strength of LIME and the perturbation approach generally is its `off the shelf' ease of adaption, which is true for practitioners and researchers working on \textit{any} classification task beyond image data.
+Perturbation techniques, including LIME but also those proposed by Fong \& Vedaldi (2017) \cite{perturb_fong} (`mask generation') and Zeiler \& Fergus (2014) \cite{zeilerfergus2013} (`Occlusion') have a clear interpretation in what they iteratively reveal. However, the requirement to test a large number of small, progressively increasing occlusion patches was shown to suffer bad performance even on simpler architectures like VGG16. For modern, more complex architectures, perhaps those trained on higher resolution images or taking longer to compute a single prediction, the performance may make the method unviable, unless a small number of explanations are required. The strength of LIME and the perturbation approach generally is its `off the shelf' ease of adaption, which is true for practitioners and researchers working on \textit{any} classification task beyond image data.
 
 \section{Obstacles \& Methodology Enhancements}
 
@@ -51,26 +51,22 @@ Finally, ImageNet is a widely used dataset for research in image classification,
 
 \section{Software Framework}
 
-Existing software packages combine only gradient-based methods or closely related variants. These toolsets can be redundant when related method outputs are so consistently similar (e.g. Figure \ref{adebayoimg} in Related Work). A key contribution of this project's toolset was to combine different explanation approaches for image data to be able to offer different explanations for any one instance. For example, Figures \ref{panelimg} and \ref{panel2img} in the Methodology highlight different, informative input space features among the method panel even for a single model's prediction.
+Existing software packages combine only gradient-based methods or closely related variants. These toolsets can be redundant when related method outputs are so consistently similar (e.g. Figure \ref{adebayoimg} in Related Work). A key contribution of this project's toolset was to combine different explanation approaches for image data to be able to offer different explanations for any one instance. For example, Figures \ref{defaultimg} and \ref{panel2img} in the Methodology highlight different, informative input space features among the method panel even for a single model's prediction.
 
 Modular support for attribution methods and evaluation metrics was achieved through the object-oriented approach taken for the testing framework (Figure \ref{flow_image} in the Methodology). However, an extra function to present attribution representations differently (i.e. localisation `heatmap' vs discriminatory pixel-map) or denormalise attributions could create the fairer evaluation testbed that was discussed in Section \ref{sec:eval_via_metrics}.
 
 
 \section{Other Recommendations for Future Work}
 
+Some directions for future work with regards to the evaluation methodology have already been discussed in this chapter. From highest priority to lowest, more concrete goals and actions for future work can be listed:
+\begin{enumerate}
+\item Further investigate causes of SHAP and DeepLIFT bugs that limited results from being fully generalised on complex architectures. Swap method implementations out with other publicly available ones to check if the problem is resolved, and if not then consider hand implementation of the methods.
+\item Test the method panel on other saliency metrics: compare localisation performance via component-segmentation and derived bounding boxes. If segmentation is effective on the attribution outputs, then compare localisation-based IOU performance with the discriminatory IOU results from this project.
+\item Formalise the software documentation and set-up a user friendly guide for practitioners to be able to download and install the framework from GitHub to then apply the framework on their own models.
+\item Abstract away from the ImageNet dataset and ideally add support for a secondary image dataset to help highlight domain agnosticity of the framework.
+\item Address other weaknesses in the testing framework: remove unnecessary dependencies and optimise the code for broader sample evaluation.
+\end{enumerate}
 
-Some directions for future work with regards to the evaluation methodology were identified already in this chapter. These aspects and other suggestions are summarised in Table X to conclude.
-
-
-lthe breadth of supported methods, adding higher level support for adding new saliency metrics, 
-
-implementing methods directly, rather than relying on GitHub implementations by researchers and third party attempts to implement formulations described in a paper. The motivation for more reproducibility in machine learning is another reason to hand-implement these methods, to independently corroborate method author claims and find low level bugs (like SHAP's) more easily.
-
-models at various stages of training
-
-New datasets, biased dataset
-
-
-
+\noindent The motivation for many of these tasks is to increase adoption of the multi-approach framework that has been developed, and help practitioners apply the explanation framework without much implementation hassle.
 
 \end{document}
